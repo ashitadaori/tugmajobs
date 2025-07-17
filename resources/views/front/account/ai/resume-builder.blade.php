@@ -15,7 +15,7 @@
         </div>
         <div class="row">
             <div class="col-lg-3">
-                @include('front.account.sidebar')
+                @include('components.sidebar')
             </div>
             <div class="col-lg-9">
                 @include('front.message')
@@ -116,9 +116,12 @@ $(document).ready(function() {
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Generating...');
         
         $.ajax({
-            url: '{{ route("ai.generateResume") }}',
             type: 'POST',
-            data: form.serialize(),
+            url: '{{ route("account.ai.resume-builder.generate") }}',
+            data: {
+                job_id: form.find('select[name="job_id"]').val(),
+                _token: '{{ csrf_token() }}'
+            },
             success: function(response) {
                 if (response.success) {
                     $('#generatedResume').text(response.resume);
@@ -146,7 +149,8 @@ $(document).ready(function() {
         const form = $(this);
         const submitBtn = form.find('button[type="submit"]');
         
-        if (!form.find('textarea[name="resume_text"]').val().trim()) {
+        const resumeText = form.find('textarea[name="resume_text"]').val().trim();
+        if (!resumeText) {
             alert('Please paste your resume text before analyzing.');
             return;
         }
@@ -154,9 +158,12 @@ $(document).ready(function() {
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...');
         
         $.ajax({
-            url: '{{ route("ai.analyzeResume") }}',
             type: 'POST',
-            data: form.serialize(),
+            url: '{{ route("account.ai.resume-builder.analyze") }}',
+            data: {
+                resume_text: resumeText,
+                _token: '{{ csrf_token() }}'
+            },
             success: function(response) {
                 if (response.success) {
                     $('#analysisResult').html(response.analysis.replace(/\n/g, '<br>'));

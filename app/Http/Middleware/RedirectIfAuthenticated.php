@@ -24,7 +24,15 @@ class RedirectIfAuthenticated
         // Is user has access of authentication, page will redirect to profile not login or register page(if he want to access from url it'll also redirect to profile page)
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(route('account.profile'));
+                $user = Auth::guard($guard)->user();
+                
+                if ($user->isAdmin() || $user->isSuperAdmin()) {
+                    return redirect()->route('admin.dashboard');
+                } elseif ($user->isEmployer()) {
+                    return redirect()->route('employer.dashboard');
+                } else {
+                    return redirect()->route('account.dashboard');
+                }
             }
         }
 

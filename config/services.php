@@ -31,4 +31,22 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'persona' => [
+        'api_key' => env('PERSONA_API_KEY'),
+        'template_id' => env('PERSONA_TEMPLATE_ID'),
+        'webhook_secret' => env('PERSONA_WEBHOOK_SECRET'),
+    ],
+
+    'didit' => [
+        'auth_url' => env('DIDIT_AUTH_URL', 'https://business.didit.me'),
+        'base_url' => env('DIDIT_BASE_URL', 'https://business.didit.me'),
+        'api_key' => env('DIDIT_API_KEY'),
+        'client_id' => env('DIDIT_CLIENT_ID'),
+        'client_secret' => env('DIDIT_CLIENT_SECRET'),
+        'workflow_id' => env('DIDIT_WORKFLOW_ID'),
+        'callback_url' => env('DIDIT_CALLBACK_URL'),
+        'redirect_url' => env('DIDIT_REDIRECT_URL'),
+        'webhook_secret' => env('DIDIT_WEBHOOK_SECRET'),
+    ],
+
 ];

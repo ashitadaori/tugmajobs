@@ -48,7 +48,7 @@
                                 </button>
 
                                 <div class="auth-footer mt-4">
-                                    Remember your password? <a href="{{ route('account.login') }}">Login here</a>
+                                    Remember your password? <a href="{{ route('login') }}">Login here</a>
                                 </div>
                             </form>
                         </div>

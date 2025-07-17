@@ -1,257 +1,262 @@
-<!-- Modern Admin Sidebar -->
-<div class="modern-sidebar-content">
-    <!-- Admin Profile -->
-    <div class="admin-profile">
-        <div class="profile-image">
-            @if (Auth::user()->image != '')
-                <img src="{{ asset('profile_img/thumb/'.Auth::user()->image) }}" alt="Admin">
-            @else
-                <img src="{{ asset('assets/images/avatar7.png') }}" alt="Admin">
-            @endif
-        </div>
-        <div class="profile-info">
-            <h5>{{ Auth::user()->name }}</h5>
-            <span class="badge bg-primary">Administrator</span>
+<!-- Admin Sidebar -->
+<div class="admin-sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <h4>Admin Panel</h4>
         </div>
     </div>
 
-    <!-- Navigation Menu -->
     <div class="sidebar-menu">
+        <!-- Global Controls Section -->
         <div class="menu-section">
-            <span class="menu-header">MAIN</span>
-            <a href="{{ route('admin.dashboard') }}" class="menu-item {{ Request::is('admin/dashboard') ? 'active' : '' }}">
-                <i class="fas fa-home"></i>
+            <div class="menu-title">Global Controls</div>
+
+            <!-- Dashboard -->
+            <a href="{{ route('admin.dashboard') }}" 
+               class="menu-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
-        </div>
 
-        <div class="menu-section">
-            <span class="menu-header">JOB MANAGEMENT</span>
-            <a href="{{ route('admin.jobs.index') }}" class="menu-item {{ Request::is('admin/jobs*') ? 'active' : '' }}">
-                <i class="fas fa-briefcase"></i>
-                <span>Job Posts</span>
-            </a>
-            <a href="{{ route('admin.applications.index') }}" class="menu-item {{ Request::is('admin/applications*') ? 'active' : '' }}">
-                <i class="fas fa-file-alt"></i>
-                <span>Applications</span>
-            </a>
-            <a href="{{ route('admin.categories.index') }}" class="menu-item {{ Request::is('admin/categories*') ? 'active' : '' }}">
-                <i class="fas fa-tags"></i>
-                <span>Categories & Tags</span>
-            </a>
-        </div>
-
-        <div class="menu-section">
-            <span class="menu-header">USER MANAGEMENT</span>
-            <a href="{{ route('admin.employers.index') }}" class="menu-item {{ Request::is('admin/employers*') ? 'active' : '' }}">
-                <i class="fas fa-building"></i>
-                <span>Employers</span>
-            </a>
-            <a href="{{ route('admin.jobseekers.index') }}" class="menu-item {{ Request::is('admin/jobseekers*') ? 'active' : '' }}">
+            <!-- User Management -->
+            <a href="{{ route('admin.users.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                 <i class="fas fa-users"></i>
-                <span>Job Seekers</span>
+                <span>User Management</span>
             </a>
-            <a href="{{ route('admin.resumes.index') }}" class="menu-item {{ Request::is('admin/resumes*') ? 'active' : '' }}">
-                <i class="fas fa-file-pdf"></i>
-                <span>Resume Database</span>
+
+            <!-- Job Management -->
+            <div class="menu-section">
+                <div class="menu-title">Job Management</div>
+                
+                <!-- All Jobs -->
+                <a href="{{ route('admin.jobs.index') }}" 
+                   class="menu-item {{ request()->routeIs('admin.jobs.index') ? 'active' : '' }}">
+                    <i class="fas fa-briefcase"></i>
+                    <span>All Jobs</span>
+                </a>
+
+                <!-- Pending Jobs -->
+                <a href="{{ route('admin.jobs.pending') }}" 
+                   class="menu-item {{ request()->routeIs('admin.jobs.pending') ? 'active' : '' }}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Jobs</span>
+                    @if($pendingJobsCount ?? 0 > 0)
+                        <span class="badge bg-warning">{{ $pendingJobsCount }}</span>
+                    @endif
+                </a>
+            </div>
+
+            <!-- KYC Queue -->
+            <a href="{{ route('admin.kyc.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.kyc.*') ? 'active' : '' }}">
+                <i class="fas fa-id-card"></i>
+                <span>KYC Queue</span>
+                @if($kycPendingCount ?? 0 > 0)
+                    <span class="badge bg-danger">{{ $kycPendingCount }}</span>
+                @endif
             </a>
         </div>
 
+        <!-- Content Management Section -->
         <div class="menu-section">
-            <span class="menu-header">ANALYTICS</span>
-            <a href="{{ route('admin.reports.index') }}" class="menu-item {{ Request::is('admin/reports*') ? 'active' : '' }}">
-                <i class="fas fa-chart-line"></i>
-                <span>Reports & Statistics</span>
+            <div class="menu-title">Content Management</div>
+
+            <!-- Categories -->
+            <a href="{{ route('admin.categories.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                <i class="fas fa-tags"></i>
+                <span>Categories</span>
             </a>
-            <a href="{{ route('admin.analytics.index') }}" class="menu-item {{ Request::is('admin/analytics*') ? 'active' : '' }}">
-                <i class="fas fa-chart-bar"></i>
-                <span>Job Analytics</span>
+
+            <!-- Job Types -->
+            <a href="{{ route('admin.job-types.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.job-types.*') ? 'active' : '' }}">
+                <i class="fas fa-list"></i>
+                <span>Job Types</span>
             </a>
         </div>
 
+        @if(auth()->user()->role === 'superadmin')
+        <!-- System Settings Section (Superadmin Only) -->
         <div class="menu-section">
-            <span class="menu-header">CONTENT</span>
-            <a href="{{ route('admin.pages.index') }}" class="menu-item {{ Request::is('admin/pages*') ? 'active' : '' }}">
-                <i class="fas fa-file"></i>
-                <span>Static Pages</span>
-            </a>
-            <a href="{{ route('admin.blog.index') }}" class="menu-item {{ Request::is('admin/blog*') ? 'active' : '' }}">
-                <i class="fas fa-newspaper"></i>
-                <span>Blog/News</span>
-            </a>
-            <a href="{{ route('admin.faqs.index') }}" class="menu-item {{ Request::is('admin/faqs*') ? 'active' : '' }}">
-                <i class="fas fa-question-circle"></i>
-                <span>FAQs</span>
-            </a>
-        </div>
+            <div class="menu-title">System Settings</div>
 
-        <div class="menu-section">
-            <span class="menu-header">COMMUNICATION</span>
-            <a href="{{ route('admin.announcements.index') }}" class="menu-item {{ Request::is('admin/announcements*') ? 'active' : '' }}">
-                <i class="fas fa-bullhorn"></i>
-                <span>Announcements</span>
-            </a>
-            <a href="{{ route('admin.messages.index') }}" class="menu-item {{ Request::is('admin/messages*') ? 'active' : '' }}">
-                <i class="fas fa-envelope"></i>
-                <span>Messages</span>
-            </a>
-            <a href="{{ route('admin.notifications.index') }}" class="menu-item {{ Request::is('admin/notifications*') ? 'active' : '' }}">
-                <i class="fas fa-bell"></i>
-                <span>Notifications</span>
-            </a>
-        </div>
-
-        <div class="menu-section">
-            <span class="menu-header">SETTINGS</span>
-            <a href="{{ route('admin.settings.general') }}" class="menu-item {{ Request::is('admin/settings/general*') ? 'active' : '' }}">
-                <i class="fas fa-cog"></i>
-                <span>General Settings</span>
-            </a>
-            <a href="{{ route('admin.settings.email') }}" class="menu-item {{ Request::is('admin/settings/email*') ? 'active' : '' }}">
-                <i class="fas fa-envelope-open"></i>
-                <span>Email Templates</span>
-            </a>
-            <a href="{{ route('admin.settings.seo') }}" class="menu-item {{ Request::is('admin/settings/seo*') ? 'active' : '' }}">
-                <i class="fas fa-search"></i>
-                <span>SEO Settings</span>
-            </a>
-        </div>
-
-        <div class="menu-section">
-            <span class="menu-header">ADMINISTRATION</span>
-            <a href="{{ route('admin.roles.index') }}" class="menu-item {{ Request::is('admin/roles*') ? 'active' : '' }}">
+            <!-- Admin Management -->
+            <a href="{{ route('admin.admins.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.admins.*') ? 'active' : '' }}">
                 <i class="fas fa-user-shield"></i>
-                <span>Roles & Permissions</span>
+                <span>Admin Management</span>
             </a>
-            <a href="{{ route('admin.audit.index') }}" class="menu-item {{ Request::is('admin/audit*') ? 'active' : '' }}">
-                <i class="fas fa-history"></i>
-                <span>Audit Logs</span>
+
+            <!-- Site Settings -->
+            <a href="{{ route('admin.settings.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                <i class="fas fa-cog"></i>
+                <span>Site Settings</span>
             </a>
-            <a href="{{ route('admin.security.index') }}" class="menu-item {{ Request::is('admin/security*') ? 'active' : '' }}">
-                <i class="fas fa-shield-alt"></i>
-                <span>Security</span>
+        </div>
+        @endif
+
+        <!-- Account Section -->
+        <div class="menu-section">
+            <div class="menu-title">Account</div>
+
+            <!-- Profile -->
+            <a href="{{ route('admin.profile.edit') }}" 
+               class="menu-item {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
             </a>
+
+            <!-- Change Password -->
+            <a href="{{ route('admin.profile.password') }}" 
+               class="menu-item {{ request()->routeIs('admin.profile.password') ? 'active' : '' }}">
+                <i class="fas fa-lock"></i>
+                <span>Change Password</span>
+            </a>
+
+            <!-- Logout -->
+            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                @csrf
+                <button type="submit" class="menu-item logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log Out</span>
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
 <style>
-.modern-sidebar-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+.admin-sidebar {
     background: #fff;
-}
-
-.admin-profile {
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border-bottom: 1px solid #e5e9f2;
-}
-
-.profile-image {
-    width: 50px;
-    height: 50px;
-}
-
-.profile-image img {
-    width: 100%;
-    height: 100%;
-    border-radius: 10px;
-    object-fit: cover;
-}
-
-.profile-info h5 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e293b;
-}
-
-.profile-info .badge {
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 6px;
-}
-
-.sidebar-menu {
-    padding: 15px;
-    flex: 1;
+    border-right: 1px solid #e5e7eb;
+    height: 100vh;
+    width: 280px;
+    position: fixed;
+    left: 0;
+    top: 0;
     overflow-y: auto;
+    z-index: 1000;
+    padding: 1rem 0;
+}
+
+.sidebar-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1rem;
+}
+
+.sidebar-header .logo h4 {
+    margin: 0;
+    color: #1a1a1a;
+    font-weight: 600;
 }
 
 .menu-section {
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;
+    padding: 0 1rem;
 }
 
-.menu-header {
-    display: block;
-    font-size: 11px;
+.menu-title {
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 0 12px;
-    margin-bottom: 8px;
+    color: #6b7280;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
 }
 
 .menu-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    color: #475569;
+    padding: 0.75rem 1rem;
+    color: #4b5563;
     text-decoration: none;
-    transition: all 0.3s ease;
-    margin-bottom: 2px;
-}
-
-.menu-item i {
-    font-size: 16px;
-    width: 20px;
-    text-align: center;
-}
-
-.menu-item span {
-    font-size: 13px;
-    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    margin-bottom: 0.25rem;
+    position: relative;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
 }
 
 .menu-item:hover {
-    background: #f1f5f9;
-    color: #1e293b;
+    background: #f3f4f6;
+    color: #1a1a1a;
 }
 
 .menu-item.active {
-    background: #3b82f6;
+    background: #2563eb;
     color: #fff;
 }
 
-@media (max-width: 1200px) {
-    .profile-info {
-        display: none;
+.menu-item i {
+    width: 20px;
+    margin-right: 10px;
+    font-size: 1rem;
+}
+
+.menu-item .badge {
+    position: absolute;
+    right: 1rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.logout-btn {
+    color: #ef4444;
+}
+
+.logout-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .admin-sidebar {
+        background: #1a1a1a;
+        border-color: #374151;
     }
 
-    .menu-header {
-        text-align: center;
-        padding: 0;
+    .sidebar-header {
+        border-color: #374151;
     }
 
-    .menu-item span {
-        display: none;
+    .sidebar-header .logo h4 {
+        color: #fff;
+    }
+
+    .menu-title {
+        color: #9ca3af;
     }
 
     .menu-item {
-        justify-content: center;
-        padding: 12px;
+        color: #9ca3af;
     }
 
-    .menu-item i {
-        margin: 0;
-        font-size: 18px;
+    .menu-item:hover {
+        background: #374151;
+        color: #fff;
+    }
+
+    .menu-item.active {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .logout-btn {
+        color: #ef4444;
+    }
+
+    .logout-btn:hover {
+        background: #374151;
+        color: #f87171;
     }
 }
 </style>

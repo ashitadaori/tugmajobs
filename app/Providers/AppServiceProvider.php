@@ -3,43 +3,31 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\View;
-use App\Models\Category;
+use App\Services\DiditService;
+use App\Services\MockDiditService;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
-     *
-     * @return void
      */
-    public function register()
+    public function register(): void
     {
-        //
+        // Use mock Didit service in local environment
+        $this->app->singleton(DiditService::class, function ($app) {
+            if ($app->environment('local') && config('app.debug')) {
+                return new MockDiditService();
+            }
+            
+            return new DiditService();
+        });
     }
 
     /**
      * Bootstrap any application services.
-     *
-     * @return void
      */
-    public function boot()
+    public function boot(): void
     {
-        Paginator::useBootstrapFive();
-
-        // Share categories with all views
-        View::composer('*', function ($view) {
-            try {
-                $categories = Category::whereNull('parent_id')
-                    ->with('children')
-                    ->orderBy('name', 'ASC')
-                    ->where('status', 1)
-                    ->get();
-            } catch (\Exception $e) {
-                $categories = collect([]); // Empty collection if table doesn't exist or other errors
-            }
-            $view->with('categories', $categories);
-        });
+        //
     }
 }

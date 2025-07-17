@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Notifications\DatabaseNotificationCollection;
 
 class User extends Authenticatable
 {
@@ -24,23 +27,20 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
         'mobile',
         'designation',
         'image',
-        'role',
         'skills',
         'education',
         'experience_years',
         'bio',
-        'address',
-        'is_verified',
-        'verification_document',
-        'preferred_job_types',
-        'preferred_categories',
-        'preferred_location',
-        'preferred_salary_range',
-        'phone',
-        'is_active'
+        'is_active',
+        'kyc_status',
+        'kyc_session_id',
+        'kyc_completed_at',
+        'kyc_verified_at',
+        'kyc_data'
     ];
 
     /**
@@ -64,8 +64,14 @@ class User extends Authenticatable
         'education' => 'array',
         'preferred_job_types' => 'array',
         'preferred_categories' => 'array',
+        'notification_preferences' => 'array',
         'is_verified' => 'boolean',
         'is_active' => 'boolean',
+        'salary' => 'decimal:2',
+        'categories' => 'string',
+        'kyc_completed_at' => 'datetime',
+        'kyc_verified_at' => 'datetime',
+        'kyc_data' => 'array'
     ];
     
     /**
@@ -87,9 +93,10 @@ class User extends Authenticatable
     /**
      * Get the jobs saved by the user.
      */
-    public function savedJobs(): HasMany
+    public function savedJobs()
     {
-        return $this->hasMany(SavedJob::class);
+        return $this->belongsToMany(Job::class, 'saved_jobs')
+            ->withTimestamps();
     }
 
     // Profile relationships
@@ -150,6 +157,68 @@ class User extends Authenticatable
         return $this->hasRole('jobseeker') || $this->role === 'jobseeker';
     }
 
+    public function isKycVerified(): bool
+    {
+        return $this->kyc_status === 'verified';
+    }
+
+    public function isKycPending(): bool
+    {
+        return $this->kyc_status === 'pending';
+    }
+
+    public function isKycInProgress(): bool
+    {
+        return $this->kyc_status === 'in_progress';
+    }
+
+    public function isKycFailed(): bool
+    {
+        return $this->kyc_status === 'failed';
+    }
+
+    public function getKycStatusBadgeAttribute(): string
+    {
+        $badges = [
+            'pending' => '<span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>Not Verified</span>',
+            'in_progress' => '<span class="badge bg-warning"><i class="fas fa-hourglass-half me-1"></i>In Progress</span>',
+            'verified' => '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>',
+            'failed' => '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Failed</span>',
+            'expired' => '<span class="badge bg-dark"><i class="fas fa-clock me-1"></i>Expired</span>'
+        ];
+        return $badges[$this->kyc_status] ?? $badges['pending'];
+    }
+
+    public function getKycStatusTextAttribute(): string
+    {
+        $statuses = [
+            'pending' => 'Not Verified',
+            'in_progress' => 'Verification in Progress',
+            'verified' => 'Verified',
+            'failed' => 'Verification Failed',
+            'expired' => 'Verification Expired'
+        ];
+        return $statuses[$this->kyc_status] ?? 'Not Verified';
+    }
+
+    public function getVerifiedBadgeAttribute(): string
+    {
+        if ($this->isKycVerified()) {
+            return '<i class="fas fa-check-circle text-success ms-1" title="Verified Profile" data-bs-toggle="tooltip"></i>';
+        }
+        return '';
+    }
+
+    public function needsKycVerification(): bool
+    {
+        return in_array($this->kyc_status, ['pending', 'failed', 'expired']);
+    }
+
+    public function canStartKycVerification(): bool
+    {
+        return in_array($this->kyc_status, ['pending', 'failed', 'expired']);
+    }
+
     // Messaging
     public function sentMessages(): HasMany
     {
@@ -159,12 +228,6 @@ class User extends Authenticatable
     public function receivedMessages(): HasMany
     {
         return $this->hasMany(Message::class, 'receiver_id');
-    }
-
-    // Notifications
-    public function notifications(): HasMany
-    {
-        return $this->hasMany(Notification::class);
     }
 
     // Audit logs

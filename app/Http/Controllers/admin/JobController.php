@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\admin;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
@@ -8,153 +8,123 @@ use App\Models\Job;
 use App\Models\JobType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use PhpParser\Node\Expr\FuncCall;
 
 class JobController extends Controller
 {
-    public function index(){
-
-        $jobs = Job::orderBy('created_at','DESC')->with('user','applications')->paginate(10);
-        return view('admin.jobs.list',[
-            'jobs' => $jobs,
+    public function index()
+    {
+        $jobs = Job::orderBy('created_at', 'DESC')
+            ->with('employer', 'applications')
+            ->paginate(10);
+            
+        return view('admin.jobs.list', [
+            'jobs' => $jobs
         ]);
     }
 
-    public function create(){
-        $categories = Category::orderBy('name','ASC')->where('status',1)->get();
-        $job_types = JobType::orderBy('name','ASC')->where('status',1)->get();
-        return view('admin.jobs.create',[
+    public function create()
+    {
+        // Get only active categories and job types, ordered by name
+        $categories = Category::where('status', 1)
+            ->orderBy('name', 'ASC')
+            ->get();
+            
+        $job_types = JobType::where('status', 1)
+            ->orderBy('name', 'ASC')
+            ->get();
+
+        // Digos City locations
+        $locations = [
+            ['name' => 'Aplaya', 'lat' => 6.7489, 'lng' => 125.3714],
+            ['name' => 'Binaton', 'lat' => 6.7623, 'lng' => 125.3897],
+            ['name' => 'Cogon', 'lat' => 6.7512, 'lng' => 125.3567],
+            ['name' => 'Colorado', 'lat' => 6.7534, 'lng' => 125.3678],
+            ['name' => 'Dawis', 'lat' => 6.7567, 'lng' => 125.3645],
+            ['name' => 'Dulangan', 'lat' => 6.7589, 'lng' => 125.3723],
+            ['name' => 'Goma', 'lat' => 6.7612, 'lng' => 125.3834],
+            ['name' => 'Igpit', 'lat' => 6.7645, 'lng' => 125.3756],
+            ['name' => 'Mahayag', 'lat' => 6.7678, 'lng' => 125.3867],
+            ['name' => 'Matti', 'lat' => 6.7523, 'lng' => 125.3589],
+            ['name' => 'Poblacion', 'lat' => 6.7545, 'lng' => 125.3578],
+            ['name' => 'San Jose', 'lat' => 6.7556, 'lng' => 125.3634],
+            ['name' => 'San Miguel', 'lat' => 6.7578, 'lng' => 125.3712],
+            ['name' => 'Sinawilan', 'lat' => 6.7634, 'lng' => 125.3845],
+            ['name' => 'Soong', 'lat' => 6.7667, 'lng' => 125.3789],
+            ['name' => 'Tres De Mayo', 'lat' => 6.7689, 'lng' => 125.3856]
+        ];
+            
+        return view('admin.jobs.create', [
             'categories' => $categories,
             'job_types' => $job_types,
+            'locations' => $locations
         ]);
     }
 
-    public function save(Request $request){
-        $data = [
-            'title' => 'required|min:5|max:200',
-            'category' => 'required',
-            'jobType' => 'required',
-            'vacancy' => 'required|integer',
-            'location' => 'required|max:50',
-            'description' => 'required',
-            'experience' => 'required',
-            'company_name' => 'required|min:3|max:75',
-        ];
+    public function save(Request $request)
+    {
+        // Validate request data
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|min:5|max:200',
+            'category' => 'required|exists:categories,id',
+            'jobType' => 'required|exists:job_types,id',
+            'vacancy' => 'required|integer|min:1',
+            'location' => 'required|string|max:100',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'location_address' => 'required|string|max:255',
+            'salary_min' => 'required|numeric|min:0',
+            'salary_max' => 'required|numeric|gt:salary_min',
+            'experience_level' => 'required|in:entry,intermediate,expert',
+            'description' => 'required|string|min:100',
+            'requirements' => 'required|string|min:50',
+            'benefits' => 'nullable|string',
+            'company_name' => 'required|string|min:3|max:100',
+            'company_website' => 'nullable|url|max:255',
+            'is_draft' => 'boolean'
+        ]);
 
-        $validator = Validator::make($request->all(),$data);
-        if($validator->passes()){
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
+        try {
+            // Create new job
             $job = new Job();
             $job->title = $request->title;
             $job->category_id = $request->category;
             $job->job_type_id = $request->jobType;
-            $job->employer_id = Auth::user()->id;
-            $job->vacancy = $request->vacancy;
-            $job->salary = $request->salary;
+            $job->vacancies = $request->vacancy;
             $job->location = $request->location;
+            $job->latitude = $request->latitude;
+            $job->longitude = $request->longitude;
+            $job->location_address = $request->location_address;
+            $job->salary_min = $request->salary_min;
+            $job->salary_max = $request->salary_max;
+            $job->experience_level = $request->experience_level;
             $job->description = $request->description;
+            $job->requirements = $request->requirements;
             $job->benefits = $request->benefits;
-            $job->responsibility = $request->responsibility;
-            $job->qualifications = $request->qualifications;
-            $job->keywords = $request->keywords;
-            $job->experience = $request->experience;
             $job->company_name = $request->company_name;
-            $job->company_location = $request->company_location;
             $job->company_website = $request->company_website;
-            $job->status = $request->status;
-            $job->featured = (!empty($request->featured)) ? $request->featured : 0;
+            $job->status = $request->is_draft ? 'draft' : 'active';
+            $job->created_by = Auth::id();
             $job->save();
 
-            Session()->flash('success','Job created successfully.');
             return response()->json([
-                'status' => true,
-                'errors' => [],
+                'success' => true,
+                'message' => $request->is_draft ? 'Job saved as draft successfully!' : 'Job posted successfully!',
+                'redirect' => route('admin.jobs')
             ]);
-        }else{
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ]);
-        }
-    }
 
-    public Function edit($id){
-
-        $job = Job::findOrFail($id);
-        $categories = Category::orderBy('name','ASC')->where('status',1)->get();
-        $job_types = JobType::orderBy('name','ASC')->where('status',1)->get();
-        return view("admin.jobs.edit",[
-            'job' => $job,
-            'categories' => $categories,
-            'job_types' => $job_types,
-        ]);
-    }
-
-
-    public function update(Request $request, $jobId){
-
-        $data = [
-            'title' => 'required|min:5|max:200',
-            'category' => 'required',
-            'jobType' => 'required',
-            'vacancy' => 'required|integer',
-            'location' => 'required|max:50',
-            'description' => 'required',
-            'experience' => 'required',
-            'company_name' => 'required|min:3|max:75',
-        ];
-
-        $validator = Validator::make($request->all(),$data);
-        if($validator->passes()){
-
-            $job = Job::find($jobId);
-            $job->title = $request->title;
-            $job->category_id = $request->category;
-            $job->job_type_id = $request->jobType;
-            $job->vacancy = $request->vacancy;
-            $job->salary = $request->salary;
-            $job->location = $request->location;
-            $job->description = $request->description;
-            $job->benefits = $request->benefits;
-            $job->responsibility = $request->responsibility;
-            $job->qualifications = $request->qualifications;
-            $job->keywords = $request->keywords;
-            $job->experience = $request->experience;
-            $job->company_name = $request->company_name;
-            $job->company_location = $request->company_location;
-            $job->company_website = $request->company_website;
-            $job->status = $request->status;
-            $job->featured = (!empty($request->featured)) ? $request->featured : 0;
-            $job->save();
-
-            Session()->flash('success','Job updated successfully.');
-            return response()->json([
-                'status' => true,
-                'errors' => [],
-            ]);
-        }else{
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ]);
-        }
-
-    }
-
-    public function destroy(Job $job)
-    {
-        try {
-            // Delete associated applications first
-            $job->applications()->delete();
-            
-            // Delete the job
-            $job->delete();
-
-            return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error deleting job'], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while saving the job. Please try again.'
+            ], 500);
         }
     }
 }

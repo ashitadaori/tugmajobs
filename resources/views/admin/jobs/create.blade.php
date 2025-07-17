@@ -1,270 +1,321 @@
-@extends('front.layouts.app')
+@extends('layouts.admin')
 
 @section('content')
-<section class="section-5 bg-2">
-    <div class="container py-5">
-        <div class="row">
-            <div class="col">
-                <nav aria-label="breadcrumb" class=" rounded-3 p-3 mb-4">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.jobs') }}">Jobs</a></li>
-                        <li class="breadcrumb-item active">Create</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-3">
-                @include('admin.sidebar')
-            </div>
-            <div class="col-lg-9">
-                @include('front.message')
-                <form action="" name="createJobForm" id="createJobForm">
-                    @csrf
-                    <div class="card border-0 shadow mb-4">
-                        <div class="card-body card-form p-4">
-                            <h3 class="fs-4 mb-1">Job / Create</h3>
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <label for="" class="mb-2">Title<span class="req">*</span></label>
-                                    <input type="text" placeholder="Job Title" id="title" name="title" class="form-control">
-                                    <p></p>
-                                </div>
-                                <div class="col-md-6  mb-4">
-                                    <label for="" class="mb-2">Category<span class="req">*</span></label>
-                                    <select name="category" id="category" class="form-control">
-                                        <option value="">Select a Category</option>
-                                        @if ($categories->isNotEmpty())
-                                        @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                        @endforeach
-                                        @endif
-                                    </select>
-                                    <p></p>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <label for="" class="mb-2">Job Type<span class="req">*</span></label>
-                                    <select name="jobType" id="jobType" class="form-select">
-                                        <option value="">Select Job Type</option>
-                                        @if($job_types->isNotEmpty())
-                                        @foreach ($job_types as $job_type)
-                                            <option value="{{ $job_type->id }}">{{ $job_type->name }}</option>
-                                        @endforeach
-                                        @endif
-                                    </select>
-                                    <p></p>
-                                </div>
-                                <div class="col-md-6  mb-4">
-                                    <label for="" class="mb-2">Vacancy<span class="req">*</span></label>
-                                    <input type="number" min="1" placeholder="Vacancy" id="vacancy" name="vacancy" class="form-control">
-                                    <p></p>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="mb-4 col-md-6">
-                                    <label for="" class="mb-2">Salary</label>
-                                    <input type="text" placeholder="Salary" id="salary" name="salary" class="form-control">
-                                </div>
-
-                                <div class="mb-4 col-md-6">
-                                    <label for="" class="mb-2">Location<span class="req">*</span></label>
-                                    <input type="text" placeholder="Location" id="location" name="location" class="form-control">
-                                    <p></p>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="mb-4 col-md-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="1" id="featured" name="featured">
-                                        <label class="form-check-label" for="featured">
-                                            Featured
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="mb-4 col-md-6">
-                                    <div class="form-check-inline">
-                                        <input checked class="form-check-input" type="radio" value="1" id="status-active" name="status">
-                                        <label class="form-check-label" for="status">
-                                            Active
-                                        </label>
-                                    </div>
-                                    <div class="form-check-inline">
-                                        <input class="form-check-input" type="radio" value="0" id="status-block" name="status">
-                                        <label class="form-check-label" for="status">
-                                            Block
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Description<span class="req">*</span></label>
-                                <textarea class="textarea" name="description" id="description" cols="5" rows="5" placeholder="Description"></textarea>
-                                <p></p>
-                            </div>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Benefits</label>
-                                <textarea class="textarea" name="benefits" id="benefits" cols="5" rows="5" placeholder="Benefits"></textarea>
-                            </div>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Responsibility</label>
-                                <textarea class="textarea" name="responsibility" id="responsibility" cols="5" rows="5" placeholder="Responsibility"></textarea>
-                            </div>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Qualifications</label>
-                                <textarea class="textarea" name="qualifications" id="qualifications" cols="5" rows="5" placeholder="Qualifications"></textarea>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Experience<span class="req">*</span></label>
-                                <select name="experience" id="experience" class="form-control">
-                                    <option value="">Select Experience</option>
-                                    <option value="1">1 Years</option>
-                                    <option value="2">2 Years</option>
-                                    <option value="3">3 Years</option>
-                                    <option value="4">4 Years</option>
-                                    <option value="5">5 Years</option>
-                                    <option value="6">6 Years</option>
-                                    <option value="7">7 Years</option>
-                                    <option value="8">8 Years</option>
-                                    <option value="9">9 Years</option>
-                                    <option value="10">10 Years</option>
-                                    <option value="10_plus">10+ Years</option>
-                                </select>
-                                <p></p>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Keywords</label>
-                                <input type="text" placeholder="keywords" id="keywords" name="keywords" class="form-control">
-                            </div>
-
-                            <h3 class="fs-4 mb-1 mt-5 border-top pt-5">Company Details</h3>
-
-                            <div class="row">
-                                <div class="mb-4 col-md-6">
-                                    <label for="" class="mb-2">Name<span class="req">*</span></label>
-                                    <input type="text" placeholder="Company Name" id="company_name" name="company_name" class="form-control">
-                                    <p></p>
-                                </div>
-
-                                <div class="mb-4 col-md-6">
-                                    <label for="" class="mb-2">Location</label>
-                                    <input type="text" placeholder="Location" id="company_location" name="company_location" class="form-control">
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Website</label>
-                                <input type="text" placeholder="Website" id="company_website" name="company_website" class="form-control">
-                            </div>
-                        </div>
-                        <div class="card-footer  p-4">
-                            <button type="submit" class="btn btn-primary">Create Job</button>
-                        </div>
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-card bg-white rounded-3 p-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="mb-3 mb-md-0">
+                        <h1 class="h3 mb-2">Create New Job</h1>
+                        <p class="text-muted mb-0">Fill in the details to post a new job opportunity</p>
                     </div>
-                </form>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.jobs') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Jobs
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</section>
+
+    <!-- Job Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <!-- Alert Container -->
+                    <div id="alertContainer" class="mb-4" style="display: none;">
+                        <div class="alert" role="alert"></div>
+                    </div>
+                    
+                    <form id="createJobForm" action="{{ route('admin.job.save') }}" method="POST">
+                        @csrf
+                        <!-- Job Details Section -->
+                        <div class="mb-4">
+                            <h5 class="card-title mb-3">Job Details</h5>
+                            <div class="row g-3">
+                                <!-- Job Title -->
+                                <div class="col-md-6">
+                                    <label for="title" class="form-label">Job Title <span class="text-danger">*</span></label>
+                                    <input type="text" id="title" name="title" class="form-control" placeholder="Enter job title" value="{{ old('title') }}" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Category -->
+                                <div class="col-md-6">
+                                    <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                                    <select id="category" name="category" class="form-select" required>
+                                        <option value="">Select Category</option>
+                                        @if ($categories->isNotEmpty())
+                                        @foreach ($categories as $category)
+                                            <option value="{{ $category->id }}" {{ old('category') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                        @endif
+                                    </select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Job Type -->
+                                <div class="col-md-6">
+                                    <label for="jobType" class="form-label">Job Type <span class="text-danger">*</span></label>
+                                    <select id="jobType" name="jobType" class="form-select" required>
+                                        <option value="">Select Job Type</option>
+                                        @if($job_types->isNotEmpty())
+                                        @foreach ($job_types as $job_type)
+                                            <option value="{{ $job_type->id }}" {{ old('jobType') == $job_type->id ? 'selected' : '' }}>
+                                                {{ $job_type->name }}
+                                            </option>
+                                        @endforeach
+                                        @endif
+                                    </select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Vacancy -->
+                                <div class="col-md-6">
+                                    <label for="vacancy" class="form-label">Number of Vacancies <span class="text-danger">*</span></label>
+                                    <input type="number" id="vacancy" name="vacancy" class="form-control" min="1" value="{{ old('vacancy', 1) }}" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Location -->
+                                <div class="col-md-12">
+                                    <label for="location" class="form-label">Location <span class="text-danger">*</span></label>
+                                    <select id="location" name="location" class="form-select" required>
+                                        <option value="">Select Location in Digos City</option>
+                                        @foreach($locations ?? [] as $location)
+                                            <option value="{{ $location['name'] }}" 
+                                                data-lat="{{ $location['lat'] }}"
+                                                data-lng="{{ $location['lng'] }}"
+                                                data-address="{{ $location['name'] }}, Digos City, Davao del Sur"
+                                                {{ old('location') == $location['name'] ? 'selected' : '' }}>
+                                                {{ $location['name'] }}, Digos City
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+                                    <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
+                                    <input type="hidden" name="location_address" id="location_address" value="{{ old('location_address') }}">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Salary Range -->
+                                <div class="col-md-12">
+                                    <label class="form-label">Salary Range (Monthly) <span class="text-danger">*</span></label>
+                                    <div class="row g-2">
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <span class="input-group-text">₱</span>
+                                                <input type="number" name="salary_min" class="form-control" placeholder="Minimum" value="{{ old('salary_min') }}" required>
+                                                <div class="invalid-feedback"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <span class="input-group-text">₱</span>
+                                                <input type="number" name="salary_max" class="form-control" placeholder="Maximum" value="{{ old('salary_max') }}" required>
+                                                <div class="invalid-feedback"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Enter the salary range in Philippine Peso (₱)</div>
+                                </div>
+
+                                <!-- Experience Level -->
+                                <div class="col-md-6">
+                                    <label for="experience_level" class="form-label">Experience Required <span class="text-danger">*</span></label>
+                                    <select id="experience_level" name="experience_level" class="form-select" required>
+                                        <option value="">Select Experience Level</option>
+                                        <option value="entry" {{ old('experience_level') == 'entry' ? 'selected' : '' }}>Entry Level (0-2 years)</option>
+                                        <option value="intermediate" {{ old('experience_level') == 'intermediate' ? 'selected' : '' }}>Intermediate (3-5 years)</option>
+                                        <option value="expert" {{ old('experience_level') == 'expert' ? 'selected' : '' }}>Expert (6+ years)</option>
+                                    </select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Job Description Section -->
+                        <div class="mb-4">
+                            <h5 class="card-title mb-3">Job Description</h5>
+                            <div class="row g-3">
+                                <!-- Description -->
+                                <div class="col-12">
+                                    <label for="description" class="form-label">Job Description <span class="text-danger">*</span></label>
+                                    <textarea id="description" name="description" class="form-control" rows="5" required>{{ old('description') }}</textarea>
+                                    <div class="form-text">Describe the role, responsibilities, and ideal candidate</div>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Requirements -->
+                                <div class="col-12">
+                                    <label for="requirements" class="form-label">Requirements <span class="text-danger">*</span></label>
+                                    <textarea id="requirements" name="requirements" class="form-control" rows="5" required>{{ old('requirements') }}</textarea>
+                                    <div class="form-text">List the skills, qualifications, and experience needed</div>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Benefits -->
+                                <div class="col-12">
+                                    <label for="benefits" class="form-label">Benefits</label>
+                                    <textarea id="benefits" name="benefits" class="form-control" rows="3">{{ old('benefits') }}</textarea>
+                                    <div class="form-text">Highlight perks, benefits, and reasons to join your company</div>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Company Information Section -->
+                        <div class="mb-4">
+                            <h5 class="card-title mb-3">Company Information</h5>
+                            <div class="row g-3">
+                                <!-- Company Name -->
+                                <div class="col-md-6">
+                                    <label for="company_name" class="form-label">Company Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="company_name" name="company_name" class="form-control" placeholder="Enter company name" value="{{ old('company_name') }}" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Company Website -->
+                                <div class="col-md-6">
+                                    <label for="company_website" class="form-label">Company Website</label>
+                                    <input type="url" id="company_website" name="company_website" class="form-control" placeholder="https://example.com" value="{{ old('company_website') }}">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="pt-3 border-top">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{{ route('admin.jobs') }}" class="btn btn-light px-4">Cancel</a>
+                                <button type="submit" name="is_draft" value="1" class="btn btn-outline-primary px-4">Save as Draft</button>
+                                <button type="submit" class="btn btn-primary px-4">Post Job</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
-@section('customJs')
-    <script type="text/javascript">
-        $("#createJobForm").submit(function (e) {
-            e.preventDefault();
+@push('styles')
+<style>
+.welcome-card {
+    background: linear-gradient(to right, var(--bs-primary-bg-subtle), var(--bs-white));
+    border-left: 4px solid var(--bs-primary);
+}
+.form-label { 
+    font-weight: 500;
+    margin-bottom: 0.5rem; 
+}
+textarea { 
+    resize: vertical; 
+}
+.invalid-feedback { 
+    display: none; 
+}
+.form-control.is-invalid,
+.form-select.is-invalid { 
+    border-color: var(--bs-danger); 
+}
+.form-control.is-invalid + .invalid-feedback,
+.form-select.is-invalid + .invalid-feedback { 
+    display: block; 
+}
+</style>
+@endpush
 
-            $("button[type='submit']").prop('disabled',true);
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Handle location selection
+    $('#location').change(function() {
+        var selectedOption = $(this).find(':selected');
+        $('#latitude').val(selectedOption.data('lat'));
+        $('#longitude').val(selectedOption.data('lng'));
+        $('#location_address').val(selectedOption.data('address'));
+    });
 
-            $.ajax({
-                type: "post",
-                url: "{{ route('admin.job.save') }}",
-                data: $("#createJobForm").serializeArray(),
-                dataType: "json",
-                success: function (response) {
-
-                    $("button[type='submit']").prop('disabled',false);
-
-                    if(response.status == true){
-
-                        $("#title").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        $("#category").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        $("#jobType").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        $("#vacancy").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        $("#location").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        $("#description").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        $("#experience").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        $("#company_name").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        window.location.href="{{ route('admin.jobs') }}";
-
-                    }else{
-
-                        var errors = response.errors;
-                        // For name
-                        if(errors.title){
-                            $("#title").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.title);
-                        }else{
-                            $("#title").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        }
-
-                        // For category
-                        if(errors.category){
-                            $("#category").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.category);
-                        }else{
-                            $("#category").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        }
-
-                        // For jobType
-                        if(errors.jobType){
-                            $("#jobType").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.jobType);
-                        }else{
-                            $("#jobType").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        }
-
-
-                        // For vacancy
-                        if(errors.vacancy){
-                            $("#vacancy").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.vacancy);
-                        }else{
-                            $("#vacancy").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        }
-
-                        // For location
-                        if(errors.location){
-                            $("#location").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.location);
-                        }else{
-                            $("#location").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        }
-
-                        // For description
-                        if(errors.description){
-                            $("#description").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.description);
-                        }else{
-                            $("#description").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        }
-
-                        // For experience
-                        if(errors.experience){
-                            $("#experience").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.experience);
-                        }else{
-                            $("#experience").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        }
-
-                        // For company_name
-                        if(errors.company_name){
-                            $("#company_name").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.company_name);
-                        }else{
-                            $("#company_name").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                        }
-                    }
+    // Form validation and submission
+    $('#createJobForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Reset previous validation states
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').hide();
+        $('#alertContainer').hide();
+        
+        // Disable submit buttons
+        const submitButtons = $(this).find('button[type="submit"]');
+        submitButtons.prop('disabled', true);
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Submit form
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    $('#alertContainer').html(
+                        '<div class="alert alert-success">' +
+                        '<i class="bi bi-check-circle me-2"></i>' +
+                        response.message +
+                        '</div>'
+                    ).show();
+                    
+                    // Redirect after success
+                    setTimeout(function() {
+                        window.location.href = response.redirect || "{{ route('admin.jobs') }}";
+                    }, 1500);
+                } else {
+                    // Show error message
+                    $('#alertContainer').html(
+                        '<div class="alert alert-danger">' +
+                        '<i class="bi bi-exclamation-circle me-2"></i>' +
+                        (response.message || 'An error occurred. Please try again.') +
+                        '</div>'
+                    ).show();
                 }
-            });
+            },
+            error: function(xhr) {
+                // Handle validation errors
+                if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    Object.keys(errors).forEach(function(field) {
+                        const input = $(`[name="${field}"]`);
+                        input.addClass('is-invalid');
+                        input.siblings('.invalid-feedback').text(errors[field][0]).show();
+                    });
+                }
+                
+                // Show general error message
+                $('#alertContainer').html(
+                    '<div class="alert alert-danger">' +
+                    '<i class="bi bi-exclamation-circle me-2"></i>' +
+                    'Please correct the errors in the form.' +
+                    '</div>'
+                ).show();
+            },
+            complete: function() {
+                // Re-enable submit buttons
+                submitButtons.prop('disabled', false);
+            }
         });
-    </script>
-@endsection 
+    });
+});
+</script>
+@endpush 

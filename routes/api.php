@@ -17,3 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::prefix('locations')->group(function () {
+    Route::get('/areas', [App\Http\Controllers\Api\LocationController::class, 'getAllAreas']);
+    Route::get('/search', [App\Http\Controllers\Api\LocationController::class, 'search']);
+    Route::get('/nearest', [App\Http\Controllers\Api\LocationController::class, 'getNearestArea']);
+});

@@ -14,15 +14,21 @@ class AIJobMatchingService
      */
     public function calculateMatchScore(JobSeekerProfile $profile, Job $job)
     {
-        // Prepare embeddings for comparison
-        $profileEmbedding = $this->getEmbedding($this->prepareProfileText($profile));
-        $jobEmbedding = $this->getEmbedding($this->prepareJobText($job));
-        
-        // Calculate cosine similarity between embeddings
-        $similarity = $this->cosineSimilarity($profileEmbedding, $jobEmbedding);
-        
-        // Convert similarity to percentage score
-        return round($similarity * 100);
+        try {
+            // Try OpenAI embeddings first
+            $profileEmbedding = $this->getEmbedding($this->prepareProfileText($profile));
+            $jobEmbedding = $this->getEmbedding($this->prepareJobText($job));
+            
+            // Calculate cosine similarity between embeddings
+            $similarity = $this->cosineSimilarity($profileEmbedding, $jobEmbedding);
+            
+            // Convert similarity to percentage score
+            return round($similarity * 100);
+        } catch (\Exception $e) {
+            // Fallback to keyword-based matching if OpenAI fails
+            \Log::warning('OpenAI API failed, using fallback matching: ' . $e->getMessage());
+            return $this->calculateFallbackMatchScore($profile, $job);
+        }
     }
 
     /**

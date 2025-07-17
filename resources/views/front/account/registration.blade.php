@@ -114,7 +114,7 @@
                             </form>
 
                             <div class="auth-footer">
-                                Already have an account? <a href="{{ route('account.login') }}">Sign in</a>
+                                Already have an account? <a href="{{ route('login') }}">Sign in</a>
                         </div>
                         </div>
                     </div>
@@ -531,18 +531,9 @@ $(document).ready(function() {
                     $('.invalid-feedback').remove();
                     $('.is-invalid').removeClass('is-invalid');
                     
-                    // Show success message
-                    if (response.message) {
-                        // Create a success alert
-                        const alertHtml = `<div class="alert alert-success">${response.message}</div>`;
-                        $('#registrationForm').before(alertHtml);
-                    }
-                    
-                    // Redirect to login page after a short delay
+                    // Redirect to login page immediately without showing JSON
                     if (response.redirect) {
-                        setTimeout(function() {
-                            window.location.replace(response.redirect);
-                        }, 1500); // 1.5 second delay
+                        window.location.href = response.redirect;
                     }
                 } else {
                     // Handle validation errors

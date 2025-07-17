@@ -66,7 +66,7 @@ class KMeansClusteringService
 
             // Assign points to clusters
             foreach ($data as $index => $point) {
-                $distances = array_map(fn($centroid) => $this->euclideanDistance($point, $centroid), $centroids);
+                $distances = array_map(fn($centroid) => $this->calculateDistance($point, $centroid), $centroids);
                 $closest = array_keys($distances, min($distances))[0];
                 $clusters[$closest][] = [
                     'point' => $point,
@@ -103,14 +103,7 @@ class KMeansClusteringService
     protected function getJobTrainingData()
     {
         return Job::where('status', 1)->get()->map(function ($job) {
-            return [
-                'id' => $job->id,
-                'category_id' => (int) $job->category_id,
-                'job_type_id' => (int) $job->job_type_id,
-                'location' => crc32(strtolower($job->location)), // Encode string location to number
-                'experience' => (int) $job->experience,
-                'salary' => $this->normalizeSalary($job->salary),
-            ];
+            return $this->getJobFeatures($job);
         })->toArray();
     }
 
@@ -138,6 +131,41 @@ class KMeansClusteringService
                 'salary' => $this->normalizeSalary($user->preferred_salary_range),
             ];
         })->toArray();
+    }
+
+    /**
+     * Get job features
+     *
+     * @param Job $job
+     * @return array
+     */
+    protected function getJobFeatures(Job $job): array
+    {
+        return [
+            'job_type_id' => (int) $job->job_type_id,
+            'location_hash' => crc32($job->location),
+            'salary_range_normalized' => $this->normalizeSalaryRange($job->salary_range),
+            'experience_level' => $this->extractExperienceLevel($job->requirements),
+            'skills_hash' => $this->calculateSkillsHash($job->requirements . ' ' . $job->description),
+        ];
+    }
+
+    /**
+     * Calculate distance between two points
+     *
+     * @param array $point1
+     * @param array $point2
+     * @return float
+     */
+    protected function calculateDistance(array $point1, array $point2): float
+    {
+        $sum = 0;
+        foreach ($point1 as $key => $value) {
+            if (isset($point2[$key])) {
+                $sum += pow($value - $point2[$key], 2);
+            }
+        }
+        return sqrt($sum);
     }
 
     /**
@@ -235,6 +263,60 @@ class KMeansClusteringService
     }
 
     /**
+     * Normalize salary range string to numeric value
+     *
+     * @param string|null $salaryRange
+     * @return int
+     */
+    protected function normalizeSalaryRange($salaryRange)
+    {
+        if (empty($salaryRange)) {
+            return 0;
+        }
+
+        // Extract numbers from salary range string
+        preg_match_all('/\d+/', $salaryRange, $matches);
+        $numbers = $matches[0];
+
+        if (empty($numbers)) {
+            return 0;
+        }
+
+        // If there are two numbers (range), take average
+        if (count($numbers) >= 2) {
+            return (int)(($numbers[0] + $numbers[1]) / 2);
+        }
+
+        return (int)$numbers[0];
+    }
+
+    /**
+     * Extract experience level from job requirements
+     *
+     * @param string $requirements
+     * @return string
+     */
+    protected function extractExperienceLevel($requirements)
+    {
+        // Implement your logic to extract experience level from job requirements
+        // This is a placeholder and should be replaced with the actual implementation
+        return 'Unknown';
+    }
+
+    /**
+     * Calculate skills hash from job requirements and description
+     *
+     * @param string $requirements
+     * @return string
+     */
+    protected function calculateSkillsHash($requirements)
+    {
+        // Implement your logic to calculate skills hash from job requirements and description
+        // This is a placeholder and should be replaced with the actual implementation
+        return '';
+    }
+
+    /**
      * Get job recommendations for a user
      *
      * @param int $userId
@@ -263,14 +345,7 @@ class KMeansClusteringService
         $jobProfiles = [];
 
         foreach ($jobs as $job) {
-            $jobProfiles[$job->id] = [
-                'id' => $job->id,
-                'category_id' => (int) $job->category_id,
-                'job_type_id' => (int) $job->job_type_id,
-                'location' => crc32(strtolower($job->location)),
-                'experience' => (int) $job->experience,
-                'salary' => $this->normalizeSalary($job->salary),
-            ];
+            $jobProfiles[$job->id] = $this->getJobFeatures($job);
         }
 
         // Calculate similarity scores
@@ -333,14 +408,7 @@ class KMeansClusteringService
         }
 
         // Get job profile data
-        $jobProfile = [
-            'id' => $job->id,
-            'category_id' => (int) $job->category_id,
-            'job_type_id' => (int) $job->job_type_id,
-            'location' => crc32(strtolower($job->location)),
-            'experience' => (int) $job->experience,
-            'salary' => $this->normalizeSalary($job->salary),
-        ];
+        $jobProfile = $this->getJobFeatures($job);
 
         // Get all users
         $users = User::where('role', 'user')->get();

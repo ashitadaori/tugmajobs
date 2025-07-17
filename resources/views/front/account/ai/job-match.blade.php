@@ -15,7 +15,7 @@
         </div>
         <div class="row">
             <div class="col-lg-3">
-                @include('front.account.sidebar')
+                @include('components.sidebar')
             </div>
             <div class="col-lg-9">
                 @include('front.message')
@@ -42,7 +42,7 @@
                                 <select class="form-select" name="job_id" required>
                                     <option value="">Choose a job...</option>
                                     @foreach(Auth::user()->savedJobs as $savedJob)
-                                        <option value="{{ $savedJob->job->id }}">{{ $savedJob->job->title }}</option>
+                                        <option value="{{ $savedJob->id }}">{{ $savedJob->title }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -132,10 +132,15 @@ $(document).ready(function() {
         
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Calculating...');
         
+        const jobId = form.find('select[name="job_id"]').val();
+        
         $.ajax({
-            url: '{{ route("ai.jobMatch") }}',
             type: 'POST',
-            data: form.serialize(),
+            url: '{{ route("account.ai.job-match.analyze") }}',
+            data: {
+                job_id: jobId,
+                _token: '{{ csrf_token() }}'
+            },
             success: function(response) {
                 if (response.success) {
                     // Update match score

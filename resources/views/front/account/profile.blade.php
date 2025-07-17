@@ -8,133 +8,218 @@
                 <nav aria-label="breadcrumb" class="rounded-3 p-3 mb-4">
                     <ol class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                        <li class="breadcrumb-item active">Account Settings</li>
+                        <li class="breadcrumb-item active">Overview</li>
                     </ol>
                 </nav>
             </div>
         </div>
         <div class="row">
+            <!-- Sidebar -->
             <div class="col-lg-3">
                 @include('front.account.sidebar')
             </div>
+
+            <!-- Main Content -->
             <div class="col-lg-9">
-                @include('front.message')
-                
-                <!-- Personal Information Card -->
+                <!-- Profile Header Card -->
                 <div class="card border-0 shadow mb-4">
-                    <div class="card-body card-form p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div>
-                                <h3 class="fs-4 mb-1">Personal Information</h3>
-                                <p class="mb-0 text-muted">Update your personal details</p>
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="profile-image-container me-3">
+                                    <div class="position-relative">
+                                        @php
+                                            $user = Auth::user();
+                                            $imagePath = $user->image ? 'profile_img/thumb/'.$user->image : 'assets/images/avatar7.png';
+                                            $fullImagePath = public_path($imagePath);
+                                            $timestamp = time();
+                                            
+                                            // Debug information
+                                            $debugInfo = [
+                                                'User ID' => $user->id,
+                                                'Image name' => $user->image,
+                                                'Full path' => $fullImagePath,
+                                                'File exists' => file_exists($fullImagePath) ? 'Yes' : 'No',
+                                                'Public URL' => asset($imagePath),
+                                                'Thumb directory exists' => file_exists(public_path('profile_img/thumb')) ? 'Yes' : 'No'
+                                            ];
+                                        @endphp
+                                        
+                                        <!-- Debug info (always visible) -->
+                                        <div class="small text-muted mb-2">
+                                            @foreach($debugInfo as $key => $value)
+                                                <strong>{{ $key }}:</strong> {{ $value }}<br>
+                                            @endforeach
+                                        </div>
+
+                                        @if (Auth::user()->image != '' && file_exists(public_path('profile_img/thumb/'.Auth::user()->image)))
+                                            <img src="{{ asset('profile_img/thumb/'.Auth::user()->image) }}?v={{ $timestamp }}" 
+                                                alt="Profile" 
+                                                class="profile-image"
+                                                onerror="this.onerror=null; this.src='{{ asset('assets/images/avatar7.png') }}';">
+                                        @else
+                                            <img src="{{ asset('assets/images/avatar7.png') }}" alt="Profile" class="profile-image">
+                                        @endif
+                                        <!-- Debug info -->
+                                        @if(config('app.debug'))
+                                            <div style="display: none;">
+                                                Image path: {{ $imagePath }}<br>
+                                                Exists: {{ file_exists($fullImagePath) ? 'Yes' : 'No' }}<br>
+                                                User image: {{ Auth::user()->image ?? 'none' }}
+                                            </div>
+                                        @endif
+                                        <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0" data-bs-toggle="modal" data-bs-target="#updateProfilePicModal">
+                                            <i class="fas fa-camera"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="fs-4 mb-1">{{ Auth::user()->name }}</h3>
+                                    <p class="text-muted mb-2">{{ Auth::user()->designation ?? 'Job Seeker' }}</p>
+                                    <div class="tags">
+                                        @if(Auth::user()->role)
+                                            <span class="badge bg-light text-dark">{{ ucfirst(Auth::user()->role) }}</span>
+                                        @endif
+                                        @if(Auth::user()->skills)
+                                            @foreach(array_slice(Auth::user()->skills ?? [], 0, 3) as $skill)
+                                                <span class="badge bg-light text-dark">{{ $skill }}</span>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
-                            <div class="profile-image-container">
-                                @if (Auth::user()->image != '')
-                                    <img src="{{ asset('profile_img/thumb/'.Auth::user()->image) }}" alt="Profile" class="profile-image">
-                                @else
-                                    <img src="{{ asset('assets/images/avatar7.png') }}" alt="Profile" class="profile-image">
-                                @endif
-                                <button type="button" class="change-photo-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                    <i class="fas fa-camera"></i>
-                                </button>
+                            <a href="{{ route('account.settings') }}" class="btn btn-primary">Edit Profile</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Career Findings Column -->
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow mb-4">
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-4">Career Findings</h5>
+                                <ul class="list-unstyled">
+                                    <li class="mb-3">
+                                        <strong class="d-block">Location</strong>
+                                        <span class="text-muted">{{ Auth::user()->location ?? 'Not specified' }}</span>
+                                    </li>
+                                    <li class="mb-3">
+                                        <strong class="d-block">Phone Number</strong>
+                                        <span class="text-muted">{{ Auth::user()->mobile ?? 'Not specified' }}</span>
+                                    </li>
+                                    <li class="mb-3">
+                                        <strong class="d-block">Experience Time</strong>
+                                        <span class="text-muted">{{ Auth::user()->experience_years ?? '0' }} years</span>
+                                    </li>
+                                    <li class="mb-3">
+                                        <strong class="d-block">Email</strong>
+                                        <span class="text-muted">{{ Auth::user()->email }}</span>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
-                        
-                        <form action="" method="post" id="userForm" name="userForm">
-                            @csrf
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <label for="name" class="mb-2">Full Name<span class="req">*</span></label>
-                                    <input type="text" value="{{ $user->name }}" name="name" id="name" class="form-control" placeholder="Enter your name">
-                                    <p></p>
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <label for="email" class="mb-2">Email Address<span class="req">*</span></label>
-                                    <input type="email" value="{{ $user->email }}" name="email" id="email" class="form-control" placeholder="Enter your email">
-                                    <p></p>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <label for="designation" class="mb-2">Designation</label>
-                                    <input type="text" value="{{ $user->designation }}" name="designation" id="designation" class="form-control" placeholder="Enter your designation">
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <label for="mobile" class="mb-2">Mobile Number</label>
-                                    <input type="text" value="{{ $user->mobile }}" name="mobile" id="mobile" class="form-control" placeholder="Enter your mobile number">
-                                </div>
+                        <!-- Social Links -->
+                        <div class="card border-0 shadow mb-4">
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-4">Socials</h5>
+                                <ul class="list-unstyled">
+                                    @php
+                                        $socials = Auth::user()->social_links ?? [];
+                                    @endphp
+                                    @if(!empty($socials))
+                                        @foreach($socials as $platform => $link)
+                                            <li class="mb-2">
+                                                <i class="fab fa-{{ strtolower($platform) }} me-2"></i>
+                                                <a href="{{ $link }}" target="_blank">{{ ucfirst($platform) }}</a>
+                                            </li>
+                                        @endforeach
+                                    @else
+                                        <li class="text-muted">No social links added</li>
+                                    @endif
+                                </ul>
                             </div>
-
-                            <div class="card-footer p-4">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Save Changes
-                                </button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Change Password Card -->
-                <div class="card border-0 shadow mb-4">
-                    <div class="card-body card-form p-4">
-                        <h3 class="fs-4 mb-1">Change Password</h3>
-                        <p class="mb-4 text-muted">Ensure your account is using a long, random password to stay secure</p>
-                        
-                        <form action="" method="post" name="changePasswordForm" id="changePasswordForm">
-                            <div class="row">
-                                <div class="col-md-12 mb-4">
-                                    <label for="old_password" class="mb-2">Current Password<span class="req">*</span></label>
-                                    <input type="password" name="old_password" id="old_password" class="form-control" placeholder="Enter current password">
-                                    <p></p>
-                                </div>
+                    <!-- About Me and Education Column -->
+                    <div class="col-md-8">
+                        <div class="card border-0 shadow mb-4">
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-4">About me</h5>
+                                <p>{{ Auth::user()->bio ?? 'No bio information added yet.' }}</p>
                             </div>
+                        </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <label for="new_password" class="mb-2">New Password<span class="req">*</span></label>
-                                    <input type="password" name="new_password" id="new_password" class="form-control" placeholder="Enter new password">
-                                    <p></p>
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <label for="confirm_password" class="mb-2">Confirm Password<span class="req">*</span></label>
-                                    <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Confirm new password">
-                                    <p></p>
-                                </div>
+                        <div class="card border-0 shadow mb-4">
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-4">Education</h5>
+                                @if(!empty(Auth::user()->education) && is_array(Auth::user()->education))
+                                    @foreach(Auth::user()->education as $edu)
+                                        <div class="education-item mb-3">
+                                            <h6 class="mb-1">{{ $edu }}</h6>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <p class="text-muted">No education details added</p>
+                                @endif
                             </div>
+                        </div>
 
-                            <div class="card-footer p-4">
-                                <button type="submit" class="btn btn-primary" id="submit">
-                                    <i class="fas fa-lock"></i> Update Password
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Account Stats Card -->
-                <div class="card border-0 shadow">
-                    <div class="card-body card-form p-4">
-                        <h3 class="fs-4 mb-1">Account Statistics</h3>
-                        <p class="mb-4 text-muted">Overview of your account activity</p>
-                        
-                        <div class="row text-center">
-                            <div class="col-md-4 mb-3">
-                                <div class="stat-box p-3 rounded bg-light">
-                                    <h4 class="mb-1">{{ Auth::user()->role == 'employer' ? Auth::user()->jobs()->count() : 0 }}</h4>
-                                    <p class="mb-0 text-muted">{{ Auth::user()->role == 'employer' ? 'Jobs Posted' : 'Applications' }}</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="stat-box p-3 rounded bg-light">
-                                    <h4 class="mb-1">{{ Auth::user()->jobApplications()->count() }}</h4>
-                                    <p class="mb-0 text-muted">{{ Auth::user()->role == 'employer' ? 'Total Applicants' : 'Jobs Applied' }}</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="stat-box p-3 rounded bg-light">
-                                    <h4 class="mb-1">{{ Auth::user()->savedJobs()->count() }}</h4>
-                                    <p class="mb-0 text-muted">Saved Jobs</p>
+                        <!-- Recent Job Applications -->
+                        <div class="card border-0 shadow">
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-4">Job Applied Recently</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>JOBS</th>
+                                                <th>STATUS</th>
+                                                <th>DATE APPLIED</th>
+                                                <th>ACTION</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach(Auth::user()->jobApplications()->latest()->take(5)->get() as $application)
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="company-logo me-2">
+                                                                @if($application->job->employer->employerProfile->company_logo)
+                                                                    <img src="{{ asset('storage/'.$application->job->employer->employerProfile->company_logo) }}" alt="Company Logo" width="40">
+                                                                @else
+                                                                    <div class="company-initial">{{ substr($application->job->employer->employerProfile->company_name ?? 'C', 0, 1) }}</div>
+                                                                @endif
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0">{{ $application->job->title }}</h6>
+                                                                <small class="text-muted">{{ $application->job->employer->employerProfile->company_name ?? 'Company Name' }}</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-{{ $application->status == 'pending' ? 'warning' : ($application->status == 'accepted' ? 'success' : 'danger') }}">
+                                                            {{ ucfirst($application->status) }}
+                                                        </span>
+                                                    </td>
+                                                    <td>{{ $application->created_at->format('M d, Y') }}</td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-link" type="button" data-bs-toggle="dropdown">
+                                                                <i class="fas fa-ellipsis-v"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu">
+                                                                <li><a class="dropdown-item" href="{{ route('jobDetail', $application->job->id) }}">View Job</a></li>
+                                                                <li><a class="dropdown-item" href="#">View Application</a></li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -145,35 +230,24 @@
     </div>
 </section>
 
-<!-- Profile Picture Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title pb-0" id="exampleModalLabel">Change Profile Picture</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Profile Image</label>
-                        <input type="file" class="form-control" id="image" name="image">
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary mx-3">Update</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
 .profile-image-container {
-    position: relative;
     width: 100px;
     height: 100px;
+    position: relative;
+}
+
+.profile-image-container .btn {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 0.25rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.profile-image-container:hover .btn {
+    opacity: 1;
 }
 
 .profile-image {
@@ -181,142 +255,139 @@
     height: 100%;
     border-radius: 15px;
     object-fit: cover;
-    border: 4px solid #f8fafc;
 }
 
-.change-photo-btn {
-    position: absolute;
-    bottom: -5px;
-    right: -5px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #fff;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.tags .badge {
+    margin-right: 5px;
+}
+
+.company-initial {
+    width: 40px;
+    height: 40px;
+    background-color: #e9ecef;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    font-weight: bold;
 }
 
-.change-photo-btn:hover {
-    background: #f8fafc;
-    transform: scale(1.1);
+.education-item {
+    padding-left: 15px;
+    border-left: 3px solid #e9ecef;
 }
 
-.change-photo-btn i {
-    color: #3b82f6;
-    font-size: 14px;
+.table > :not(caption) > * > * {
+    padding: 1rem;
 }
 
-.stat-box {
-    transition: all 0.3s ease;
-}
-
-.stat-box:hover {
-    background-color: #e2e8f0 !important;
-    transform: translateY(-2px);
-}
-
-.req {
-    color: red;
-    margin-left: 2px;
-}
-
-.card-footer {
-    background: transparent;
-    border-top: none;
-    padding-bottom: 0 !important;
-}
-
-.btn-primary {
-    padding: 10px 20px;
-    font-size: 14px;
-}
-
-.btn-primary i {
-    margin-right: 8px;
+@media (max-width: 991.98px) {
+    .col-lg-3 {
+        margin-bottom: 2rem;
+    }
 }
 </style>
 
-@endsection
+<!-- Profile Picture Update Modal -->
+<div class="modal fade" id="updateProfilePicModal" tabindex="-1" aria-labelledby="updateProfilePicModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateProfilePicModalLabel">Update Profile Picture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="profilePicForm">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Choose Image</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                        <div class="form-text">Supported formats: JPEG, PNG, JPG, GIF (Max size: 2MB)</div>
+                    </div>
+                    <div class="alert alert-danger d-none" id="imageError"></div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Upload Picture</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-@section('customJs')
-<script type="text/javascript">
-    $("#userForm").submit(function (e) {
-        e.preventDefault();
-
-        $.ajax({
-            type: "put",
-            url: "{{ route('account.updateProfile') }}",
-            data: $("#userForm").serializeArray(),
-            dataType: "json",
-            success: function (response) {
-                if(response.status == true) {
-                    $("#name").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                    $("#email").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                    window.location.href = "{{ route('account.profile') }}";
-                } else {
-                    var errors = response.errors;
-                    if(errors.name) {
-                        $("#name").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.name);
-                    } else {
-                        $("#name").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                    }
-
-                    if(errors.email) {
-                        $("#email").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.email);
-                    } else {
-                        $("#email").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                    }
-                }
-            }
-        });
+@push('scripts')
+<script>
+document.getElementById('profilePicForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+    submitBtn.disabled = true;
+    
+    // Hide any previous errors
+    document.getElementById('imageError').classList.add('d-none');
+    
+    fetch('{{ route("account.updateProfileimg") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Response:', data); // Debug log
+        if (data.status) {
+            // Force page reload to ensure everything is updated
+            window.location.reload();
+            
+            console.log('Updating image URL to:', newImageUrl); // Debug log
+            
+            // First verify the image is accessible
+            fetch(newImageUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Image not accessible');
+                    console.log('Image is accessible, updating src');
+                    
+                    profileImages.forEach(img => {
+                        img.setAttribute('src', newImageUrl);
+                        // Force reload by temporarily removing and re-adding the element
+                        const parent = img.parentNode;
+                        const next = img.nextSibling;
+                        parent.removeChild(img);
+                        parent.insertBefore(img, next);
+            });
+            
+            // Close modal and show success message
+            const modal = bootstrap.Modal.getInstance(document.getElementById('updateProfilePicModal'));
+            modal.hide();
+            toastr.success('Profile picture updated successfully');
+        } else {
+            // Show error
+            const errorDiv = document.getElementById('imageError');
+            errorDiv.classList.remove('d-none');
+            errorDiv.textContent = data.errors.image ? data.errors.image[0] : 'Failed to upload image. Please try again.';
+            
+            // Reset button
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        // Show error
+        const errorDiv = document.getElementById('imageError');
+        errorDiv.classList.remove('d-none');
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        
+        // Reset button
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
     });
-
-    $("#changePasswordForm").submit(function (e) {
-        e.preventDefault();
-        $("#submit").prop('disabled', true);
-
-        $.ajax({
-            type: "post",
-            url: "{{ route('account.changePassword') }}",
-            data: $("#changePasswordForm").serializeArray(),
-            dataType: "json",
-            success: function (response) {
-                $("#submit").prop('disabled', false);
-
-                if(response.status == true) {
-                    $("#old_password, #new_password, #confirm_password")
-                        .removeClass('is-invalid')
-                        .siblings('p')
-                        .removeClass('invalid-feedback')
-                        .html("");
-                    window.location.href = "{{ route('account.profile') }}";
-                } else {
-                    var errors = response.errors;
-                    if(errors.old_password) {
-                        $("#old_password").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.old_password);
-                    } else {
-                        $("#old_password").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                    }
-
-                    if(errors.new_password) {
-                        $("#new_password").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.new_password);
-                    } else {
-                        $("#new_password").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                    }
-
-                    if(errors.confirm_password) {
-                        $("#confirm_password").addClass('is-invalid').siblings('p').addClass('invalid-feedback').html(errors.confirm_password);
-                    } else {
-                        $("#confirm_password").removeClass('is-invalid').siblings('p').removeClass('invalid-feedback').html("");
-                    }
-                }
-            }
-        });
-    });
+});
 </script>
+@endpush
 @endsection

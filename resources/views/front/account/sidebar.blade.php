@@ -1,222 +1,186 @@
-<!-- Modern Sidebar -->
-<div class="modern-sidebar-content">
-    <!-- Profile Card -->
-    <div class="profile-quick-view">
-        <div class="profile-image">
-                @if (Auth::user()->image != '')
-                <img src="{{ asset('profile_img/thumb/'.Auth::user()->image) }}" alt="Profile">
-                @else
-                <img src="{{ asset('assets/images/avatar7.png') }}" alt="Profile">
-                @endif
-            <button type="button" class="change-photo-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                <i class="fas fa-camera"></i>
-            </button>
+<!-- Modern Sidebar Navigation -->
+<div class="modern-sidebar">
+    <div class="sidebar-user mb-4">
+        <div class="d-flex align-items-center">
+            @if(Auth::user()->profile_photo)
+                <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile" class="sidebar-avatar me-3">
+            @else
+                <div class="sidebar-avatar-placeholder me-3">
+                    {{ substr(Auth::user()->name, 0, 2) }}
                 </div>
-        <div class="profile-info">
-            <h5>{{ Auth::user()->name }}</h5>
-            <p>{{ Auth::user()->designation ?: 'Update your designation' }}</p>
+            @endif
+            <div>
+                <h6 class="mb-1">{{ Auth::user()->name }}</h6>
+                <p class="text-muted mb-0 small">{{ Auth::user()->email }}</p>
+            </div>
         </div>
     </div>
 
-    <!-- Navigation Menu -->
     <div class="sidebar-menu">
-        <a href="{{ route('account.profile') }}" class="menu-item {{ Request::is('account/profile') ? 'active' : '' }}">
-            <i class="fas fa-user"></i>
-            <span>Account Settings</span>
-        </a>
+        <div class="menu-section">
+            <h6 class="menu-title">MAIN MENU</h6>
+            
+            <a href="{{ route('account.dashboard') }}" class="menu-item {{ request()->routeIs('account.dashboard') ? 'active' : '' }}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
 
-        <a href="{{ route('account.createJob') }}" class="menu-item {{ Request::is('account/create-job') ? 'active' : '' }}">
-            <i class="fas fa-plus-circle"></i>
-            <span>Post a Job</span>
-        </a>
+            <a href="{{ route('jobs') }}" class="menu-item {{ request()->routeIs('jobs') ? 'active' : '' }}">
+                <i class="fas fa-search"></i>
+                <span>Find Jobs</span>
+            </a>
 
-        <a href="{{ route('account.myJobs') }}" class="menu-item {{ Request::is('account/my-jobs') ? 'active' : '' }}">
-            <i class="fas fa-briefcase"></i>
-            <span>My Jobs</span>
-        </a>
+            <a href="{{ route('account.savedJobs') }}" class="menu-item {{ request()->routeIs('account.savedJobs') ? 'active' : '' }}">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Jobs</span>
+                @if(isset($saved_jobs_count) && $saved_jobs_count > 0)
+                    <span class="badge bg-primary rounded-pill ms-auto">{{ $saved_jobs_count }}</span>
+                @endif
+            </a>
+        </div>
 
-        <a href="{{ route('account.myJobApplications') }}" class="menu-item {{ Request::is('account/my-jobs-applications') ? 'active' : '' }}">
-            <i class="fas fa-file-alt"></i>
-            <span>Jobs Applied</span>
-        </a>
+        <div class="menu-section">
+            <h6 class="menu-title">APPLICATIONS</h6>
+            
+            <a href="{{ route('account.myJobApplications') }}" class="menu-item {{ request()->routeIs('account.myJobApplications') ? 'active' : '' }}">
+                <i class="fas fa-file-alt"></i>
+                <span>My Applications</span>
+                @if(isset($pending_applications) && $pending_applications > 0)
+                    <span class="badge bg-warning rounded-pill ms-auto">{{ $pending_applications }}</span>
+                @endif
+            </a>
 
-        <a href="{{ route('account.savedJobs') }}" class="menu-item {{ Request::is('account/saved-jobs') ? 'active' : '' }}">
-            <i class="fas fa-bookmark"></i>
-            <span>Saved Jobs</span>
-        </a>
+            <a href="{{ route('account.jobAlerts') }}" class="menu-item {{ request()->routeIs('account.jobAlerts') ? 'active' : '' }}">
+                <i class="fas fa-bell"></i>
+                <span>Job Alerts</span>
+            </a>
+        </div>
 
-        <!-- AI Features Section -->
-        <div class="menu-divider"></div>
-        <div class="menu-header">AI Features</div>
+        <div class="menu-section">
+            <h6 class="menu-title">PROFILE</h6>
+            
+            <a href="{{ route('account.myProfile') }}" class="menu-item {{ request()->routeIs('account.myProfile') ? 'active' : '' }}">
+                <i class="fas fa-user"></i>
+                <span>My Profile</span>
+            </a>
 
-        <a href="{{ route('ai.resumeBuilder') }}" class="menu-item {{ Request::is('ai/resume-builder') ? 'active' : '' }}">
-            <i class="fas fa-magic"></i>
-            <span>AI Resume Builder</span>
-        </a>
+            <a href="{{ route('account.resumes') }}" class="menu-item {{ request()->routeIs('account.resumes') ? 'active' : '' }}">
+                <i class="fas fa-file"></i>
+                <span>Resumes</span>
+            </a>
+        </div>
 
-        <a href="{{ route('ai.jobMatch') }}" class="menu-item {{ Request::is('ai/job-match') ? 'active' : '' }}">
-            <i class="fas fa-percentage"></i>
-            <span>Job Match Score</span>
-        </a>
+        <div class="menu-section">
+            <h6 class="menu-title">SETTINGS</h6>
+            
+            <a href="{{ route('account.changePassword') }}" class="menu-item {{ request()->routeIs('account.changePassword') ? 'active' : '' }}">
+                <i class="fas fa-lock"></i>
+                <span>Change Password</span>
+            </a>
 
-        <div class="menu-divider"></div>
+            <a href="{{ route('account.deleteProfile') }}" class="menu-item {{ request()->routeIs('account.deleteProfile') ? 'active' : '' }}">
+                <i class="fas fa-trash"></i>
+                <span>Delete Profile</span>
+            </a>
 
-        <a href="{{ route('account.logout') }}" class="menu-item">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </a>
+            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                @csrf
+                <button type="submit" class="menu-item text-danger w-100 bg-transparent border-0">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log out</span>
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 
 <style>
-.modern-sidebar-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+.modern-sidebar {
     background: #fff;
-}
-
-.profile-quick-view {
-    padding: 25px;
-    text-align: center;
-    border-bottom: 1px solid #e5e9f2;
-}
-
-.profile-image {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 15px;
-}
-
-.profile-image img {
-    width: 100%;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
     height: 100%;
-    border-radius: 15px;
-    object-fit: cover;
-    border: 4px solid #f8fafc;
 }
 
-.change-photo-btn {
-    position: absolute;
-    bottom: -5px;
-    right: -5px;
-    width: 32px;
-    height: 32px;
+.sidebar-user {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-avatar {
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
-    background: #fff;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    object-fit: cover;
+}
+
+.sidebar-avatar-placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.change-photo-btn:hover {
-    background: #f8fafc;
-    transform: scale(1.1);
-}
-
-.change-photo-btn i {
-    color: #3b82f6;
-    font-size: 14px;
-}
-
-.profile-info h5 {
-    margin: 0 0 5px;
-    font-size: 16px;
     font-weight: 600;
-    color: #1e293b;
+    font-size: 16px;
 }
 
-.profile-info p {
-    margin: 0;
-    font-size: 13px;
-    color: #64748b;
+.menu-section {
+    margin-bottom: 1.5rem;
 }
 
-.sidebar-menu {
-    padding: 20px 15px;
-    flex: 1;
+.menu-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+    padding-left: 0.5rem;
 }
 
 .menu-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 15px;
-    border-radius: 10px;
-    color: #64748b;
+    padding: 0.75rem 1rem;
+    color: var(--text-dark);
     text-decoration: none;
-    transition: all 0.3s ease;
-    margin-bottom: 5px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-color);
+}
+
+.menu-item.active {
+    background-color: var(--primary-color);
+    color: white;
 }
 
 .menu-item i {
-    font-size: 16px;
     width: 20px;
-    text-align: center;
+    margin-right: 0.75rem;
+    font-size: 16px;
 }
 
 .menu-item span {
+    flex: 1;
     font-size: 14px;
     font-weight: 500;
 }
 
-.menu-item:hover {
-    background: #f1f5f9;
-    color: #1e293b;
+.badge {
+    font-size: 11px;
+    padding: 0.35em 0.65em;
 }
 
-.menu-item.active {
-    background: #3b82f6;
-    color: #fff;
-}
-
-.menu-header {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #64748b;
-    padding: 0.5rem 1rem;
-    margin-top: 0.5rem;
-}
-
-.menu-divider {
-    height: 1px;
-    background: #e5e9f2;
-    margin: 0.5rem 0;
-}
-
-@media (max-width: 1200px) {
-    .profile-quick-view {
-        padding: 15px;
-    }
-
-    .profile-image {
-        width: 50px;
-        height: 50px;
-        margin-bottom: 10px;
-    }
-
-    .profile-info {
-        display: none;
-    }
-
-    .menu-item span {
-        display: none;
-    }
-
-    .menu-item {
-        justify-content: center;
-        padding: 12px;
-    }
-
-    .menu-item i {
-        margin: 0;
-        font-size: 18px;
+@media (max-width: 991.98px) {
+    .modern-sidebar {
+        margin-bottom: 2rem;
     }
 }
 </style>
