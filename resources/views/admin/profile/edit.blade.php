@@ -27,11 +27,12 @@
                             <!-- Profile Image -->
                             <div class="col-md-3 text-center mb-4">
                                 <div class="position-relative d-inline-block">
-                                    <img src="{{ $user->image ? asset('profile_img/thumb/'.$user->image) : asset('images/default-avatar.png') }}" 
-                                         alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
-                                    <label for="image" class="position-absolute bottom-0 end-0 btn btn-sm btn-primary rounded-circle" 
-                                           style="width: 32px; height: 32px; padding: 0; line-height: 32px;">
-                                        <i class="bi bi-camera"></i>
+                                    <img src="{{ $user->profile_image ?? asset('images/default-profile.svg') }}"
+                                         alt="Profile" class="rounded-circle img-thumbnail" id="profileImagePreview"
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                    <label for="image" class="position-absolute bottom-0 end-0 btn btn-sm btn-primary rounded-circle"
+                                           style="width: 40px; height: 40px; padding: 0; line-height: 40px; cursor: pointer;">
+                                        <i class="fas fa-camera"></i>
                                     </label>
                                 </div>
                                 <input type="file" id="image" name="image" class="d-none" accept="image/*">
@@ -74,10 +75,10 @@
 
                                 <div class="d-flex justify-content-between align-items-center mt-4">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-check-lg me-2"></i>Save Changes
+                                        <i class="fas fa-check me-2"></i>Save Changes
                                     </button>
                                     <a href="{{ route('admin.profile.password') }}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-lock me-2"></i>Change Password
+                                        <i class="fas fa-lock me-2"></i>Change Password
                                     </a>
                                 </div>
                             </div>
@@ -95,7 +96,7 @@ document.getElementById('image').addEventListener('change', function(e) {
     if (e.target.files && e.target.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.querySelector('.img-thumbnail').src = e.target.result;
+            document.getElementById('profileImagePreview').src = e.target.result;
         }
         reader.readAsDataURL(e.target.files[0]);
     }

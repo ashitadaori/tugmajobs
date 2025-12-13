@@ -6,6 +6,8 @@
 /vendor
 .env
 .env.backup
+.env.local
+.env.local.backup
 .env.production
 .phpunit.result.cache
 docker-compose.override.yml
@@ -19,3 +21,5 @@ yarn-error.log
 /.vscode
 .DS_Store
 jobsite/
+backup_env_files/
+NUL

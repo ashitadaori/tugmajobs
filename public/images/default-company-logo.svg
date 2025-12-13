@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <rect width="300" height="300" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+  <rect x="75" y="100" width="150" height="100" fill="#6c757d" rx="10"/>
+  <rect x="90" y="120" width="30" height="15" fill="#ffffff" rx="2"/>
+  <rect x="130" y="120" width="30" height="15" fill="#ffffff" rx="2"/>
+  <rect x="170" y="120" width="30" height="15" fill="#ffffff" rx="2"/>
+  <rect x="90" y="140" width="30" height="15" fill="#ffffff" rx="2"/>
+  <rect x="130" y="140" width="30" height="15" fill="#ffffff" rx="2"/>
+  <rect x="170" y="140" width="30" height="15" fill="#ffffff" rx="2"/>
+  <text x="150" y="240" text-anchor="middle" fill="#6c757d" font-family="Arial, sans-serif" font-size="16" font-weight="bold">COMPANY LOGO</text>
+</svg>

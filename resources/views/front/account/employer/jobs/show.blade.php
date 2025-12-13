@@ -1,150 +1,179 @@
-@extends('front.layouts.employer-layout')
+@extends('layouts.employer')
+
+@section('page_title', 'Job Details')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="welcome-card bg-white rounded-3 p-4 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <div class="mb-3 mb-md-0">
-                        <h1 class="h3 mb-2">{{ $job->title }}</h1>
-                        <p class="text-muted mb-0">Posted {{ $job->created_at->diffForHumans() }}</p>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('employer.jobs.edit', $job->id) }}" class="btn btn-primary">
-                            <i class="bi bi-pencil me-2"></i>Edit Job
-                        </a>
-                        <form action="{{ route('employer.jobs.delete', $job->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this job?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-trash me-2"></i>Delete Job
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+<div class="ep-card">
+    <div class="ep-card-header">
+        <h3 class="ep-card-title">
+            <i class="bi bi-briefcase"></i>
+            Job Details
+        </h3>
+        <div class="d-flex gap-2">
+            <a href="{{ route('employer.jobs.edit', $job->id) }}" class="ep-btn ep-btn-primary ep-btn-sm">
+                <i class="bi bi-pencil"></i> Edit Job
+            </a>
+            <a href="{{ route('employer.jobs.index') }}" class="ep-btn ep-btn-outline ep-btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to Jobs
+            </a>
         </div>
     </div>
-
-    <div class="row">
-        <!-- Job Details -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-4">Job Details</h5>
-                    
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Description</h6>
-                        <div class="formatted-content">
-                            {!! nl2br(e($job->description)) !!}
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Requirements</h6>
-                        <div class="formatted-content">
-                            {!! nl2br(e($job->requirements)) !!}
-                        </div>
-                    </div>
-
-                    @if($job->benefits)
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Benefits</h6>
-                        <div class="formatted-content">
-                            {!! nl2br(e($job->benefits)) !!}
-                        </div>
-                    </div>
+    <div class="ep-card-body">
+        <!-- Job Header -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h3 class="mb-2">{{ $job->title }}</h3>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-clock me-1"></i> Posted {{ $job->created_at->diffForHumans() }}
+                    @if($job->jobType)
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-briefcase me-1"></i> {{ $job->jobType->name }}
                     @endif
-                </div>
+                    @if($job->location)
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-geo-alt me-1"></i> {{ $job->location }}
+                    @endif
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                @php
+                    $statusClass = match($job->status) {
+                        'active', 1 => 'success',
+                        'pending', 0 => 'warning',
+                        'rejected', 2 => 'danger',
+                        'expired', 3 => 'secondary',
+                        default => 'secondary'
+                    };
+                    $statusText = match($job->status) {
+                        'active', 1 => 'Active',
+                        'pending', 0 => 'Pending Approval',
+                        'rejected', 2 => 'Rejected',
+                        'expired', 3 => 'Expired',
+                        default => ucfirst($job->status)
+                    };
+                @endphp
+                <span class="ep-badge ep-badge-{{ $statusClass }}">
+                    {{ $statusText }}
+                </span>
+                @if($job->featured)
+                    <span class="ep-badge ep-badge-warning ms-1">
+                        <i class="bi bi-star-fill"></i> Featured
+                    </span>
+                @endif
             </div>
         </div>
 
-        <!-- Job Info -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-4">Job Information</h5>
-                    
-                    <div class="info-item mb-3">
-                        <h6 class="text-muted mb-2">Category</h6>
-                        <p class="mb-0">{{ $job->category->name }}</p>
-                    </div>
-
-                    <div class="info-item mb-3">
-                        <h6 class="text-muted mb-2">Job Type</h6>
-                        <p class="mb-0">{{ $job->jobType->name }}</p>
-                    </div>
-
-                    <div class="info-item mb-3">
-                        <h6 class="text-muted mb-2">Location</h6>
-                        <p class="mb-0">{{ $job->location }}</p>
-                    </div>
-
-                    @if($job->salary_min || $job->salary_max)
-                    <div class="info-item mb-3">
-                        <h6 class="text-muted mb-2">Salary Range</h6>
-                        <p class="mb-0">
-                            @if($job->salary_min && $job->salary_max)
-                                ₱{{ number_format($job->salary_min) }} - ₱{{ number_format($job->salary_max) }}
-                            @elseif($job->salary_min)
-                                From ₱{{ number_format($job->salary_min) }}
-                            @else
-                                Up to ₱{{ number_format($job->salary_max) }}
-                            @endif
-                        </p>
-                    </div>
-                    @endif
-
-                    <div class="info-item mb-3">
-                        <h6 class="text-muted mb-2">Experience Level</h6>
-                        <p class="mb-0">{{ ucfirst($job->experience_level) }}</p>
-                    </div>
-
-                    <div class="info-item mb-3">
-                        <h6 class="text-muted mb-2">Status</h6>
-                        <span class="badge bg-{{ $job->status == 'published' ? 'success' : ($job->status == 'draft' ? 'warning' : 'danger') }}">
-                            {{ ucfirst($job->status) }}
-                        </span>
-                    </div>
-
-                    <div class="info-item">
-                        <h6 class="text-muted mb-2">Applications</h6>
-                        <p class="mb-0">{{ $job->applications_count }} applications received</p>
-                    </div>
-                </div>
+        <!-- Job Description -->
+        <div class="mb-4">
+            <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Job Description</h5>
+            <div class="formatted-content bg-light p-3 rounded">
+                {!! nl2br(e($job->description)) !!}
             </div>
+        </div>
 
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title mb-4">Quick Actions</h5>
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('employer.applications.index', ['job' => $job->id]) }}" class="btn btn-outline-primary">
-                            <i class="bi bi-people me-2"></i>View Applications
-                        </a>
-                        <a href="{{ route('employer.jobs.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Back to Jobs
-                        </a>
-                    </div>
-                </div>
+        <!-- Requirements -->
+        @if($job->requirements)
+        <div class="mb-4">
+            <h5 class="mb-3"><i class="bi bi-list-check me-2"></i>Requirements</h5>
+            <div class="formatted-content bg-light p-3 rounded">
+                {!! nl2br(e($job->requirements)) !!}
+            </div>
+        </div>
+        @endif
+
+        <!-- Benefits -->
+        @if($job->benefits)
+        <div class="mb-4">
+            <h5 class="mb-3"><i class="bi bi-gift me-2"></i>Benefits</h5>
+            <div class="formatted-content bg-light p-3 rounded">
+                {!! nl2br(e($job->benefits)) !!}
+            </div>
+        </div>
+        @endif
+
+        <!-- Job Details & Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Job Details</h5>
+                <ul class="list-unstyled">
+                    @if($job->salary_min || $job->salary_max)
+                        <li class="mb-2">
+                            <strong><i class="bi bi-cash me-2"></i>Salary Range:</strong>
+                            @if($job->salary_min && $job->salary_max)
+                                PHP {{ number_format($job->salary_min) }} - {{ number_format($job->salary_max) }}
+                            @elseif($job->salary_min)
+                                From PHP {{ number_format($job->salary_min) }}
+                            @elseif($job->salary_max)
+                                Up to PHP {{ number_format($job->salary_max) }}
+                            @endif
+                        </li>
+                    @endif
+                    <li class="mb-2">
+                        <strong><i class="bi bi-geo-alt me-2"></i>Location:</strong> {{ $job->location ?? 'Not specified' }}
+                    </li>
+                    @if($job->jobType)
+                    <li class="mb-2">
+                        <strong><i class="bi bi-briefcase me-2"></i>Job Type:</strong> {{ $job->jobType->name }}
+                    </li>
+                    @endif
+                    @if($job->category)
+                    <li class="mb-2">
+                        <strong><i class="bi bi-tag me-2"></i>Category:</strong> {{ $job->category->name }}
+                    </li>
+                    @endif
+                    @if($job->experience_level)
+                    <li class="mb-2">
+                        <strong><i class="bi bi-bar-chart me-2"></i>Experience Level:</strong> {{ ucfirst($job->experience_level) }}
+                    </li>
+                    @endif
+                    @if($job->vacancy)
+                    <li class="mb-2">
+                        <strong><i class="bi bi-people me-2"></i>Vacancies:</strong> {{ $job->vacancy }}
+                    </li>
+                    @endif
+                    @if($job->deadline)
+                        <li class="mb-2">
+                            <strong><i class="bi bi-calendar-event me-2"></i>Application Deadline:</strong>
+                            {{ \Carbon\Carbon::parse($job->deadline)->format('M d, Y') }}
+                        </li>
+                    @endif
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5 class="mb-3"><i class="bi bi-graph-up me-2"></i>Statistics</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong><i class="bi bi-eye me-2"></i>Total Views:</strong> {{ $job->views ?? 0 }}
+                    </li>
+                    <li class="mb-2">
+                        <strong><i class="bi bi-people me-2"></i>Total Applications:</strong> {{ $job->applications()->count() }}
+                    </li>
+                    <li class="mb-2">
+                        <strong><i class="bi bi-bookmark me-2"></i>Saved by:</strong> {{ $job->savedJobs()->count() }} candidates
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-4 pt-4 border-top">
+            <h5 class="mb-3"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('employer.jobs.applicants', $job->id) }}" class="ep-btn ep-btn-info">
+                    <i class="bi bi-people"></i> View Applications ({{ $job->applications()->count() }})
+                </a>
+                <a href="{{ route('employer.jobs.edit', $job->id) }}" class="ep-btn ep-btn-primary">
+                    <i class="bi bi-pencil"></i> Edit Job
+                </a>
+                <form action="{{ route('employer.jobs.delete', $job->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this job? This action cannot be undone.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="ep-btn ep-btn-danger">
+                        <i class="bi bi-trash"></i> Delete Job
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
-
-@push('styles')
-<style>
-.welcome-card {
-    background: linear-gradient(to right, var(--bs-primary-bg-subtle), var(--bs-white));
-    border-left: 4px solid var(--bs-primary);
-}
-
-.formatted-content {
-    white-space: pre-line;
-}
-
-.info-item:last-child {
-    margin-bottom: 0;
-}
-</style>
-@endpush 
+@endsection

@@ -25,24 +25,52 @@
                 <span>User Management</span>
             </a>
 
-            <!-- Job Management -->
+            <!-- Post New Job -->
+            <a href="{{ route('admin.jobs.create') }}" 
+               class="menu-item menu-item-success {{ request()->routeIs('admin.jobs.create') ? 'active' : '' }}">
+                <i class="fas fa-plus-circle"></i>
+                <span>Post New Job</span>
+            </a>
+
+            <!-- Company Management -->
+            <a href="{{ route('admin.company-management.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.company-management.*') ? 'active' : '' }}">
+                <i class="fas fa-building"></i>
+                <span>Company Management</span>
+            </a>
+
+            <!-- Employer Accounts -->
+            <a href="{{ route('admin.companies.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}">
+                <i class="fas fa-users-cog"></i>
+                <span>Employer Accounts</span>
+            </a>
+
+            <!-- Pending Jobs -->
             <a href="{{ route('admin.jobs.pending') }}" 
-               class="menu-item {{ request()->routeIs('admin.jobs.*') ? 'active' : '' }}">
-                <i class="fas fa-briefcase"></i>
-                <span>Job Management</span>
+               class="menu-item {{ request()->routeIs('admin.jobs.pending') ? 'active' : '' }}">
+                <i class="fas fa-clock"></i>
+                <span>Pending Jobs</span>
                 @if($pendingJobsCount ?? 0 > 0)
                     <span class="badge bg-warning">{{ $pendingJobsCount }}</span>
                 @endif
             </a>
 
-            <!-- KYC Queue -->
-            <a href="{{ route('admin.kyc.index') }}" 
+            <!-- KYC Verifications -->
+            <a href="{{ route('admin.kyc.didit-verifications') }}" 
                class="menu-item {{ request()->routeIs('admin.kyc.*') ? 'active' : '' }}">
                 <i class="fas fa-id-card"></i>
-                <span>KYC Queue</span>
-                @if($kycPendingCount ?? 0 > 0)
-                    <span class="badge bg-danger">{{ $kycPendingCount }}</span>
+                <span>KYC Verifications</span>
+                @if(isset($kycPendingCount) && $kycPendingCount > 0)
+                    <span class="badge bg-warning">{{ $kycPendingCount }}</span>
                 @endif
+            </a>
+
+            <!-- Employer Documents -->
+            <a href="{{ route('admin.employer-documents.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.employer-documents.*') ? 'active' : '' }}">
+                <i class="fas fa-file-alt"></i>
+                <span>Employer Documents</span>
             </a>
         </div>
 
@@ -57,11 +85,18 @@
                 <span>Categories</span>
             </a>
 
-            <!-- Job Types -->
-            <a href="{{ route('admin.job-types.index') }}" 
-               class="menu-item {{ request()->routeIs('admin.job-types.*') ? 'active' : '' }}">
-                <i class="fas fa-list"></i>
-                <span>Job Types</span>
+            <!-- Analytics -->
+            <a href="{{ route('admin.analytics.dashboard') }}" 
+               class="menu-item {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+            
+            <!-- Maintenance Mode -->
+            <a href="{{ route('admin.maintenance.index') }}" 
+               class="menu-item {{ request()->routeIs('admin.maintenance.*') ? 'active' : '' }}">
+                <i class="fas fa-tools"></i>
+                <span>Maintenance Mode</span>
             </a>
         </div>
 
@@ -203,6 +238,26 @@
 .logout-btn:hover {
     background: #fef2f2;
     color: #dc2626;
+}
+
+/* Special styling for Post New Job button */
+.menu-item-success {
+    background: #10b981;
+    color: #fff !important;
+}
+
+.menu-item-success:hover {
+    background: #059669;
+    color: #fff !important;
+}
+
+.menu-item-success.active {
+    background: #047857;
+    color: #fff !important;
+}
+
+.menu-item-success i {
+    color: #fff;
 }
 
 /* Dark mode support */

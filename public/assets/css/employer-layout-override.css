@@ -1,0 +1,178 @@
+/* Employer Layout Override - Fix for sidebar collision with main navigation */
+
+/* Override for employer dashboard pages */
+body:has(.employer-layout) {
+    overflow-x: hidden;
+}
+
+/* Calculate navbar height dynamically */
+.navbar {
+    height: 70px; /* Fixed navbar height */
+    position: sticky;
+    top: 0;
+    z-index: 1002;
+}
+
+/* Employer layout adjustments */
+.employer-layout {
+    display: flex;
+    min-height: calc(100vh - 70px);
+    background: #f8fafc;
+    position: relative;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* Sidebar positioning to avoid collision */
+.employer-layout .employer-sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: #1e293b;
+    position: fixed;
+    left: 0;
+    top: 70px; /* Start right below navbar */
+    height: calc(100vh - 70px);
+    z-index: 999;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Main content area */
+.employer-layout .employer-main-content {
+    flex: 1;
+    margin-left: 280px;
+    min-height: calc(100vh - 70px);
+    background: #f8fafc;
+    width: calc(100% - 280px);
+    padding: 0;
+}
+
+/* Dashboard content wrapper */
+.employer-layout .modern-employer-dashboard {
+    width: 100%;
+    min-height: calc(100vh - 70px);
+    position: relative;
+}
+
+/* Welcome section adjustments */
+.employer-layout .dashboard-welcome {
+    margin-top: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Container fluid adjustments */
+.employer-layout .container-fluid {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: none;
+}
+
+/* Responsive behavior */
+@media (max-width: 1024px) {
+    .employer-layout .employer-sidebar {
+        transform: translateX(-100%);
+        top: 70px;
+        height: calc(100vh - 70px);
+    }
+    
+    .employer-layout .employer-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .employer-layout .employer-main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        height: 60px;
+    }
+    
+    .employer-layout {
+        min-height: calc(100vh - 60px);
+    }
+    
+    .employer-layout .employer-sidebar {
+        top: 60px;
+        height: calc(100vh - 60px);
+    }
+    
+    .employer-layout .employer-main-content {
+        min-height: calc(100vh - 60px);
+    }
+    
+    .employer-layout .modern-employer-dashboard {
+        min-height: calc(100vh - 60px);
+    }
+}
+
+/* Ensure no content goes behind sidebar */
+.employer-layout .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.employer-layout .col-lg-7,
+.employer-layout .col-lg-5,
+.employer-layout .col-md-6,
+.employer-layout .col-12 {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Fix any z-index conflicts */
+.employer-layout {
+    position: relative;
+    z-index: 1;
+}
+
+/* Smooth transitions */
+.employer-layout .employer-main-content {
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* Mobile menu toggle (if needed) */
+.mobile-sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    z-index: 1003;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 1024px) {
+    .mobile-sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Overlay for mobile sidebar */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+}
+
+@media (max-width: 1024px) {
+    .sidebar-overlay.active {
+        display: block;
+    }
+}

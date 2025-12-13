@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             JobTypeSeeder::class,
+            NotificationSeeder::class,
         ]);
 
         // Create default job types

@@ -520,7 +520,12 @@ $(document).ready(function() {
     // Form submission
     $("#registrationForm").submit(function(e) {
         e.preventDefault();
-        
+
+        // Disable submit button to prevent double submission
+        var submitBtn = $(this).find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Creating Account...');
+
         $.ajax({
             url: $(this).attr('action'),
             type: 'POST',
@@ -530,26 +535,58 @@ $(document).ready(function() {
                 if (response.status == true) {
                     $('.invalid-feedback').remove();
                     $('.is-invalid').removeClass('is-invalid');
-                    
-                    // Redirect to login page immediately without showing JSON
+
+                    // Show success message before redirect
+                    var successAlert = '<div class="alert alert-success mb-4" role="alert">' +
+                        '<i class="fas fa-check-circle me-2"></i>' +
+                        '<strong>Success!</strong> ' + response.message +
+                        '</div>';
+                    $('#registrationForm').prepend(successAlert);
+
+                    // Redirect to login page after a brief delay so user sees the message
                     if (response.redirect) {
-                        window.location.href = response.redirect;
+                        setTimeout(function() {
+                            window.location.href = response.redirect;
+                        }, 1500);
                     }
                 } else {
+                    // Re-enable submit button
+                    submitBtn.prop('disabled', false).html(originalText);
+
                     // Handle validation errors
                     if (response.errors) {
                         $('.invalid-feedback').remove();
                         $('.is-invalid').removeClass('is-invalid');
-                        
+                        $('.alert-danger').remove();
+
+                        // Show general error at top of form
+                        var errorMessages = [];
                         $.each(response.errors, function(key, value) {
                             $('#' + key).addClass('is-invalid');
-                            $('#' + key).after('<div class="invalid-feedback">' + value + '</div>');
+                            $('#' + key).after('<div class="invalid-feedback d-block">' + value + '</div>');
+                            errorMessages.push(value);
                         });
+
+                        // Scroll to first error
+                        $('html, body').animate({
+                            scrollTop: $('.is-invalid').first().offset().top - 100
+                        }, 300);
                     }
                 }
             },
-            error: function(response) {
-                console.log('Error:', response);
+            error: function(xhr, status, error) {
+                // Re-enable submit button
+                submitBtn.prop('disabled', false).html(originalText);
+
+                // Show error message
+                var errorAlert = '<div class="alert alert-danger mb-4" role="alert">' +
+                    '<i class="fas fa-exclamation-circle me-2"></i>' +
+                    '<strong>Error!</strong> Something went wrong. Please try again.' +
+                    '</div>';
+                $('.alert').remove();
+                $('#registrationForm').prepend(errorAlert);
+
+                console.log('Error:', error);
             }
         });
     });

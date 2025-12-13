@@ -2,59 +2,54 @@
 
 namespace App\Services;
 
+use App\Contracts\KycServiceInterface;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
-class MockDiditService extends DiditService
+class MockDiditService implements KycServiceInterface
 {
-    /**
-     * Create a mock verification session
-     */
     public function createSession(array $payload = []): array
     {
-        Log::info('Creating mock Didit session', ['payload' => $payload]);
+        Log::info('MockDiditService: Creating mock session', $payload);
         
-        // Generate a random session ID
-        $sessionId = Str::uuid()->toString();
-        
-        // Create a mock response
+        // Return a mock response that matches the real Didit API structure
         return [
-            'session_id' => $sessionId,
-            'url' => route('kyc.success', ['session_id' => $sessionId, 'status' => 'completed']),
+            'session_id' => 'mock-session-' . time(),
+            'session_number' => 'MOCK-' . strtoupper(substr(md5(time()), 0, 8)),
+            'session_token' => 'mock.jwt.token.here',
+            'url' => env('APP_URL', 'http://localhost') . '/kyc/mock-verify',
+            'vendor_data' => $payload['vendor_data'] ?? 'mock-vendor-data',
+            'metadata' => $payload['metadata'] ?? [],
             'status' => 'created',
-            'created_at' => now()->toIso8601String(),
+            'callback' => $payload['callback'] ?? null,
+            'workflow_id' => 'mock-workflow-id'
         ];
     }
     
-    /**
-     * Get mock session status
-     */
     public function getSessionStatus(string $sessionId): array
     {
-        Log::info('Getting mock session status', ['session_id' => $sessionId]);
+        Log::info('MockDiditService: Getting mock session status', ['session_id' => $sessionId]);
         
         return [
             'session_id' => $sessionId,
             'status' => 'completed',
-            'completed_at' => now()->toIso8601String(),
+            'vendor_data' => 'mock-vendor-data',
+            'metadata' => [],
+            'completed_at' => now()->toISOString()
         ];
     }
     
-    /**
-     * Mock signature verification
-     */
     public function verifySignature(string $payload, string $signature): bool
     {
+        Log::info('MockDiditService: Mock signature verification (always returns true)');
         return true;
     }
     
-    /**
-     * Process mock webhook event
-     */
     public function processWebhookEvent(array $event): void
     {
-        Log::info('Processing mock webhook event', $event);
+        Log::info('MockDiditService: Processing mock webhook event', $event);
         
+        // In mock mode, immediately update user status
+        $eventType = $event['event_type'] ?? 'session.completed';
         $sessionId = $event['session_id'] ?? null;
         $vendorData = $event['vendor_data'] ?? null;
         
@@ -64,9 +59,24 @@ class MockDiditService extends DiditService
                 $user->update([
                     'kyc_status' => 'verified',
                     'kyc_verified_at' => now(),
-                    'kyc_data' => $event
+                    'kyc_data' => array_merge($event, ['mock' => true])
+                ]);
+                
+                Log::info('MockDiditService: User KYC status updated to verified', [
+                    'user_id' => $user->id,
+                    'session_id' => $sessionId
                 ]);
             }
         }
+    }
+    
+    protected function getUserFromVendorData(string $vendorData): ?\App\Models\User
+    {
+        // Extract user ID from vendor_data (format: "user-{id}")
+        if (preg_match('/user-(\d+)/', $vendorData, $matches)) {
+            return \App\Models\User::find($matches[1]);
+        }
+        
+        return null;
     }
 }

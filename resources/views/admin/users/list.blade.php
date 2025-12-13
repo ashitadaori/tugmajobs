@@ -11,7 +11,7 @@
                 <form action="{{ route('admin.users.index') }}" method="GET" id="filter-form">
                     <div class="row g-3">
                         <!-- Search -->
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <input type="text" 
                                    name="search" 
                                    class="form-control" 
@@ -29,17 +29,20 @@
                             </select>
                         </div>
 
-                        <!-- Status Filter -->
+
+                        <!-- KYC Status Filter -->
                         <div class="col-md-2">
-                            <select name="status" class="form-select">
-                                <option value="">All Status</option>
-                                <option value="verified" {{ request('status') === 'verified' ? 'selected' : '' }}>Verified</option>
-                                <option value="unverified" {{ request('status') === 'unverified' ? 'selected' : '' }}>Unverified</option>
+                            <select name="kyc_status" class="form-select">
+                                <option value="all">All KYC Status</option>
+                                <option value="verified" {{ request('kyc_status') === 'verified' ? 'selected' : '' }}>KYC Verified</option>
+                                <option value="in_progress" {{ request('kyc_status') === 'in_progress' ? 'selected' : '' }}>KYC Pending</option>
+                                <option value="rejected" {{ request('kyc_status') === 'rejected' ? 'selected' : '' }}>KYC Rejected</option>
+                                <option value="not_started" {{ request('kyc_status') === 'not_started' ? 'selected' : '' }}>KYC Not Started</option>
                             </select>
                         </div>
 
                         <!-- Date Range -->
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <input type="text" 
                                    name="date_range" 
                                    class="form-control daterangepicker" 
@@ -99,6 +102,22 @@
         </div>
     </div>
 
+    <!-- KYC Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="stats-card bg-success text-white">
+                <h6 class="card-title">KYC Verified</h6>
+                <h3 class="mb-0">{{ $counts['kyc_verified'] }}</h3>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stats-card bg-warning text-white">
+                <h6 class="card-title">KYC Pending</h6>
+                <h3 class="mb-0">{{ $counts['kyc_pending'] }}</h3>
+            </div>
+        </div>
+    </div>
+
     <!-- Content Card -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -153,7 +172,7 @@
                                 </a>
                             </th>
                             <th>Role</th>
-                            <th>Status</th>
+                            <th>KYC Status</th>
                             <th>
                                 <a href="{{ route('admin.users.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}"
                                    class="text-decoration-none text-dark">
@@ -183,63 +202,37 @@
                                 </span>
                             </td>
                             <td>
-                                @if($user->email_verified_at)
-                                    <span class="badge-custom badge-active">Verified</span>
-                                @else
-                                    <span class="badge-custom badge-pending">Pending</span>
-                                @endif
-                                @if(!$user->is_active)
-                                    <span class="badge-custom badge-suspended">Suspended</span>
-                                @endif
+                                @php
+                                    $kycStatusColor = match($user->kyc_status) {
+                                        'verified' => 'success',
+                                        'in_progress' => 'warning',
+                                        'rejected' => 'danger',
+                                        default => 'secondary'
+                                    };
+                                @endphp
+                                <span class="badge bg-{{ $kycStatusColor }}">
+                                    {{ ucfirst(str_replace('_', ' ', $user->kyc_status)) }}
+                                </span>
                             </td>
                             <td>{{ $user->created_at->format('M d, Y') }}</td>
                             <td>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ route('admin.users.edit', $user) }}" 
-                                       class="btn btn-sm btn-info"
-                                       title="Edit User">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-
-                                    @if($user->role === 'jobseeker' && $user->jobSeekerProfile)
-                                        <a href="{{ route('admin.kyc.index') }}?user={{ $user->id }}" 
-                                           class="btn btn-sm btn-warning"
-                                           title="View KYC Documents">
-                                            <i class="bi bi-shield-check"></i>
+                                <div class="btn-group" role="group">
+                                    {{-- Resume Download for Job Seekers --}}
+                                    @if($user->role === 'jobseeker' && $user->jobSeekerProfile && $user->jobSeekerProfile->resume_file)
+                                        <a href="{{ asset('storage/resumes/' . $user->jobSeekerProfile->resume_file) }}" 
+                                           class="btn btn-sm btn-outline-danger" 
+                                           target="_blank"
+                                           title="Download Resume">
+                                            <i class="fas fa-file-pdf"></i>
                                         </a>
                                     @endif
-
-                                    @if($user->id !== auth()->id())
-                                        @if($user->is_active)
-                                            <button type="button"
-                                                    class="btn btn-sm btn-danger suspend-btn"
-                                                    data-user-id="{{ $user->id }}"
-                                                    title="Suspend User">
-                                                <i class="bi bi-slash-circle"></i>
-                                            </button>
-                                        @else
-                                            <button type="button"
-                                                    class="btn btn-sm btn-success unsuspend-btn"
-                                                    data-user-id="{{ $user->id }}"
-                                                    title="Unsuspend User">
-                                                <i class="bi bi-check-circle"></i>
-                                            </button>
-                                        @endif
-
-                                        @if(auth()->user()->role === 'superadmin')
-                                            <form action="{{ route('admin.users.destroy', $user) }}" 
-                                                  method="POST" 
-                                                  class="d-inline delete-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" 
-                                                        class="btn btn-sm btn-danger"
-                                                        title="Delete User">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    @endif
+                                    
+                                    {{-- Edit Button --}}
+                                    <a href="{{ route('admin.users.edit', $user->id) }}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Edit User">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>

@@ -7,22 +7,36 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobSeekerProfile extends Model
 {
+    protected $table = 'jobseekers';
+    
     protected $fillable = [
         'user_id',
-        'resume',
+        'first_name',
+        'last_name',
+        'phone',
+        'city',
+        'state',
+        'country',
+        'professional_summary',
         'skills',
-        'experience',
         'education',
-        'current_salary',
-        'expected_salary',
-        'preferred_location',
-        'is_kyc_verified'
+        'work_experience',
+        'resume_file', // maps to 'resume' conceptually
+        'expected_salary_min',
+        'expected_salary_max',
+        'preferred_locations', // maps to 'preferred_location' conceptually
+        'profile_status',
+        'profile_completion_percentage'
     ];
 
     protected $casts = [
-        'is_kyc_verified' => 'boolean',
         'skills' => 'array',
-        'education' => 'array'
+        'education' => 'array',
+        'work_experience' => 'array',
+        'preferred_locations' => 'array',
+        'expected_salary_min' => 'decimal:2',
+        'expected_salary_max' => 'decimal:2',
+        'profile_completion_percentage' => 'decimal:2'
     ];
 
     public function user(): BelongsTo

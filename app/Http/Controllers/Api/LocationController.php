@@ -17,7 +17,7 @@ class LocationController extends Controller
     }
 
     /**
-     * Get all areas in Digos City
+     * Get all areas in Sta. Cruz, Davao del Sur
      */
     public function getAllAreas()
     {
@@ -39,7 +39,7 @@ class LocationController extends Controller
     }
 
     /**
-     * Search locations in Digos City
+     * Search locations in Sta. Cruz, Davao del Sur
      */
     public function search(Request $request)
     {
@@ -71,21 +71,21 @@ class LocationController extends Controller
     }
 
     /**
-     * Get nearest area in Digos City based on coordinates
+     * Get nearest area in Sta. Cruz, Davao del Sur based on coordinates
      */
     public function getNearestArea(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'lat' => 'required|numeric|between:6.75,6.79',
-                'lng' => 'required|numeric|between:125.35,125.39'
+                'lat' => 'required|numeric|between:6.70,6.85',
+                'lng' => 'required|numeric|between:125.35,125.50'
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'errors' => $validator->errors(),
-                    'message' => 'Coordinates must be within Digos City boundaries'
+                    'message' => 'Coordinates must be within Sta. Cruz, Davao del Sur boundaries'
                 ], 422);
             }
 
@@ -97,7 +97,7 @@ class LocationController extends Controller
             if (!$location) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Location not found within Digos City'
+                    'message' => 'Location not found within Sta. Cruz, Davao del Sur'
                 ], 404);
             }
 

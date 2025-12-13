@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Job;
 use App\Models\JobApplication;
 use App\Models\JobType;
+use App\Models\JobView;
 use App\Models\User;
 use App\Services\KMeansClusteringService;
 use Illuminate\Http\Request;
@@ -257,5 +258,110 @@ class AnalyticsController extends Controller
             'jobMetrics' => $jobMetrics,
             'applicationTrends' => $applicationTrends
         ]);
+    }
+
+    /**
+     * Display analytics for job seekers
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function jobSeekerAnalytics()
+    {
+        $user = Auth::user();
+        
+        // Get application statistics
+        $totalApplications = JobApplication::where('user_id', $user->id)->count();
+        $pendingApplications = JobApplication::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->count();
+        $acceptedApplications = JobApplication::where('user_id', $user->id)
+            ->where('status', 'accepted')
+            ->count();
+        $rejectedApplications = JobApplication::where('user_id', $user->id)
+            ->where('status', 'rejected')
+            ->count();
+        
+        // Get profile view statistics
+        $totalProfileViews = \App\Models\ProfileView::where('jobseeker_id', $user->id)->count();
+        $profileViewsThisWeek = \App\Models\ProfileView::where('jobseeker_id', $user->id)
+            ->where('viewed_at', '>=', now()->subWeek())
+            ->count();
+        $profileViewsThisMonth = \App\Models\ProfileView::where('jobseeker_id', $user->id)
+            ->where('viewed_at', '>=', now()->subMonth())
+            ->count();
+        
+        // Get recent profile viewers
+        $recentProfileViewers = \App\Models\ProfileView::where('jobseeker_id', $user->id)
+            ->with(['viewer', 'viewer.employerProfile'])
+            ->latest('viewed_at')
+            ->limit(10)
+            ->get();
+        
+        // Get application trends (last 30 days) - with all dates filled
+        $startDate = now()->subDays(30);
+        $endDate = now();
+        
+        // Get actual application data
+        $applicationData = JobApplication::where('user_id', $user->id)
+            ->where('created_at', '>=', $startDate)
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->keyBy('date');
+        
+        // Fill in all dates with zero for missing days
+        $applicationTrends = collect();
+        $currentDate = $startDate->copy();
+        
+        while ($currentDate <= $endDate) {
+            $dateKey = $currentDate->format('Y-m-d');
+            $count = $applicationData->has($dateKey) ? $applicationData[$dateKey]->count : 0;
+            
+            $applicationTrends->push([
+                'date' => $currentDate->format('M d'),
+                'count' => $count
+            ]);
+            
+            $currentDate->addDay();
+        }
+        
+        // Get recent applications
+        $recentApplications = JobApplication::where('user_id', $user->id)
+            ->with(['job', 'job.category'])
+            ->latest()
+            ->limit(5)
+            ->get();
+        
+        // Get job categories user has applied to
+        $categoryStats = JobApplication::where('user_id', $user->id)
+            ->join('jobs', 'job_applications.job_id', '=', 'jobs.id')
+            ->join('categories', 'jobs.category_id', '=', 'categories.id')
+            ->select('categories.name', DB::raw('COUNT(*) as count'))
+            ->groupBy('categories.name')
+            ->orderByDesc('count')
+            ->limit(5)
+            ->get();
+        
+        // Get saved jobs count
+        $savedJobsCount = $user->savedJobs()->count();
+        
+        return view('front.account.analytics', compact(
+            'totalApplications',
+            'pendingApplications',
+            'acceptedApplications',
+            'rejectedApplications',
+            'applicationTrends',
+            'recentApplications',
+            'categoryStats',
+            'savedJobsCount',
+            'totalProfileViews',
+            'profileViewsThisWeek',
+            'profileViewsThisMonth',
+            'recentProfileViewers'
+        ));
     }
 }

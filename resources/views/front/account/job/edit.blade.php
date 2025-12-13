@@ -18,7 +18,6 @@
                 @include('front.account.sidebar')
             </div>
             <div class="col-lg-9">
-                @include('front.message')
                 <form action="" method="post" name="updateJobForm" id="updateJobForm">
                     @csrf
                     <div class="card border-0 shadow mb-4">

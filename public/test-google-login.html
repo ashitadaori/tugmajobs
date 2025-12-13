@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Google Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #4285f4;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background: #357ae8;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Google OAuth Test Page</h1>
+
+    <div class="info">
+        <h3>Test Links:</h3>
+        <p>Click one of these buttons to test Google login:</p>
+    </div>
+
+    <a href="https://3dbb0fea823c.ngrok-free.app/auth/google?role=jobseeker" class="btn">
+        🔐 Login as Jobseeker
+    </a>
+    <br>
+    <a href="https://3dbb0fea823c.ngrok-free.app/auth/google?role=employer" class="btn">
+        🔐 Login as Employer
+    </a>
+
+    <div class="info">
+        <h3>What should happen:</h3>
+        <ol>
+            <li>Click a button above</li>
+            <li>You'll be redirected to Google's login page</li>
+            <li>Login with your Google account</li>
+            <li>Grant permissions</li>
+            <li>You'll be redirected back to the job portal</li>
+            <li>You should be logged in automatically</li>
+        </ol>
+    </div>
+
+    <div class="info">
+        <h3>Configuration Status:</h3>
+        <ul>
+            <li>✅ Laravel routes configured</li>
+            <li>✅ SocialAuthController working</li>
+            <li>✅ Callback URL: <code>https://3dbb0fea823c.ngrok-free.app/auth/google/callback</code></li>
+            <li>⚠️ Make sure this URL is in Google Cloud Console</li>
+        </ul>
+    </div>
+
+    <div class="info">
+        <h3>If you get "Invalid social provider" error:</h3>
+        <p>This means you're not actually reaching the <code>/auth/google</code> route. Possible causes:</p>
+        <ul>
+            <li>JavaScript is intercepting the click</li>
+            <li>The link in your auth modal is different</li>
+            <li>You're clicking a different button</li>
+        </ul>
+        <p><strong>Solution:</strong> Use these direct links above instead</p>
+    </div>
+
+    <script>
+        console.log('Test page loaded');
+        console.log('If clicking buttons does nothing, check browser console for errors');
+    </script>
+</body>
+</html>

@@ -18,8 +18,6 @@
                 @include('components.sidebar')
             </div>
             <div class="col-lg-9">
-                @include('front.message')
-                
                 <!-- Job Match Score Card -->
                 <div class="card border-0 shadow mb-4">
                     <div class="card-body p-4">
@@ -42,7 +40,7 @@
                                 <select class="form-select" name="job_id" required>
                                     <option value="">Choose a job...</option>
                                     @foreach(Auth::user()->savedJobs as $savedJob)
-                                        <option value="{{ $savedJob->id }}">{{ $savedJob->title }}</option>
+                                        <option value="{{ $savedJob->job->id }}">{{ $savedJob->job->title }}</option>
                                     @endforeach
                                 </select>
                             </div>

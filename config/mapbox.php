@@ -7,7 +7,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Configuration for Mapbox integration in TugmaJobs
-    | Focused on Digos City, Davao del Sur location services
+    | Focused on Sta. Cruz, Davao del Sur location services
     |
     */
 
@@ -16,17 +16,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Digos City Geographic Boundaries
+    | Sta. Cruz Geographic Boundaries
     |--------------------------------------------------------------------------
     |
-    | More precise bounding box coordinates for Digos City, Davao del Sur
+    | More precise bounding box coordinates for Sta. Cruz, Davao del Sur
     | Format: [longitude_min, latitude_min, longitude_max, latitude_max]
+    | Centered at approximately: Latitude 6.8370, Longitude 125.4130
     |
     */
-    'digos_bounds' => [
-        'southwest' => [125.32, 6.72],
-        'northeast' => [125.42, 6.82],
-        'bbox' => '125.32,6.72,125.42,6.82'
+    'stacruz_bounds' => [
+        'southwest' => [125.30, 6.75],
+        'northeast' => [125.55, 6.95],
+        'bbox' => '125.30,6.75,125.55,6.95'
     ],
 
     /*
@@ -37,7 +38,7 @@ return [
     'search_filters' => [
         'country' => 'PH',
         'region' => 'Davao del Sur',
-        'locality' => 'Digos City',
+        'locality' => 'Sta. Cruz',
         'types' => 'address,poi,locality',
         'limit' => 5
     ],
@@ -46,10 +47,11 @@ return [
     |--------------------------------------------------------------------------
     | Default Map Settings
     |--------------------------------------------------------------------------
+    | Default center is set to Sta. Cruz, Davao del Sur
     */
     'default_center' => [
-        'lng' => 125.4,
-        'lat' => 6.8
+        'lng' => 125.4130,
+        'lat' => 6.8370
     ],
     'default_zoom' => 13,
 

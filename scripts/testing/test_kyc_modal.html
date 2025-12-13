@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Modal Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="test-token-12345">
+    <meta name="user-id" content="3">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">KYC Modal Test</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h5>Testing KYC Modal</h5>
+                            <p>This page simulates what happens when an employer tries to post a job without KYC verification.</p>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button class="btn btn-primary btn-lg" onclick="showKycModal()">
+                                <i class="fas fa-plus me-2"></i>
+                                Post New Job (Trigger KYC Modal)
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5>Debug Information:</h5>
+                            <div id="debug-output" class="border p-3" style="height: 200px; overflow-y: auto; background-color: #f8f9fa; font-family: monospace; font-size: 12px;">
+                                <!-- Debug output will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KYC Modal (simulated) -->
+    <div class="modal fade" id="kycModal" tabindex="-1" aria-labelledby="kycModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="kycModalLabel">
+                        <i class="fas fa-id-card me-2"></i>
+                        Identity Verification Required
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-shield-alt text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    
+                    <h4 class="text-center mb-3">Verify Your Identity to Continue</h4>
+                    
+                    <p class="text-center text-muted mb-4">
+                        To post jobs and access employer features, you need to complete identity verification.
+                    </p>
+                    
+                    <!-- Current Status Display -->
+                    <div class="alert alert-info mb-4">
+                        <h6>
+                            <i class="fas fa-info-circle me-2"></i>
+                            Current Status: In Progress
+                        </h6>
+                        <p class="mb-0 small">
+                            Your verification is in progress. You can continue or start over.
+                        </p>
+                    </div>
+                    
+                    <!-- What you'll need -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-id-card text-primary me-3"></i>
+                                <span>Valid government ID</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-camera text-primary me-3"></i>
+                                <span>Camera access</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-clock text-primary me-3"></i>
+                                <span>5 minutes of your time</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-lightbulb text-primary me-3"></i>
+                                <span>Good lighting</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Verification Status Polling (hidden by default) -->
+                    <div id="modalVerificationStatus" class="text-center mt-4" style="display: none;">
+                        <div class="card border-info">
+                            <div class="card-body">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <h6 class="text-info">Verification in Progress</h6>
+                                <p class="mb-2 small">Please complete the verification in the popup window.</p>
+                                <p class="small text-muted">This modal will automatically update when verification is complete.</p>
+                                <div class="mt-3">
+                                    <button class="btn btn-outline-secondary btn-sm me-2" onclick="testCheckStatus()">
+                                        <i class="fas fa-sync me-1"></i>
+                                        Check Status
+                                    </button>
+                                    <button class="btn btn-outline-warning btn-sm" onclick="testResetKyc()">
+                                        <i class="fas fa-redo me-1"></i>
+                                        Start Over
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary me-2" onclick="startModalVerification()">
+                        <i class="fas fa-play me-2"></i>
+                        Continue Verification
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="testResetKyc()">
+                        <i class="fas fa-redo me-2"></i>
+                        Reset
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/kyc-inline-verification.js"></script>
+    
+    <script>
+        function addDebugMessage(message, type = 'info') {
+            const output = document.getElementById('debug-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-danger' : type === 'success' ? 'text-success' : 'text-dark';
+            
+            const div = document.createElement('div');
+            div.className = color;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        // Show modal function
+        function showKycModal() {
+            addDebugMessage('Showing KYC modal...', 'info');
+            const kycModal = new bootstrap.Modal(document.getElementById('kycModal'));
+            kycModal.show();
+        }
+        
+        // Modal-specific verification function
+        function startModalVerification() {
+            addDebugMessage('Starting modal verification...', 'info');
+            
+            // Show the verification status section in the modal
+            const modalStatusDiv = document.getElementById('modalVerificationStatus');
+            if (modalStatusDiv) {
+                modalStatusDiv.style.display = 'block';
+                addDebugMessage('Verification status section shown in modal', 'success');
+            }
+            
+            // Call the main verification function
+            if (typeof window.startInlineVerification === 'function') {
+                addDebugMessage('Calling startInlineVerification...', 'info');
+                window.startInlineVerification();
+            } else {
+                addDebugMessage('startInlineVerification function not available', 'error');
+                alert('Verification function not available. Please refresh the page and try again.');
+            }
+        }
+        
+        function testCheckStatus() {
+            addDebugMessage('Testing Check Status in modal...', 'info');
+            if (typeof window.checkVerificationComplete === 'function') {
+                window.checkVerificationComplete();
+                addDebugMessage('Check status function called', 'success');
+            } else {
+                addDebugMessage('Check status function not available', 'error');
+            }
+        }
+        
+        function testResetKyc() {
+            addDebugMessage('Testing Reset KYC in modal...', 'info');
+            if (typeof window.resetKycVerification === 'function') {
+                addDebugMessage('Reset function available (not calling to avoid confirmation)', 'success');
+            } else {
+                addDebugMessage('Reset function not available', 'error');
+            }
+        }
+        
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addDebugMessage('KYC Modal test page loaded', 'info');
+            
+            // Check if functions are available
+            const functions = ['startInlineVerification', 'checkVerificationComplete', 'resetKycVerification'];
+            functions.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    addDebugMessage(`✓ ${funcName} is available`, 'success');
+                } else {
+                    addDebugMessage(`✗ ${funcName} is NOT available`, 'error');
+                }
+            });
+        });
+        
+        // Make functions globally available
+        window.showKycModal = showKycModal;
+        window.startModalVerification = startModalVerification;
+    </script>
+</body>
+</html>

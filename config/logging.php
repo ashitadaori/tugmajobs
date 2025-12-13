@@ -53,7 +53,7 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
+            'channels' => ['daily'],
             'ignore_exceptions' => false,
         ],
 
@@ -67,6 +67,70 @@ return [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+        ],
+
+        // Security Events Log
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'warning',
+            'days' => 30,
+        ],
+
+        // Performance Metrics Log
+        'performance' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/performance.log'),
+            'level' => 'info',
+            'days' => 7,
+        ],
+
+        // Database Query Log
+        'database' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/database.log'),
+            'level' => 'debug',
+            'days' => 7,
+        ],
+
+        // Business Events Log
+        'business' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/business.log'),
+            'level' => 'info',
+            'days' => 30,
+        ],
+
+        // User Actions Log (audit trail)
+        'user_actions' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/user_actions.log'),
+            'level' => 'info',
+            'days' => 90,
+        ],
+
+        // API Log
+        'api' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/api.log'),
+            'level' => 'debug',
+            'days' => 14,
+        ],
+
+        // Cache Operations Log
+        'cache' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/cache.log'),
+            'level' => 'debug',
+            'days' => 3,
+        ],
+
+        // Job Queue Log
+        'jobs' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/jobs.log'),
+            'level' => 'info',
             'days' => 14,
         ],
 

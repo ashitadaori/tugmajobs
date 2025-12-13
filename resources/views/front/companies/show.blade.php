@@ -32,18 +32,72 @@
                         </div>
                     </div>
 
-                    @if($company->description)
+                    @if($company->company_description)
                         <div class="mb-4">
                             <h5 class="mb-3">About {{ $company->company_name }}</h5>
-                            <p class="text-muted">{{ $company->description }}</p>
+                            <p class="text-muted">{{ $company->company_description }}</p>
                         </div>
                     @endif
 
-                    @if($company->website)
-                        <a href="{{ $company->website }}" target="_blank" class="btn btn-outline-primary">
-                            <i class="fas fa-external-link-alt me-2"></i>
-                            Visit Website
-                        </a>
+                    <div class="d-flex gap-2">
+                        @if($company->website)
+                            <a href="{{ $company->website }}" target="_blank" class="btn btn-outline-secondary">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                Visit Website
+                            </a>
+                        @endif
+                        <button type="button" class="btn btn-primary" onclick="scrollToReviews()">
+                            <i class="fas fa-star me-2"></i>
+                            View Reviews
+                            @php
+                                $companyReviewCount = \App\Models\Review::where('employer_id', $company->user_id)
+                                    ->where('review_type', 'company')
+                                    ->count();
+                                $companyAvgRating = \App\Models\Review::getCompanyAverageRating($company->user_id);
+                            @endphp
+                            @if($companyReviewCount > 0)
+                                <span class="badge bg-warning text-dark ms-1">
+                                    {{ number_format($companyAvgRating, 1) }} ⭐
+                                </span>
+                            @endif
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Reviews Section -->
+            <div class="card border-0 shadow-sm mb-4" id="reviews-section">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star text-warning me-2"></i>
+                        Company Reviews
+                        @if($companyReviewCount > 0)
+                            <span class="badge bg-light text-dark ms-2">
+                                {{ number_format($companyAvgRating, 1) }} ⭐ • {{ $companyReviewCount }} {{ Str::plural('review', $companyReviewCount) }}
+                            </span>
+                        @endif
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @php
+                        $companyReviews = \App\Models\Review::where('employer_id', $company->user_id)
+                            ->where('review_type', 'company')
+                            ->with('user', 'job')
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+                    @endphp
+
+                    @if($companyReviews->isEmpty())
+                        <div class="text-center py-5">
+                            <i class="fas fa-star-half-alt text-muted fa-3x mb-3"></i>
+                            <h5>No Reviews Yet</h5>
+                            <p class="text-muted">Be the first to review this company!</p>
+                            <p class="text-muted small">Apply to one of their jobs to leave a review.</p>
+                        </div>
+                    @else
+                        @foreach($companyReviews as $review)
+                            @include('components.review-card', ['review' => $review])
+                        @endforeach
                     @endif
                 </div>
             </div>
@@ -92,7 +146,43 @@
             <!-- Pagination -->
             @if($activeJobs->hasPages())
                 <div class="d-flex justify-content-center mt-4">
-                    {{ $activeJobs->links() }}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            {{-- Previous Page Link --}}
+                            @if ($activeJobs->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link">&laquo; Previous</span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $activeJobs->previousPageUrl() }}" rel="prev">&laquo; Previous</a>
+                                </li>
+                            @endif
+
+                            {{-- Pagination Elements --}}
+                            @foreach ($activeJobs->getUrlRange(1, $activeJobs->lastPage()) as $page => $url)
+                                @if ($page == $activeJobs->currentPage())
+                                    <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                                @else
+                                    <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                                @endif
+                            @endforeach
+
+                            {{-- Next Page Link --}}
+                            @if ($activeJobs->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $activeJobs->nextPageUrl() }}" rel="next">Next &raquo;</a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next &raquo;</span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
+                <div class="text-center text-muted mt-2">
+                    <small>Showing {{ $activeJobs->firstItem() }} to {{ $activeJobs->lastItem() }} of {{ $activeJobs->total() }} results</small>
                 </div>
             @endif
         </div>
@@ -132,12 +222,12 @@
                             </li>
                         @endif
 
-                        @if($company->email)
+                        @if($company->contact_email)
                             <li>
                                 <i class="fas fa-envelope me-2 text-muted"></i>
                                 <span class="text-muted">Email:</span>
                                 <br>
-                                <strong>{{ $company->email }}</strong>
+                                <strong>{{ $company->contact_email }}</strong>
                             </li>
                         @endif
                     </ul>
@@ -145,29 +235,29 @@
             </div>
 
             <!-- Social Links -->
-            @if($company->linkedin_url || $company->twitter_url || $company->facebook_url)
+            @if(isset($company->social_links['linkedin']) || isset($company->social_links['twitter']) || isset($company->social_links['facebook']))
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white py-3">
                         <h5 class="mb-0">Connect With Us</h5>
                     </div>
                     <div class="card-body">
                         <div class="d-flex gap-2">
-                            @if($company->linkedin_url)
-                                <a href="{{ $company->linkedin_url }}" target="_blank" 
+                            @if(isset($company->social_links['linkedin']) && $company->social_links['linkedin'])
+                                <a href="{{ $company->social_links['linkedin'] }}" target="_blank" 
                                     class="btn btn-outline-primary">
                                     <i class="fab fa-linkedin"></i>
                                 </a>
                             @endif
                             
-                            @if($company->twitter_url)
-                                <a href="{{ $company->twitter_url }}" target="_blank" 
+                            @if(isset($company->social_links['twitter']) && $company->social_links['twitter'])
+                                <a href="{{ $company->social_links['twitter'] }}" target="_blank" 
                                     class="btn btn-outline-primary">
                                     <i class="fab fa-twitter"></i>
                                 </a>
                             @endif
                             
-                            @if($company->facebook_url)
-                                <a href="{{ $company->facebook_url }}" target="_blank" 
+                            @if(isset($company->social_links['facebook']) && $company->social_links['facebook'])
+                                <a href="{{ $company->social_links['facebook'] }}" target="_blank" 
                                     class="btn btn-outline-primary">
                                     <i class="fab fa-facebook"></i>
                                 </a>
@@ -179,4 +269,43 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+function scrollToReviews() {
+    const reviewsSection = document.getElementById('reviews-section');
+    if (reviewsSection) {
+        reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Add a highlight effect
+        reviewsSection.classList.add('highlight-section');
+        setTimeout(() => {
+            reviewsSection.classList.remove('highlight-section');
+        }, 2000);
+    }
+}
+</script>
+@endpush
+
+@push('styles')
+<style>
+.highlight-section {
+    animation: highlight 2s ease-in-out;
+}
+
+@keyframes highlight {
+    0%, 100% { box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075); }
+    50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+}
+
+.btn-primary {
+    background-color: #6366f1;
+    border-color: #6366f1;
+}
+
+.btn-primary:hover {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+}
+</style>
+@endpush 

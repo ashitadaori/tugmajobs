@@ -1,7 +1,7 @@
 @props([
     'name' => 'location',
     'value' => '',
-    'placeholder' => 'Enter location in Digos City',
+    'placeholder' => 'Enter location in Sta. Cruz',
     'required' => false,
     'id' => null
 ])
@@ -173,42 +173,43 @@ function initializeLocationInput(inputId) {
     }
     
     function selectPlace(place) {
-        const coordinates = place.geometry ? place.geometry.coordinates : 
+        const coordinates = place.geometry ? place.geometry.coordinates :
                           place.coordinates ? [place.coordinates.longitude, place.coordinates.latitude] : null;
-        
+
         if (coordinates) {
-            // Validate that the location is within Digos City bounds
-            if (mapboxConfig && !isWithinDigosCity(coordinates[0], coordinates[1])) {
-                alert('Please select a location within Digos City, Davao del Sur only.');
+            // Validate that the location is within Sta. Cruz bounds
+            if (mapboxConfig && !isWithinStaCruz(coordinates[0], coordinates[1])) {
+                alert('Please select a location within Sta. Cruz, Davao del Sur only.');
                 return;
             }
-            
-            // Validate that the place name contains Digos City or Davao del Sur
+
+            // Validate that the place name contains Sta. Cruz, Santa Cruz, or Davao del Sur
             const placeName = (place.place_name || place.full_address || '').toLowerCase();
-            if (!placeName.includes('digos') && !placeName.includes('davao del sur')) {
-                alert('Please select a location within Digos City, Davao del Sur only.');
+            if (!placeName.includes('sta. cruz') && !placeName.includes('sta cruz') &&
+                !placeName.includes('santa cruz') && !placeName.includes('davao del sur')) {
+                alert('Please select a location within Sta. Cruz, Davao del Sur only.');
                 return;
             }
-            
+
             input.value = place.name || extractLocationName(place.place_name);
             lngInput.value = coordinates[0];
             latInput.value = coordinates[1];
             addressInput.value = place.place_name || place.full_address;
-            
+
             hideSuggestions();
-            
+
             // Trigger change event
             input.dispatchEvent(new Event('change'));
         }
     }
-    
-    function isWithinDigosCity(longitude, latitude) {
-        if (!mapboxConfig || !mapboxConfig.digos_bounds) return true;
-        
-        const bounds = mapboxConfig.digos_bounds;
-        return longitude >= bounds.southwest[0] && 
-               longitude <= bounds.northeast[0] && 
-               latitude >= bounds.southwest[1] && 
+
+    function isWithinStaCruz(longitude, latitude) {
+        if (!mapboxConfig || !mapboxConfig.stacruz_bounds) return true;
+
+        const bounds = mapboxConfig.stacruz_bounds;
+        return longitude >= bounds.southwest[0] &&
+               longitude <= bounds.northeast[0] &&
+               latitude >= bounds.southwest[1] &&
                latitude <= bounds.northeast[1];
     }
     

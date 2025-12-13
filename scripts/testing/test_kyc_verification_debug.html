@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Verification Debug Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="test-token-12345">
+    <meta name="user-id" content="3">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-bug me-2"></i>
+                            KYC Verification Debug Test
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h5>Debug Information:</h5>
+                            <p><strong>CSRF Token:</strong> <span id="csrf-display">Loading...</span></p>
+                            <p><strong>User ID:</strong> <span id="user-id-display">Loading...</span></p>
+                            <p><strong>Current URL:</strong> <span id="url-display">Loading...</span></p>
+                            <p><strong>JavaScript File:</strong> Using FIXED version with enhanced debugging</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Test Actions</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <button type="button" class="btn btn-primary mb-2 w-100" onclick="startInlineVerification()">
+                                            <i class="fas fa-play me-2"></i>
+                                            Start KYC Verification
+                                        </button>
+                                        
+                                        <button type="button" class="btn btn-warning mb-2 w-100" onclick="resetKycVerification()">
+                                            <i class="fas fa-redo me-2"></i>
+                                            Reset KYC
+                                        </button>
+                                        
+                                        <button type="button" class="btn btn-info mb-2 w-100" onclick="checkVerificationStatus()">
+                                            <i class="fas fa-search me-2"></i>
+                                            Check Status
+                                        </button>
+                                        
+                                        <button type="button" class="btn btn-secondary mb-2 w-100" onclick="testFetch()">
+                                            <i class="fas fa-network-wired me-2"></i>
+                                            Test Network
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Debug Console</h5>
+                                        <button class="btn btn-sm btn-outline-light" onclick="clearDebugLog()">Clear</button>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div id="debug-output" style="height: 300px; overflow-y: auto; background-color: #1e1e1e; color: #ffffff; font-family: 'Courier New', monospace; font-size: 12px; padding: 10px;">
+                                            <!-- Debug output will appear here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Expected Behavior</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ol>
+                                        <li><strong>Click "Start KYC Verification"</strong>
+                                            <ul>
+                                                <li>Should make POST request to /kyc/start</li>
+                                                <li>Should receive JSON response with success: true and url</li>
+                                                <li>Should open modal with iframe</li>
+                                                <li>Should start status polling after 3 seconds</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>In the modal iframe:</strong>
+                                            <ul>
+                                                <li>DiDit verification interface should load</li>
+                                                <li>User uploads documents and completes verification</li>
+                                                <li>DiDit sends webhook to your server</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>Status polling detects completion:</strong>
+                                            <ul>
+                                                <li>GET /kyc/check-status returns kyc_status: 'verified'</li>
+                                                <li>Modal closes automatically</li>
+                                                <li>Success message appears</li>
+                                                <li>Page refreshes to show updated status</li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Common Issues & Solutions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="accordion" id="troubleshooting">
+                                        <div class="accordion-item">
+                                            <h6 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue1">
+                                                    Modal closes immediately with "Verification failed"
+                                                </button>
+                                            </h6>
+                                            <div id="issue1" class="accordion-collapse collapse" data-bs-parent="#troubleshooting">
+                                                <div class="accordion-body">
+                                                    <strong>Possible causes:</strong>
+                                                    <ul>
+                                                        <li>CSRF token mismatch</li>
+                                                        <li>User not authenticated</li>
+                                                        <li>DiDit API configuration issues</li>
+                                                        <li>Network connectivity problems</li>
+                                                    </ul>
+                                                    <strong>Check debug console for specific error messages.</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="accordion-item">
+                                            <h6 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue2">
+                                                    Modal opens but iframe doesn't load
+                                                </button>
+                                            </h6>
+                                            <div id="issue2" class="accordion-collapse collapse" data-bs-parent="#troubleshooting">
+                                                <div class="accordion-body">
+                                                    <strong>Possible causes:</strong>
+                                                    <ul>
+                                                        <li>Invalid DiDit verification URL</li>
+                                                        <li>DiDit service unavailable</li>
+                                                        <li>CORS or iframe blocking issues</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="accordion-item">
+                                            <h6 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue3">
+                                                    Verification completes but status doesn't update
+                                                </button>
+                                            </h6>
+                                            <div id="issue3" class="accordion-collapse collapse" data-bs-parent="#troubleshooting">
+                                                <div class="accordion-body">
+                                                    <strong>Possible causes:</strong>
+                                                    <ul>
+                                                        <li>Webhook not received from DiDit</li>
+                                                        <li>Webhook URL configuration incorrect</li>
+                                                        <li>Status polling not detecting change</li>
+                                                        <li>Database update issues</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/kyc-inline-verification-fixed.js"></script>
+    
+    <script>
+        // Override console methods to show in debug output
+        const debugOutput = document.getElementById('debug-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addToDebug(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                log: '#ffffff',
+                error: '#ff6b6b',
+                warn: '#ffd93d',
+                info: '#74c0fc'
+            };
+            
+            const div = document.createElement('div');
+            div.style.color = colors[type] || colors.log;
+            div.style.marginBottom = '2px';
+            
+            // Format the message
+            let formattedMessage = '';
+            if (typeof message === 'string') {
+                formattedMessage = message;
+            } else if (typeof message === 'object') {
+                formattedMessage = JSON.stringify(message, null, 2);
+            } else {
+                formattedMessage = String(message);
+            }
+            
+            div.innerHTML = `[${timestamp}] ${formattedMessage}`;
+            debugOutput.appendChild(div);
+            debugOutput.scrollTop = debugOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToDebug(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToDebug('ERROR: ' + args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToDebug('WARN: ' + args.join(' '), 'warn');
+        };
+        
+        function clearDebugLog() {
+            debugOutput.innerHTML = '';
+            console.log('Debug log cleared');
+        }
+        
+        function testFetch() {
+            console.log('Testing network connectivity...');
+            
+            fetch('/kyc/check-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    user_id: document.querySelector('meta[name="user-id"]').getAttribute('content')
+                })
+            })
+            .then(response => {
+                console.log('Network test response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok
+                });
+                return response.json();
+            })
+            .then(data => {
+                console.log('Network test data:', data);
+            })
+            .catch(error => {
+                console.error('Network test failed:', error);
+            });
+        }
+        
+        // Update display information on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            const userId = document.querySelector('meta[name="user-id"]');
+            
+            document.getElementById('csrf-display').textContent = csrfToken ? csrfToken.getAttribute('content') : 'Not found';
+            document.getElementById('user-id-display').textContent = userId ? userId.getAttribute('content') : 'Not found';
+            document.getElementById('url-display').textContent = window.location.href;
+            
+            console.log('KYC Debug Test page loaded');
+            console.log('Using FIXED KYC JavaScript with enhanced debugging');
+        });
+    </script>
+</body>
+</html>

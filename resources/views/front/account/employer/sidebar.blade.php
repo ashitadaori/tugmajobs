@@ -1,8 +1,12 @@
+{{-- 
+    DEPRECATED: This sidebar is replaced by resources/views/front/layouts/employer-sidebar.blade.php
+    This file is kept for reference but should not be used.
+--}}
 @php
     $user = auth()->user();
 @endphp
 
-<div class="dashboard-sidebar">
+<div class="dashboard-sidebar" style="display: none !important;">
     <div class="user-profile">
         <div class="profile-image">
             @if($user->employerProfile && $user->employerProfile->company_logo)
@@ -18,42 +22,69 @@
     </div>
 
     <div class="sidebar-menu">
+        <div class="sidebar-section-label">PLATFORM</div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a href="{{ route('employer.dashboard') }}" class="nav-link {{ request()->routeIs('employer.dashboard') ? 'active' : '' }}">
-                    <i class="fas fa-th-large"></i>
+                <a href="{{ route('employer.dashboard') }}" class="nav-link {{ request()->routeIs('employer.dashboard*') ? 'active' : '' }}">
+                    <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('employer.jobs.index') }}" class="nav-link {{ request()->routeIs('employer.jobs.*') ? 'active' : '' }}">
+                <a href="{{ route('employer.jobs.index') }}" class="nav-link {{ request()->routeIs('employer.jobs*') ? 'active' : '' }}">
                     <i class="fas fa-briefcase"></i>
-                    <span>My Jobs</span>
+                    <span>Jobs</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('employer.applications.index') }}" class="nav-link {{ request()->routeIs('employer.applications.*') ? 'active' : '' }}">
-                    <i class="fas fa-users"></i>
+                <a href="{{ route('employer.applications.index') }}" class="nav-link {{ request()->routeIs('employer.applications*') ? 'active' : '' }}">
+                    <i class="fas fa-file-alt"></i>
                     <span>Applications</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('employer.analytics.index') }}" class="nav-link {{ request()->routeIs('employer.analytics.*') ? 'active' : '' }}">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Analytics</span>
-                </a>
-            </li>
+    <a href="{{ route('employer.analytics.index') }}" class="nav-link {{ request()->routeIs('employer.analytics*') ? 'active' : '' }}">
+        <i class="fas fa-chart-line"></i>
+        <span>Analytics</span>
+    </a>
+</li>
+
             <li class="nav-item">
-                <a href="{{ route('employer.profile.edit') }}" class="nav-link {{ request()->routeIs('employer.profile.*') ? 'active' : '' }}">
+                <a href="{{ route('employer.profile.edit') }}" class="nav-link {{ request()->routeIs('employer.profile*') ? 'active' : '' }}">
                     <i class="fas fa-building"></i>
                     <span>Company Profile</span>
                 </a>
             </li>
+        </ul>
+
+        <div class="sidebar-section-label">SETTINGS</div>
+        <ul class="nav flex-column">
             <li class="nav-item">
-                <a href="{{ route('employer.settings.notifications') }}" class="nav-link {{ request()->routeIs('employer.settings.*') ? 'active' : '' }}">
+                <a href="{{ route('employer.settings.index') }}" class="nav-link {{ request()->routeIs('employer.settings*') ? 'active' : '' }}">
                     <i class="fas fa-cog"></i>
-                    <span>Settings</span>
+                    <span>General</span>
                 </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('employer.settings.notifications') }}" class="nav-link {{ request()->routeIs('employer.settings.notifications*') ? 'active' : '' }}">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('employer.settings.security') }}" class="nav-link {{ request()->routeIs('employer.settings.security*') ? 'active' : '' }}">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Security</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <form method="POST" action="{{ route('logout') }}" class="d-inline w-100">
+                    @csrf
+                    <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start" style="cursor: pointer;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </li>
         </ul>
     </div>
@@ -63,7 +94,7 @@
 :root {
     --header-height: 60px;
     --sidebar-width: 280px;
-    --primary-color: #4A6CF7;
+    --primary-color: #6C63FF;
     --border-color: #e9ecef;
     --text-dark: #2D3748;
     --text-light: #718096;
@@ -130,23 +161,42 @@
     padding: 1rem 0;
 }
 
+.sidebar-section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280; /* Tailwind gray-500 */
+    padding: 0 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
 .nav-link {
     display: flex;
     align-items: center;
     padding: 0.75rem 1.5rem;
-    color: #6c757d;
+    color: #000000; /* black text for inactive */
     transition: all 0.2s ease;
+    border-radius: 0.5rem;
+    font-weight: 400;
 }
 
 .nav-link:hover {
-    color: var(--primary-color);
-    background: rgba(74, 108, 247, 0.05);
+    color: white;
+    background: var(--primary-color);
 }
 
 .nav-link.active {
-    color: var(--primary-color);
-    background: rgba(74, 108, 247, 0.1);
-    font-weight: 500;
+    color: white;
+    background: var(--primary-color);
+    font-weight: 600;
+    border-radius: 1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    margin: 0.25rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .nav-link i {

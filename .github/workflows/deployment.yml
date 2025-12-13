@@ -1,0 +1,81 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.2
+        extensions: mbstring, dom, fileinfo, mysql
+
+    - name: Install Composer dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction --no-dev --optimize-autoloader
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install NPM dependencies and build
+      run: |
+        npm ci
+        npm run build
+
+    - name: Create deployment package
+      run: |
+        mkdir -p deploy
+        rsync -av --exclude='node_modules' \
+                  --exclude='.git' \
+                  --exclude='tests' \
+                  --exclude='.github' \
+                  --exclude='storage/logs/*' \
+                  --exclude='storage/framework/cache/*' \
+                  --exclude='storage/framework/sessions/*' \
+                  --exclude='storage/framework/views/*' \
+                  . deploy/
+
+    - name: Deploy to Server (Example)
+      run: |
+        echo "Deployment to ${{ github.event.inputs.environment }} would happen here"
+        echo "This is a placeholder for actual deployment commands"
+        # Example deployment commands:
+        # - Deploy to Railway: railway up
+        # - Deploy via SSH: rsync -avz deploy/ user@server:/path
+        # - Deploy to cloud: aws s3 sync deploy/ s3://bucket
+
+    - name: Run post-deployment tasks
+      run: |
+        echo "Post-deployment tasks:"
+        echo "- Run migrations: php artisan migrate --force"
+        echo "- Clear cache: php artisan cache:clear"
+        echo "- Optimize: php artisan optimize"
+        echo "- Queue restart: php artisan queue:restart"
+
+    - name: Health check
+      run: |
+        echo "Health check would be performed here"
+        # Example: curl -f https://your-app.com/health || exit 1
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        echo "Deployment ${{ job.status }}"
+        # Add notification logic here (Slack, Discord, Email, etc.)

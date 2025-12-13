@@ -1,0 +1,1349 @@
+@extends('layouts.employer')
+
+@section('page_title', 'Job Management')
+
+@section('content')
+<div class="container-fluid">
+    <div class="jobs-main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="mb-1">My Jobs</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ route('employer.dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">My Jobs</li>
+                        </ol>
+                    </nav>
+                </div>
+                @if(\App\Models\MaintenanceSetting::isMaintenanceActive('employer'))
+                    <button class="btn btn-warning" disabled>
+                        <i class="bi bi-tools me-2"></i>Under Maintenance
+                    </button>
+                @else
+                    <a href="{{ route('employer.jobs.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Post New Job
+                    </a>
+                @endif
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <!-- Fixed Full-Width Search & Filters -->
+                    <div class="search-filters-section mb-4" style="background: #f8f9fa; padding: 1.5rem; border-radius: 12px; width: 100%;">
+                        <div style="display: flex; gap: 1.5rem; align-items: center; width: 100%;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div class="input-group" style="width: 100%;">
+                                    <span class="input-group-text" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; padding: 0.75rem 1rem;">
+                                        <i class="bi bi-search" style="font-size: 1rem;"></i>
+                                    </span>
+                                    <input type="text" class="form-control" 
+                                           placeholder="Search jobs by title, location, or type..." 
+                                           id="searchInput"
+                                           style="border: none; padding: 0.75rem 1rem; font-size: 0.95rem; flex: 1;">
+                                    <button class="btn btn-outline-secondary" type="button" id="clearSearch" style="display: none; border: none; background: #f1f3f4; color: #6c757d; padding: 0.75rem;">
+                                        <i class="bi bi-x-lg" style="font-size: 0.8rem;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="width: 250px; flex-shrink: 0;">
+                                <select class="form-select" id="statusFilter" style="border: 1px solid #e1e5e9; padding: 0.75rem 1rem; font-size: 0.95rem; background: white; border-radius: 8px;">
+                                    <option value="">All Status</option>
+                                    <option value="active">Approved Jobs</option>
+                                    <option value="pending">Pending Approval</option>
+                                    <option value="rejected">Rejected Jobs</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jobs List - Card Design -->
+                    <div class="jobs-list">
+                        @forelse($jobs as $job)
+                            <div class="job-card">
+                                <div class="job-card-header">
+                                    <div class="job-info">
+                                        <h5 class="job-title">{{ $job->title }}</h5>
+                                        <div class="job-meta">
+                                            <span><i class="bi bi-geo-alt"></i> {{ $job->location }}</span>
+                                            <span><i class="bi bi-briefcase"></i> {{ $job->jobType->name }}</span>
+                                            <span><i class="bi bi-clock"></i> {{ $job->created_at->diffForHumans() }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="job-status">
+                                        <span class="{{ $job->status_badge_class }}">
+                                            {{ $job->status_name }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="job-card-body">
+                                    <div class="job-stats">
+                                        <div class="stat-item">
+                                            <div class="stat-value">{{ $job->applications_count }}</div>
+                                            <div class="stat-label">Applications</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-value">{{ $job->views_count }}</div>
+                                            <div class="stat-label">Views</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-value">{{ $job->created_at->format('M d') }}</div>
+                                            <div class="stat-label">Posted</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="job-card-footer">
+                                    <div class="job-actions">
+                                        @if($job->status === App\Models\Job::STATUS_REJECTED)
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="showRejectionModal({{ $job->id }}, '{{ addslashes($job->title) }}', '{{ addslashes($job->rejection_reason ?? '') }}', '{{ $job->rejected_at ? $job->rejected_at->format('M d, Y \a\t g:i A') : '' }}')">
+                                                <i class="bi bi-exclamation-triangle"></i> View Reason
+                                            </button>
+                                        @else
+                                            <a href="{{ route('employer.jobs.applicants', $job->id) }}" class="btn btn-sm" style="background-color: #90EE90; color: white; border: none;">
+                                                <i class="bi bi-people"></i> View Applicants ({{ $job->applications_count ?? 0 }})
+                                            </a>
+                                            <a href="{{ route('employer.jobs.edit', $job->id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                        @endif
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="confirmDelete({{ $job->id }})">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="bi bi-briefcase" style="font-size: 4rem; color: #cbd5e1;"></i>
+                                </div>
+                                <h5>No Jobs Found</h5>
+                                <p class="text-muted">Start by posting your first job opening</p>
+                                @if(\App\Models\MaintenanceSetting::isMaintenanceActive('employer'))
+                                    <button class="btn btn-warning" disabled>
+                                        <i class="bi bi-tools me-2"></i>Under Maintenance
+                                    </button>
+                                @else
+                                    <a href="{{ route('employer.jobs.create') }}" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle me-2"></i>Post New Job
+                                    </a>
+                                @endif
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <!-- Single Rejection Modal -->
+                    <div class="modal fade" id="rejectionModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header" style="background: #dc3545; color: white;">
+                                    <h4 class="modal-title" style="color: white !important;">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Job Rejected
+                                    </h4>
+                                    <button type="button" class="btn-close btn-close-white" onclick="closeRejectionModal()"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <div class="text-center mb-4">
+                                        <div class="mb-3">
+                                            <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #dc3545;"></i>
+                                        </div>
+                                        <h5 style="color: #dc3545 !important; font-weight: 700;">Your Job Was Rejected</h5>
+                                        <h6 id="jobTitle" style="color: #212529 !important; font-weight: 600;"></h6>
+                                    </div>
+                                    
+                                    <div style="background: #f8d7da; border: 2px solid #dc3545; border-radius: 8px; padding: 1.5rem; margin: 1rem 0;">
+                                        <h6 style="color: #dc3545 !important; font-weight: 700; margin-bottom: 1rem;">
+                                            <i class="fas fa-comment-alt me-2"></i>Admin Feedback:
+                                        </h6>
+                                        <p id="rejectionReason" style="color: #212529 !important; font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.5;"></p>
+                                    </div>
+
+                                    <div id="rejectionDate" style="background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 8px; padding: 1rem; margin: 1rem 0; display: none;">
+                                        <small style="color: #0c5460 !important; font-weight: 500;">
+                                            <i class="fas fa-clock me-1"></i>
+                                            <span id="rejectedAt"></span>
+                                        </small>
+                                    </div>
+                                    
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="closeRejectionModal()" style="font-weight: 600;">
+                                        <i class="fas fa-times me-2"></i>Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fixed Pagination -->
+                    @if($jobs->hasPages())
+                    <div class="d-flex justify-content-center mt-4">
+                        <div class="custom-pagination">
+                            {{ $jobs->links() }}
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Delete Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-circle text-danger fa-3x"></i>
+                </div>
+                <h5 class="mb-2">Are you sure?</h5>
+                <p class="text-muted mb-0">This action cannot be undone and will remove all associated applications.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Delete Job</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('styles')
+<style>
+/* ===== JOB MANAGEMENT PAGE STYLES ===== */
+
+:root {
+    --primary-color: #6366f1;
+    --border-color: #e9ecef;
+    --bg-light: #f8f9fa;
+    --text-dark: #212529;
+    --text-black: #000000;
+}
+
+.jobs-main-content {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+/* Card Styling */
+.card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Table Styling */
+.table > :not(caption) > * > * {
+    padding: 1rem 1.25rem;
+    background: none;
+}
+
+.table > thead > tr > th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table tbody tr td {
+    color: var(--text-dark);
+    vertical-align: middle;
+}
+
+.table tbody tr td h6 {
+    color: var(--text-black);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.table > tbody > tr:hover {
+    background-color: rgba(99, 102, 241, 0.03);
+}
+
+/* Badge Styling */
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    padding: 0.5em 1em;
+    border-radius: 6px;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    padding: 0.625rem 1rem;
+    border-color: #dee2e6;
+    border-radius: 8px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+}
+
+/* Pagination */
+.custom-pagination .pagination {
+    margin: 0;
+    gap: 0.5rem;
+}
+
+.custom-pagination .page-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    color: #6c757d;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.custom-pagination .page-link:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.custom-pagination .page-item.active .page-link {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.action-btn.error-btn {
+    background: #fff2f0;
+    color: #ff4d4f;
+    border: 1px solid #ffccc7;
+    font-size: 16px;
+}
+
+.action-btn.error-btn:hover {
+    background: #ff4d4f;
+    color: white;
+    transform: scale(1.1);
+}
+
+.action-btn.edit-btn {
+    background: #e6f7ff;
+    color: #1890ff;
+}
+
+.action-btn.edit-btn:hover {
+    background: #1890ff;
+    color: white;
+}
+
+.action-btn.view-btn {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.action-btn.view-btn:hover {
+    background: #52c41a;
+    color: white;
+}
+
+.action-btn.delete-btn {
+    background: #fff2f0;
+    color: #ff4d4f;
+}
+
+.action-btn.delete-btn:hover {
+    background: #ff4d4f;
+    color: white;
+}
+
+/* Rejection Modal */
+#rejectionModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+#rejectionModal .modal-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border-bottom: none;
+    padding: 1.5rem 2rem;
+}
+
+#rejectionModal .modal-title {
+    color: white;
+    font-weight: 600;
+}
+
+#rejectionModal .btn-close-white {
+    filter: brightness(0) invert(1);
+}
+
+#rejectionModal .modal-body {
+    padding: 2rem;
+}
+
+/* Search & Filters */
+.search-filters-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.search-filters-section .input-group {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-filters-section .input-group-text {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+}
+
+.search-filters-section .form-control {
+    border: none;
+    padding: 0.75rem 1rem;
+}
+
+.search-filters-section .form-select {
+    border: 1px solid #e1e5e9;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+}:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.filter-wrapper .status-filter {
+    border-radius: 12px;
+    border: 2px solid #e1e5e9;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.status-filter:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    transform: translateY(-1px);
+}
+
+/* ===== ACTION BUTTONS STYLING ===== */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: none;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.edit-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+}
+
+.edit-btn:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.view-btn {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    color: white;
+}
+
+.view-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #065f46 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.delete-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.delete-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* ===== ENHANCED PAGINATION STYLING ===== */
+.pagination {
+    margin: 0;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.pagination .page-item {
+    margin: 0;
+}
+
+.pagination .page-link {
+    border: 2px solid #e9ecef;
+    color: #6c757d;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    margin: 0;
+    transition: all 0.3s ease;
+    background: white;
+    font-weight: 500;
+    min-width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination .page-link:hover {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-color: #6366f1;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-color: #6366f1;
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #adb5bd;
+}
+
+/* Fix oversized pagination arrows and icons */
+.pagination .page-link svg,
+.pagination .page-link i {
+    font-size: 0.8rem !important;
+    width: 14px !important;
+    height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+}
+
+/* Specific fixes for Laravel pagination arrows */
+.pagination .page-link svg path {
+    stroke-width: 2 !important;
+}
+
+/* Override any large arrow styles */
+.pagination .page-link > * {
+    font-size: 0.8rem !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+}
+
+/* CRITICAL FIX: Hide all SVG arrows and use text */
+.pagination .page-link svg {
+    display: none !important;
+}
+
+.pagination .page-link[aria-label*="Previous"]::after {
+    content: "‹" !important;
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+}
+
+.pagination .page-link[aria-label*="Next"]::after {
+    content: "›" !important;
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+}
+
+/* Force small size on any icons */
+.pagination .page-link * {
+    max-width: 16px !important;
+    max-height: 16px !important;
+    font-size: 0.875rem !important;
+}
+
+/* ===== ENHANCED DYNAMIC TABLE ===== */
+.table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.table {
+    margin: 0;
+    width: 100%;
+    table-layout: auto;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1.25rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table thead th:first-child {
+    width: 35%;
+    min-width: 250px;
+}
+
+.table thead th:nth-child(2),
+.table thead th:nth-child(3) {
+    width: 12%;
+    min-width: 100px;
+}
+
+.table thead th:nth-child(4) {
+    width: 10%;
+    min-width: 90px;
+}
+
+.table thead th:nth-child(5) {
+    width: 15%;
+    min-width: 120px;
+}
+
+.table thead th:last-child {
+    width: 16%;
+    min-width: 140px;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(99, 102, 241, 0.03);
+    box-shadow: none;
+}
+
+.table tbody td {
+    padding: 1.25rem 1.5rem;
+    vertical-align: middle;
+    border: none;
+}
+
+/* Job title cell enhancement */
+.table tbody td:first-child {
+    padding-left: 1.5rem;
+}
+
+.table tbody td:first-child h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1f2937 !important;
+}
+
+.table tbody td:first-child .small {
+    color: #6b7280 !important;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Statistics cells */
+.table tbody td:nth-child(2) a,
+.table tbody td:nth-child(3) span {
+    display: block;
+    text-align: center;
+}
+
+.table tbody td:nth-child(2) a span,
+.table tbody td:nth-child(3) span {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937 !important;
+}
+
+.table tbody td:nth-child(2) a small,
+.table tbody td:nth-child(3) small {
+    font-size: 0.75rem;
+    color: #6b7280 !important;
+    font-weight: 500;
+}
+
+/* ===== RESPONSIVE & DYNAMIC LAYOUT ===== */
+@media (max-width: 1400px) {
+    .jobs-main-content {
+        padding: 1.5rem 1.5rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .jobs-main-content {
+        padding: 1rem 1rem;
+    }
+    
+    .table thead th:first-child {
+        width: 30%;
+        min-width: 200px;
+    }
+    
+    .table thead th:nth-child(2),
+    .table thead th:nth-child(3) {
+        width: 15%;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .jobs-full-width-layout {
+        left: 0;
+        width: 100vw;
+    }
+    
+    .jobs-main-content {
+        padding: 1rem;
+        min-width: auto;
+    }
+    
+    /* Stack search and filter on mobile */
+    .search-filters-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .filter-section {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-filters-section {
+        padding: 1rem;
+        margin: 0 -0.5rem 1rem -0.5rem;
+    }
+    
+    .search-filters-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .filter-section {
+        width: 100%;
+    }
+    
+    .search-input-group {
+        border-radius: 10px;
+    }
+    
+    .search-icon,
+    .search-input,
+    .status-filter {
+        padding: 0.875rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .action-buttons {
+        flex-direction: row;
+        gap: 0.25rem;
+        justify-content: center;
+    }
+    
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.875rem;
+    }
+    
+    .search-input-group {
+        border-radius: 8px;
+    }
+    
+    .search-input {
+        font-size: 0.875rem;
+        padding: 0.625rem 0.875rem;
+    }
+    
+    /* Mobile table adjustments */
+    .table thead th {
+        padding: 1rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    .table tbody td {
+        padding: 1rem 0.75rem;
+    }
+    
+    .table tbody td:first-child h6 {
+        font-size: 0.9rem;
+    }
+    
+    .table tbody td:first-child .small {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .jobs-main-content {
+        padding: 0.75rem;
+    }
+    
+    /* Hide less important columns on very small screens */
+    .table thead th:nth-child(3),
+    .table tbody td:nth-child(3) {
+        display: none;
+    }
+    
+    .table thead th:first-child {
+        width: 45%;
+    }
+    
+    .table thead th:nth-child(2) {
+        width: 20%;
+    }
+    
+    .table thead th:nth-child(4) {
+        width: 15%;
+    }
+    
+    .table thead th:last-child {
+        width: 20%;
+    }
+}
+
+/* ===== DYNAMIC WIDTH ADJUSTMENTS ===== */
+@media (min-width: 1600px) {
+    .jobs-main-content {
+        padding: 2rem 3rem;
+    }
+    
+    .table thead th,
+    .table tbody td {
+        padding: 1.5rem 2rem;
+    }
+    
+    .search-filters-section {
+        padding: 2rem;
+    }
+}
+
+@media (min-width: 1920px) {
+    .jobs-main-content {
+        padding: 2.5rem 4rem;
+    }
+}
+
+/* ===== FORCE FULL WIDTH UTILITY CLASSES ===== */
+.w-100-force {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.no-max-width {
+    max-width: none !important;
+}
+
+/* Override any framework constraints */
+.jobs-full-width-layout .container,
+.jobs-full-width-layout .container-fluid,
+.jobs-full-width-layout .container-sm,
+.jobs-full-width-layout .container-md,
+.jobs-full-width-layout .container-lg,
+.jobs-full-width-layout .container-xl,
+.jobs-full-width-layout .container-xxl {
+    max-width: none !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* ===== SIMPLE MODAL FIXES ===== */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+.modal-dialog-centered {
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100vh - 1rem) !important;
+}
+
+.modal {
+    z-index: 1050;
+}
+
+.modal-dialog {
+    max-width: 500px;
+    margin: 1.75rem auto;
+}
+
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.btn-close-white:hover {
+    opacity: 0.8;
+}
+
+/* Job Cards Design */
+.jobs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.job-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.job-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #6366f1;
+}
+
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    padding: 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.job-info {
+    flex: 1;
+}
+
+.job-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.job-meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.job-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.job-status {
+    flex-shrink: 0;
+}
+
+.job-card-body {
+    padding: 1.5rem;
+    background: #f9fafb;
+}
+
+.job-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #6366f1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.job-card-footer {
+    padding: 1rem 1.5rem;
+    background: white;
+}
+
+.job-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.job-actions .btn {
+    font-size: 0.875rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h5 {
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .job-card-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .job-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    
+    .job-actions {
+        flex-direction: column;
+    }
+    
+    .job-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Enhanced Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const clearSearch = document.getElementById('clearSearch');
+    const tableRows = document.querySelectorAll('tbody tr:not(.empty-row)');
+
+    // Fix pagination arrows on page load
+    setTimeout(() => {
+        const paginationLinks = document.querySelectorAll('.custom-pagination .page-link');
+        paginationLinks.forEach(link => {
+            const svg = link.querySelector('svg');
+            if (svg) {
+                svg.style.width = '12px';
+                svg.style.height = '12px';
+                svg.style.maxWidth = '12px';
+                svg.style.maxHeight = '12px';
+            }
+        });
+    }, 100);
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const statusTerm = statusFilter.value.toLowerCase();
+        let visibleCount = 0;
+
+        // Show/hide clear button
+        clearSearch.style.display = searchTerm ? 'block' : 'none';
+
+        tableRows.forEach(row => {
+            if (row.querySelector('h6')) {
+                const title = row.querySelector('h6').textContent.toLowerCase();
+                const location = row.querySelector('.small').textContent.toLowerCase();
+                const status = row.querySelector('.badge').textContent.toLowerCase();
+                
+                const matchesSearch = !searchTerm || 
+                    title.includes(searchTerm) || 
+                    location.includes(searchTerm);
+                const matchesStatus = !statusTerm || status.includes(statusTerm);
+                
+                if (matchesSearch && matchesStatus) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeIn 0.3s ease';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+
+        // Show no results message if needed
+        updateNoResultsMessage(visibleCount);
+    }
+
+    function updateNoResultsMessage(visibleCount) {
+        let noResultsRow = document.querySelector('.no-results-row');
+        
+        if (visibleCount === 0 && (searchInput.value.trim() || statusFilter.value)) {
+            if (!noResultsRow) {
+                noResultsRow = document.createElement('tr');
+                noResultsRow.className = 'no-results-row';
+                noResultsRow.innerHTML = `
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="bi bi-search" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <h5 class="mt-3">No jobs found</h5>
+                            <p>Try adjusting your search criteria</p>
+                        </div>
+                    </td>
+                `;
+                document.querySelector('tbody').appendChild(noResultsRow);
+            }
+            noResultsRow.style.display = '';
+        } else if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
+    }
+
+    function clearSearchInput() {
+        searchInput.value = '';
+        statusFilter.value = '';
+        filterTable();
+        searchInput.focus();
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+    clearSearch.addEventListener('click', clearSearchInput);
+
+    // Add fade-in animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+});
+
+// Fix modal issues and add debugging
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all rejection modals
+    const rejectionModals = document.querySelectorAll('[id^="rejectionModal"]');
+    
+    rejectionModals.forEach(modalElement => {
+        // Ensure modal can be closed properly
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            // Remove any backdrop that might be stuck
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            
+            // Restore body scroll
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        });
+        
+        // Add click outside to close
+        modalElement.addEventListener('click', function(e) {
+            if (e.target === modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        });
+    });
+    
+    // Add ESC key support
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const openModal = document.querySelector('.modal.show');
+            if (openModal) {
+                const modal = bootstrap.Modal.getInstance(openModal);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        }
+    });
+});
+
+// Simple modal functions that will definitely work
+// Store the current job ID globally
+let currentJobId = null;
+
+function showRejectionModal(jobId, jobTitle, rejectionReason, rejectedAt) {
+    console.log('Opening rejection modal for job ID:', jobId);
+    
+    // Store job ID globally
+    currentJobId = jobId;
+    
+    // Set the content
+    document.getElementById('jobTitle').textContent = '"' + jobTitle + '"';
+    document.getElementById('rejectionReason').textContent = rejectionReason || 'No reason provided';
+    
+    console.log('Job ID stored:', currentJobId);
+    
+    // Show rejection date if available
+    if (rejectedAt) {
+        document.getElementById('rejectedAt').textContent = 'Rejected on ' + rejectedAt;
+        document.getElementById('rejectionDate').style.display = 'block';
+    } else {
+        document.getElementById('rejectionDate').style.display = 'none';
+    }
+    
+    // Show the modal
+    const modal = document.getElementById('rejectionModal');
+    modal.style.display = 'block';
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    
+    // Add backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop fade show';
+    backdrop.id = 'modalBackdrop';
+    document.body.appendChild(backdrop);
+    
+    // Close on backdrop click only (not on modal content click)
+    backdrop.onclick = closeRejectionModal;
+    
+    // Prevent modal content clicks from closing the modal
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.onclick = function(e) {
+            e.stopPropagation();
+        };
+    }
+    
+    // Set the edit link href
+    const editLink = document.getElementById('editJobLink');
+    if (editLink && currentJobId) {
+        const editUrl = '/employer/jobs/' + currentJobId + '/edit';
+        editLink.href = editUrl;
+        console.log('Edit link set to:', editUrl);
+    }
+}
+
+function goToEditPage(event) {
+    // Prevent event bubbling and default behavior
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+    }
+    
+    console.log('Edit button clicked, job ID:', currentJobId);
+    
+    if (currentJobId) {
+        const editUrl = '/employer/jobs/' + currentJobId + '/edit';
+        console.log('Navigating to:', editUrl);
+        
+        // Navigate immediately without closing modal
+        window.location.href = editUrl;
+        return false;
+    } else {
+        console.error('No job ID available');
+        alert('Error: Could not determine which job to edit. Please try again.');
+        return false;
+    }
+}
+
+function closeRejectionModal() {
+    const modal = document.getElementById('rejectionModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    
+    if (backdrop) {
+        backdrop.remove();
+    }
+}
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeRejectionModal();
+    }
+});
+
+function confirmDelete(jobId) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const form = document.getElementById('deleteForm');
+    form.action = `/account/employer/jobs/${jobId}`;
+    modal.show();
+}
+</script>
+@endpush
+@endsection 

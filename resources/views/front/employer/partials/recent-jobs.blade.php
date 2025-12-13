@@ -63,9 +63,31 @@
                 <img src="{{ asset('images/empty-jobs.svg') }}" alt="No jobs" class="img-fluid mb-3" style="max-width: 200px;">
                 <h6>No jobs posted yet</h6>
                 <p class="text-muted">Start by posting your first job opening</p>
-                <a href="{{ route('employer.jobs.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i>Post New Job
-                </a>
+                @php
+                    $canPostJobs = Auth::user()->canPostJobs();
+                    $verificationStatus = Auth::user()->getEmployerVerificationStatus();
+                @endphp
+                @if($canPostJobs)
+                    <a href="{{ route('employer.jobs.create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Post New Job
+                    </a>
+                @else
+                    <div class="d-flex flex-column align-items-center gap-2">
+                        <button class="btn btn-secondary" disabled title="{{ $verificationStatus['message'] }}">
+                            <i class="bi bi-lock me-2"></i>Post New Job
+                        </button>
+                        <small class="text-muted">{{ $verificationStatus['message'] }}</small>
+                        @if($verificationStatus['status'] === 'kyc_pending')
+                            <button class="btn btn-outline-warning btn-sm" onclick="window.startInlineVerification ? window.startInlineVerification() : alert('KYC verification not available')">
+                                <i class="bi bi-shield-check me-1"></i>Complete KYC First
+                            </button>
+                        @elseif($verificationStatus['status'] === 'documents_pending')
+                            <a href="{{ route('employer.documents.index') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-file-earmark-text me-1"></i>Submit Documents
+                            </a>
+                        @endif
+                    </div>
+                @endif
             </div>
         @endif
     </div>

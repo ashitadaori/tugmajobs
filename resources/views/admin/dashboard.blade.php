@@ -26,32 +26,18 @@
                         <small class="text-muted">System Online</small>
                     </div>
                 </div>
-                
+
                 <!-- Quick Actions -->
                 <div class="btn-group">
                     <a href="{{ route('admin.users.index') }}" class="btn btn-primary btn-sm">
                         <i class="bi bi-people me-1"></i> Manage Users
                     </a>
-                    <a href="{{ route('admin.kyc.index') }}" class="btn btn-outline-warning btn-sm">
-                        <i class="bi bi-shield-check me-1"></i> KYC Queue
+                    <a href="{{ route('admin.users.index', ['kyc_status' => 'all']) }}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-shield-check me-1"></i> KYC Overview
                         @if(isset($pendingKyc) && $pendingKyc > 0)
-                            <span class="badge bg-danger ms-1">{{ $pendingKyc }}</span>
+                            <span class="badge bg-warning ms-1">{{ $pendingKyc }} pending</span>
                         @endif
                     </a>
-                </div>
-                
-                <!-- Notifications -->
-                <div class="dropdown">
-                    <button class="btn btn-light btn-sm position-relative" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">5</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li class="dropdown-header">System Alerts</li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>{{ $pendingKyc ?? 0 }} KYC pending review</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2 text-danger"></i>3 jobs flagged for review</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-person-plus me-2 text-info"></i>{{ $totalUsers ?? 0 }} new users today</a></li>
-                    </ul>
                 </div>
             </div>
         </div>
@@ -77,14 +63,6 @@
                         <i class="bi bi-briefcase me-1"></i> Jobs
                         @if(isset($activeJobs) && $activeJobs > 0)
                             <span class="badge bg-success ms-1">{{ number_format($activeJobs) }}</span>
-                        @endif
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.kyc.index') }}">
-                        <i class="bi bi-shield-check me-1"></i> KYC
-                        @if(isset($pendingKyc) && $pendingKyc > 0)
-                            <span class="badge bg-warning ms-1">{{ $pendingKyc }}</span>
                         @endif
                     </a>
                 </li>
@@ -121,8 +99,11 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Dashboard</h1>
         <div class="btn-group">
-            <button type="button" class="btn btn-outline-secondary">
-                <i class="bi bi-download me-2"></i>Export
+            <a href="{{ route('admin.dashboard.export') }}" class="btn btn-success" title="Export dashboard statistics to CSV">
+                <i class="bi bi-download me-2"></i>Export Statistics
+            </a>
+            <button type="button" id="refresh-stats" class="btn btn-outline-primary ms-2" onclick="refreshDashboard()" title="Manually refresh dashboard data">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
             </button>
         </div>
     </div>
@@ -130,80 +111,138 @@
     <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <h6 class="text-muted mb-2">Total Users</h6>
-                        <h2 class="mb-0">{{ number_format($totalUsers) }}</h2>
-                        <div class="small text-success">
-                            <i class="bi bi-arrow-up"></i> {{ $userGrowth }}% from last month
+            <a href="{{ route('admin.users.index') }}" class="text-decoration-none">
+                <div id="total-users" class="stats-card stats-card-clickable">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">Total Users</h6>
+                            <h2 class="mb-0 text-dark">{{ number_format($totalUsers) }}</h2>
+                            <div class="small text-success">
+                                <i class="bi bi-arrow-up"></i> {{ $userGrowth }}% from last month
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ms-3">
+                            <div class="bg-light rounded-circle p-3">
+                                <i class="bi bi-people text-primary"></i>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 ms-3">
-                        <div class="bg-light rounded-circle p-3">
-                            <i class="bi bi-people text-primary"></i>
-                        </div>
+                    <div class="card-hover-indicator">
+                        <i class="bi bi-arrow-right"></i> View All Users
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <h6 class="text-muted mb-2">Active Jobs</h6>
-                        <h2 class="mb-0">{{ number_format($activeJobs) }}</h2>
-                        <div class="small text-success">
-                            <i class="bi bi-arrow-up"></i> {{ $jobGrowth }}% from last month
+            <a href="{{ route('admin.companies.index') }}" class="text-decoration-none">
+                <div id="active-jobs" class="stats-card stats-card-clickable">
+                    <div class="live-indicator"></div>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">Active Jobs</h6>
+                            <h2 class="mb-0 text-dark">{{ number_format($activeJobs) }}</h2>
+                            <div class="small text-success">
+                                <i class="bi bi-arrow-up"></i> {{ $jobGrowth }}% from last month
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ms-3">
+                            <div class="bg-light rounded-circle p-3">
+                                <i class="bi bi-briefcase text-primary"></i>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 ms-3">
-                        <div class="bg-light rounded-circle p-3">
-                            <i class="bi bi-briefcase text-primary"></i>
-                        </div>
+                    <div class="card-hover-indicator">
+                        <i class="bi bi-arrow-right"></i> View All Jobs
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <h6 class="text-muted mb-2">Pending KYC</h6>
-                        <h2 class="mb-0">{{ $pendingKyc }}</h2>
-                        <div class="small text-{{ $kycChange >= 0 ? 'success' : 'danger' }}">
-                            <i class="bi bi-arrow-{{ $kycChange >= 0 ? 'up' : 'down' }}"></i> 
-                            {{ abs($kycChange) }} from last month
+            <a href="{{ route('admin.jobs.pending') }}" class="text-decoration-none">
+                <div id="pending-jobs" class="stats-card stats-card-clickable {{ $pendingJobs > 0 ? 'border-warning' : '' }}">
+                    @if($pendingJobs > 0)
+                        <div class="position-absolute top-0 end-0 p-2">
+                            <span class="badge bg-warning text-dark pulse-animation">{{ $pendingJobs }}</span>
+                        </div>
+                    @endif
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">Pending Jobs</h6>
+                            <h2 class="mb-0 {{ $pendingJobs > 0 ? 'text-warning' : 'text-dark' }}">{{ number_format($pendingJobs) }}</h2>
+                            <div class="small">
+                                @if($pendingJobs > 0)
+                                    <span class="text-warning">
+                                        <i class="bi bi-arrow-right"></i> Review Now
+                                    </span>
+                                @else
+                                    <span class="text-success">
+                                        <i class="bi bi-check-circle"></i> All jobs reviewed
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ms-3">
+                            <div class="bg-light rounded-circle p-3">
+                                <i class="bi bi-clock-history {{ $pendingJobs > 0 ? 'text-warning' : 'text-muted' }}"></i>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 ms-3">
-                        <div class="bg-light rounded-circle p-3">
-                            <i class="bi bi-shield-check text-primary"></i>
-                        </div>
+                    <div class="card-hover-indicator">
+                        <i class="bi bi-arrow-right"></i> Review Pending Jobs
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <h6 class="text-muted mb-2">Total Applications</h6>
-                        <h2 class="mb-0">{{ number_format($totalApplications) }}</h2>
-                        <div class="small text-success">
-                            <i class="bi bi-arrow-up"></i> {{ $applicationGrowth }}% from last month
+            <a href="{{ route('admin.kyc.didit-verifications') }}" class="text-decoration-none">
+                <div id="verified-kyc" class="stats-card stats-card-clickable">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">KYC Verified</h6>
+                            <h2 class="mb-0 text-dark">{{ $verifiedKyc }}</h2>
+                            <div class="small text-info">
+                                <i class="bi bi-info-circle"></i> 
+                                <span id="pending-kyc-info">{{ $pendingKyc }} pending verification</span>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ms-3">
+                            <div class="bg-light rounded-circle p-3">
+                                <i class="bi bi-shield-check text-primary"></i>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 ms-3">
-                        <div class="bg-light rounded-circle p-3">
-                            <i class="bi bi-file-text text-primary"></i>
-                        </div>
+                    <div class="card-hover-indicator">
+                        <i class="bi bi-arrow-right"></i> View KYC Verifications
                     </div>
                 </div>
-            </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <a href="{{ route('admin.companies.index') }}" class="text-decoration-none">
+                <div id="total-applications" class="stats-card stats-card-clickable">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">Total Applications</h6>
+                            <h2 class="mb-0 text-dark">{{ number_format($totalApplications) }}</h2>
+                            <div class="small text-success">
+                                <i class="bi bi-arrow-up"></i> {{ $applicationGrowth }}% from last month
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ms-3">
+                            <div class="bg-light rounded-circle p-3">
+                                <i class="bi bi-file-text text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-hover-indicator">
+                        <i class="bi bi-arrow-right"></i> View All Applications
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -222,15 +261,112 @@
             </div>
         </div>
 
-        <!-- User Types Chart -->
+        <!-- User Distribution by Role -->
         <div class="col-12 col-xl-4">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">User Distribution</h5>
-                    <div class="small text-muted">By role type</div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title mb-0">User Distribution</h5>
+                        <div class="small text-muted">By role type</div>
+                    </div>
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
-                <div class="card-body">
-                    <canvas id="userTypesChart" height="300"></canvas>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <!-- Job Seekers -->
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                        <i class="bi bi-person-badge text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Job Seekers</h6>
+                                        <small class="text-muted">Active candidates</small>
+                                    </div>
+                                </div>
+                                <h4 class="mb-0 text-primary">{{ \App\Models\User::where('role', 'jobseeker')->count() }}</h4>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-primary" style="width: {{ $totalUsers > 0 ? (\App\Models\User::where('role', 'jobseeker')->count() / $totalUsers * 100) : 0 }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Employers -->
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-10 rounded p-2 me-3">
+                                        <i class="bi bi-building text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Employers</h6>
+                                        <small class="text-muted">Companies hiring</small>
+                                    </div>
+                                </div>
+                                <h4 class="mb-0 text-success">{{ \App\Models\User::where('role', 'employer')->count() }}</h4>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: {{ $totalUsers > 0 ? (\App\Models\User::where('role', 'employer')->count() / $totalUsers * 100) : 0 }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Admins with User List -->
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                                        <i class="bi bi-shield-check text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Administrators</h6>
+                                        <small class="text-muted">System admins</small>
+                                    </div>
+                                </div>
+                                <h4 class="mb-0 text-warning">{{ \App\Models\User::where('role', 'admin')->count() }}</h4>
+                            </div>
+                            <div class="progress mb-3" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: {{ $totalUsers > 0 ? (\App\Models\User::where('role', 'admin')->count() / $totalUsers * 100) : 0 }}%"></div>
+                            </div>
+                            
+                            <!-- Admin Users List -->
+                            @php
+                                $adminUsers = \App\Models\User::where('role', 'admin')->latest()->take(5)->get();
+                            @endphp
+                            @if($adminUsers->count() > 0)
+                                <div class="admin-users-list mt-2">
+                                    <small class="text-muted fw-semibold d-block mb-2">Admin Users:</small>
+                                    @foreach($adminUsers as $admin)
+                                        <div class="d-flex align-items-center py-2 border-top">
+                                            <div class="flex-shrink-0">
+                                                @if($admin->profile_photo)
+                                                    <img src="{{ asset('profile_img/' . $admin->profile_photo) }}" class="rounded-circle" width="32" height="32" alt="{{ $admin->name }}">
+                                                @else
+                                                    <div class="bg-warning bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                        <span class="text-warning fw-bold">{{ substr($admin->name, 0, 1) }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                <div class="fw-semibold" style="font-size: 0.875rem;">{{ $admin->name }}</div>
+                                                <small class="text-muted">{{ $admin->email }}</small>
+                                            </div>
+                                            <a href="{{ route('admin.users.show', $admin->id) }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </div>
+                                    @endforeach
+                                    @if(\App\Models\User::where('role', 'admin')->count() > 5)
+                                        <div class="text-center mt-2">
+                                            <a href="{{ route('admin.users.index', ['role' => 'admin']) }}" class="btn btn-sm btn-link">
+                                                View all {{ \App\Models\User::where('role', 'admin')->count() }} admins
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -294,6 +430,32 @@
     color: white;
 }
 
+/* Pulse animation for pending jobs notification */
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Pending jobs card styling */
+.stats-card.border-warning {
+    border-left: 4px solid #f59e0b !important;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+}
+
 .admin-tabs .nav-pills .nav-link .badge {
     font-size: 0.75rem;
 }
@@ -304,12 +466,150 @@
     padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.stats-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.stats-card-clickable {
+    cursor: pointer;
+}
+
+.stats-card-clickable:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-color: #2563eb;
+}
+
+.card-hover-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(37, 99, 235, 0.1), transparent);
+    padding: 0.75rem 1.5rem;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    font-size: 0.875rem;
+    color: #2563eb;
+    font-weight: 500;
+}
+
+.stats-card-clickable:hover .card-hover-indicator {
+    transform: translateY(0);
+}
+
+/* Dynamic update indicators */
+.stats-card.stat-updated {
+    animation: statUpdated 1s ease;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.dashboard-updating .stats-card {
+    opacity: 0.8;
+}
+
+.dashboard-updating .stats-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+/* Loading spinner animation */
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Keyframe animations */
+@keyframes statUpdated {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.2);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Toast notifications */
+.toast-notification {
+    border-radius: 6px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Real-time indicator for active jobs */
+.stats-card .live-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
 }
 
 @media (max-width: 768px) {
@@ -338,6 +638,286 @@
 
 @push('scripts')
 <script>
+    // Dashboard Statistics Update System
+    class AdminDashboardUpdater {
+        constructor() {
+            this.updateInterval = 30000; // 30 seconds
+            this.isUpdating = false;
+            this.lastUpdateTime = null;
+            this.init();
+        }
+
+        init() {
+            // Disable automatic updates to prevent errors
+            // this.startAutoUpdate();
+            
+            // Manual refresh button (if exists)
+            const refreshBtn = document.getElementById('refresh-stats');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => this.updateStats());
+            }
+            
+            // Disable auto-update on focus to prevent errors
+            // document.addEventListener('visibilitychange', () => {
+            //     if (!document.hidden && this.shouldUpdate()) {
+            //         this.updateStats();
+            //     }
+            // });
+        }
+
+        startAutoUpdate() {
+            // Disabled to prevent continuous error messages
+            // setInterval(() => {
+            //     if (!document.hidden && this.shouldUpdate()) {
+            //         this.updateStats();
+            //     }
+            // }, this.updateInterval);
+        }
+
+        shouldUpdate() {
+            if (!this.lastUpdateTime) return true;
+            const timeDiff = Date.now() - this.lastUpdateTime;
+            return timeDiff > this.updateInterval;
+        }
+
+        async updateStats() {
+            if (this.isUpdating) return;
+            
+            this.isUpdating = true;
+            this.showLoadingIndicator();
+            
+            try {
+                const response = await fetch('{{ route('admin.dashboard.stats') }}', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    this.updateDashboardCards(result.data);
+                    this.lastUpdateTime = Date.now();
+                    this.showSuccessIndicator();
+                } else {
+                    throw new Error('Failed to fetch dashboard statistics');
+                }
+                
+            } catch (error) {
+                console.error('Error updating dashboard stats:', error);
+                this.showErrorIndicator();
+            } finally {
+                this.isUpdating = false;
+                this.hideLoadingIndicator();
+            }
+        }
+
+        updateDashboardCards(data) {
+            // Update Total Users
+            this.updateCard('total-users', data.totalUsers, data.userGrowth, '%');
+            
+            // Update Active Jobs (main focus)
+            this.updateCard('active-jobs', data.activeJobs, data.jobGrowth, '%');
+            
+            // Update Pending Jobs (high priority)
+            this.updatePendingJobsCard(data.pendingJobs);
+            
+            // Update KYC Verified
+            this.updateCard('verified-kyc', data.verifiedKyc);
+            
+            // Update Pending KYC
+            this.updateCard('pending-kyc', data.pendingKyc);
+            
+            // Update Total Applications
+            this.updateCard('total-applications', data.totalApplications, data.applicationGrowth, '%');
+            
+            // Update badges in navigation
+            this.updateNavigationBadges(data);
+        }
+
+        updateCard(cardId, mainValue, growthValue = null, growthSuffix = '') {
+            const cardElement = document.getElementById(cardId);
+            if (!cardElement) return;
+            
+            // Update main value with animation
+            const mainValueElement = cardElement.querySelector('.main-value, h2');
+            if (mainValueElement) {
+                const currentValue = parseInt(mainValueElement.textContent.replace(/,/g, '')) || 0;
+                const newValue = parseInt(mainValue) || 0;
+                
+                if (currentValue !== newValue) {
+                    // Add highlight animation
+                    cardElement.classList.add('stat-updated');
+                    setTimeout(() => cardElement.classList.remove('stat-updated'), 1000);
+                    
+                    // Animate number change
+                    this.animateNumber(mainValueElement, currentValue, newValue);
+                }
+            }
+            
+            // Update growth value if provided
+            if (growthValue !== null) {
+                const growthElement = cardElement.querySelector('.growth-value, .small');
+                if (growthElement) {
+                    const growthText = `${growthValue >= 0 ? '↗' : '↘'} ${Math.abs(growthValue)}${growthSuffix} from last month`;
+                    growthElement.innerHTML = growthText;
+                    growthElement.className = `small text-${growthValue >= 0 ? 'success' : 'danger'}`;
+                }
+            }
+        }
+
+        updatePendingJobsCard(pendingJobs) {
+            const cardElement = document.getElementById('pending-jobs');
+            if (!cardElement) return;
+            
+            // Update main value
+            const mainValueElement = cardElement.querySelector('h2');
+            if (mainValueElement) {
+                const currentValue = parseInt(mainValueElement.textContent.replace(/,/g, '')) || 0;
+                const newValue = parseInt(pendingJobs) || 0;
+                
+                if (currentValue !== newValue) {
+                    cardElement.classList.add('stat-updated');
+                    setTimeout(() => cardElement.classList.remove('stat-updated'), 1000);
+                    this.animateNumber(mainValueElement, currentValue, newValue);
+                    
+                    // Update warning styling
+                    if (newValue > 0) {
+                        mainValueElement.classList.add('text-warning');
+                        cardElement.classList.add('border-warning');
+                    } else {
+                        mainValueElement.classList.remove('text-warning');
+                        cardElement.classList.remove('border-warning');
+                    }
+                }
+            }
+            
+            // Update badge and link
+            const badge = cardElement.querySelector('.badge');
+            const link = cardElement.querySelector('a, .small');
+            
+            if (pendingJobs > 0) {
+                if (badge) badge.textContent = pendingJobs;
+                if (link) {
+                    link.innerHTML = '<i class="bi bi-arrow-right"></i> Review Now';
+                    link.className = 'text-warning text-decoration-none';
+                }
+            } else {
+                if (badge) badge.style.display = 'none';
+                if (link) {
+                    link.innerHTML = '<i class="bi bi-check-circle"></i> All jobs reviewed';
+                    link.className = 'small text-success';
+                }
+            }
+        }
+
+        updateNavigationBadges(data) {
+            // Update jobs badge in navigation
+            const jobsBadge = document.querySelector('a[href*="admin.jobs"] .badge');
+            if (jobsBadge) {
+                jobsBadge.textContent = this.formatNumber(data.activeJobs);
+            }
+            
+            // Update KYC pending count in notifications
+            const kycNotifications = document.querySelectorAll('[data-kyc-count]');
+            kycNotifications.forEach(el => {
+                el.textContent = `${data.pendingKyc} KYC pending review`;
+            });
+        }
+
+        animateNumber(element, from, to, duration = 1000) {
+            const startTime = performance.now();
+            const difference = to - from;
+            
+            const step = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const current = Math.floor(from + (difference * this.easeOutCubic(progress)));
+                element.textContent = this.formatNumber(current);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                }
+            };
+            
+            requestAnimationFrame(step);
+        }
+
+        easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        formatNumber(num) {
+            return new Intl.NumberFormat().format(num);
+        }
+
+        showLoadingIndicator() {
+            // Add loading class to dashboard
+            document.body.classList.add('dashboard-updating');
+            
+            // Show loading in refresh button if exists
+            const refreshBtn = document.getElementById('refresh-stats');
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Updating...';
+                refreshBtn.disabled = true;
+            }
+        }
+
+        hideLoadingIndicator() {
+            document.body.classList.remove('dashboard-updating');
+            
+            const refreshBtn = document.getElementById('refresh-stats');
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh';
+                refreshBtn.disabled = false;
+            }
+        }
+
+        showSuccessIndicator() {
+            this.showToast('Dashboard updated successfully', 'success');
+        }
+
+        showErrorIndicator() {
+            // Suppress error toast to prevent annoying users
+            // this.showToast('Failed to update dashboard', 'error');
+            console.log('Dashboard update failed - suppressed error toast');
+        }
+
+        showToast(message, type = 'info') {
+            // Simple toast notification
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+                color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+                border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
+                border-radius: 4px;
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    }
+
     // Registration Chart
     const registrationCtx = document.getElementById('registrationChart').getContext('2d');
     new Chart(registrationCtx, {
@@ -388,6 +968,75 @@
             }
         }
     });
+
+    // Initialize dashboard updater
+    document.addEventListener('DOMContentLoaded', () => {
+        new AdminDashboardUpdater();
+    });
+
+    // Function to show simple toast
+    function showSimpleToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+            color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+            border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
+            border-radius: 6px;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-weight: 500;
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+
+    // Manual refresh dashboard function
+    function refreshDashboard() {
+        const refreshBtn = document.getElementById('refresh-stats');
+        const originalHTML = refreshBtn.innerHTML;
+
+        // Show loading state
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Refreshing...';
+
+        // Clear cache and reload
+        fetch('{{ route('admin.dashboard.clear-cache') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSimpleToast('Dashboard refreshed successfully!', 'success');
+                // Reload page after short delay to show the toast
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing dashboard:', error);
+            showSimpleToast('Failed to refresh dashboard', 'error');
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = originalHTML;
+        });
+    }
 </script>
 @endpush
 @endsection

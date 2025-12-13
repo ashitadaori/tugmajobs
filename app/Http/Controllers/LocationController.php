@@ -15,7 +15,7 @@ class LocationController extends Controller
     }
 
     /**
-     * Search for places in Digos City
+     * Search for places in Sta. Cruz, Davao del Sur
      */
     public function searchPlaces(Request $request)
     {
@@ -39,8 +39,8 @@ class LocationController extends Controller
         foreach ($localBarangays as $barangay) {
             $suggestions[] = [
                 'name' => $barangay['name'],
-                'place_name' => $barangay['name'] . ', Digos City, Davao del Sur, Philippines',
-                'full_address' => $barangay['name'] . ', Digos City, Davao del Sur',
+                'place_name' => $barangay['name'] . ', Sta. Cruz, Davao del Sur, Philippines',
+                'full_address' => $barangay['name'] . ', Sta. Cruz, Davao del Sur',
                 'geometry' => [
                     'coordinates' => [$barangay['lng'], $barangay['lat']]
                 ],
@@ -63,9 +63,9 @@ class LocationController extends Controller
      */
     private function getMatchingBarangays($query)
     {
-        $barangays = $this->mapboxService->getDigosBarangays();
+        $barangays = $this->mapboxService->getStaCruzBarangays();
         $query = strtolower($query);
-        
+
         return array_filter($barangays, function($barangay) use ($query) {
             return strpos(strtolower($barangay['name']), $query) !== false;
         });
@@ -140,7 +140,7 @@ class LocationController extends Controller
             'public_token' => config('mapbox.public_token'),
             'default_center' => config('mapbox.default_center'),
             'default_zoom' => config('mapbox.default_zoom'),
-            'digos_bounds' => config('mapbox.digos_bounds')
+            'stacruz_bounds' => config('mapbox.stacruz_bounds')
         ]);
     }
 }

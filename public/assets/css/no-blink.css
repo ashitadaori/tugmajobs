@@ -1,0 +1,128 @@
+/**
+ * No Blink CSS - Prevents all page load animations and transitions
+ * This file disables animations that cause the dashboard to blink/flash on load
+ * Apply this as the LAST stylesheet to override any other animations
+ */
+
+/* Disable all fade-in animations on page load */
+.content-fade-in,
+.fade-in,
+.animate-fade-in,
+[class*="fade"] {
+    animation: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure all dashboard elements are visible immediately */
+.modern-dashboard,
+.modern-dashboard * {
+    animation: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Disable initial hide states */
+.dashboard-header,
+.dashboard-content,
+.welcome-section,
+.statistics-section,
+.action-cards-section,
+.recent-applications-section,
+.recommended-jobs-section,
+.modern-action-card,
+.stat-card,
+.job-card-compact,
+.application-item {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+/* Allow only hover transitions (not initial load animations) */
+.modern-action-card,
+.stat-card,
+.application-item {
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Disable skeleton loaders on page load */
+.skeleton-loader,
+.loading-shimmer,
+[class*="skeleton"] {
+    animation: none !important;
+    background: transparent !important;
+}
+
+/* Disable pulse animations */
+.loading-pulse,
+[class*="pulse"] {
+    animation: none !important;
+}
+
+/* Ensure loading overlay doesn't block content */
+.dashboard-loading-overlay {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Prevent content from being hidden during "loading" */
+body,
+html {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* CRITICAL: Allow SVG stroke animations (profile completion circle) */
+.progress-ring-progress,
+svg circle,
+.profile-completion svg circle {
+    transition: stroke-dashoffset 1s ease !important;
+    animation-duration: revert !important;
+}
+
+/* Circle loader animation is handled by JavaScript (requestAnimationFrame) */
+
+/* Disable all keyframe animations on initial page load EXCEPT SVG strokes */
+@media (prefers-reduced-motion: no-preference) {
+    *:not(svg):not(svg *):not(.progress-ring-progress),
+    *:not(svg):not(svg *):not(.progress-ring-progress)::before,
+    *:not(svg):not(svg *):not(.progress-ring-progress)::after {
+        animation-duration: 0s !important;
+        animation-delay: 0s !important;
+        transition-duration: 0s !important;
+    }
+
+    /* Re-enable transitions after page load */
+    body.loaded *:not(svg):not(svg *),
+    body.loaded *:not(svg):not(svg *)::before,
+    body.loaded *:not(svg):not(svg *)::after {
+        animation-duration: revert !important;
+        animation-delay: revert !important;
+        transition-duration: revert !important;
+    }
+
+    /* Keep hover transitions and SVG transitions always enabled */
+    *:hover,
+    *:focus,
+    svg,
+    svg *,
+    .progress-ring-progress {
+        transition-duration: revert !important;
+    }
+}
+
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Loader rotation is now handled by JavaScript requestAnimationFrame */

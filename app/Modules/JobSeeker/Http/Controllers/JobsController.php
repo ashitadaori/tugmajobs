@@ -49,8 +49,8 @@ class JobsController extends Controller
 
         $jobTypes = JobType::where('status', 1)->get();
 
-        // Get Digos City locations
-        $digosLocations = [
+        // Get Sta. Cruz, Davao del Sur locations
+        $staCruzLocations = [
             ['name' => 'Aplaya', 'lat' => 6.7489, 'lng' => 125.3714],
             ['name' => 'Binaton', 'lat' => 6.7623, 'lng' => 125.3897],
             ['name' => 'Cogon', 'lat' => 6.7512, 'lng' => 125.3567],
@@ -72,7 +72,7 @@ class JobsController extends Controller
         return view('front.modern-jobs', [
             'jobs' => $jobs,
             'jobTypes' => $jobTypes,
-            'locations' => $digosLocations
+            'locations' => $staCruzLocations
         ]);
     }
 

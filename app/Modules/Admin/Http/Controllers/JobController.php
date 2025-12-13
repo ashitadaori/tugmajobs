@@ -14,9 +14,49 @@ use PhpParser\Node\Expr\FuncCall;
 
 class JobController extends Controller
 {
-    public function index(){
-
-        $jobs = Job::orderBy('created_at','DESC')->with('employer','applications')->paginate(10);
+    public function index(Request $request){
+        $query = Job::with('employer', 'applications');
+        
+        // Handle search query
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'LIKE', '%' . $search . '%')
+                  ->orWhere('company_name', 'LIKE', '%' . $search . '%')
+                  ->orWhere('location', 'LIKE', '%' . $search . '%')
+                  ->orWhere('description', 'LIKE', '%' . $search . '%');
+            });
+        }
+        
+        // Handle status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+        
+        // Handle category filter if provided
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->get('category'));
+        }
+        
+        // Handle job type filter if provided
+        if ($request->filled('job_type')) {
+            $query->where('job_type_id', $request->get('job_type'));
+        }
+        
+        // Order by created_at DESC by default
+        $query->orderBy('created_at', 'DESC');
+        
+        // Paginate results
+        $jobs = $query->paginate(10)->withQueryString();
+        
+        // If it's an AJAX request, return only the table content
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.jobs.partials.jobs-table', compact('jobs'))->render(),
+                'pagination' => $jobs->links()->toHtml()
+            ]);
+        }
+        
         return view('admin.jobs.list',[
             'jobs' => $jobs,
         ]);

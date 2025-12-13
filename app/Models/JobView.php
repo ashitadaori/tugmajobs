@@ -24,13 +24,26 @@ class JobView extends Model
 
     public static function recordView($job, $request)
     {
-        return static::create([
-            'job_id' => $job->id,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'device_type' => static::getDeviceType($request->userAgent()),
-            'referrer' => $request->header('referer')
-        ]);
+        try {
+            return static::create([
+                'job_id' => $job->id,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'device_type' => static::getDeviceType($request->userAgent()),
+                'referrer' => $request->header('referer')
+            ]);
+        } catch (\Exception $e) {
+            // Log the error but don't break the application
+            \Log::warning('Failed to record job view: ' . $e->getMessage(), [
+                'job_id' => $job->id,
+                'ip_address' => $request->ip(),
+                'referrer_length' => strlen($request->header('referer') ?? ''),
+                'user_agent_length' => strlen($request->userAgent() ?? '')
+            ]);
+            
+            // Return null or a default object to prevent breaking the flow
+            return null;
+        }
     }
 
     private static function getDeviceType($userAgent)

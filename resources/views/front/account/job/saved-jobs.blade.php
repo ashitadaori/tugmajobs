@@ -1,26 +1,10 @@
-@extends('front.layouts.app')
+@extends('layouts.jobseeker')
 
-@section('content')
-<section class="section-5 bg-2">
-    <div class="container py-5">
-        <div class="row">
-            <div class="col">
-                <nav aria-label="breadcrumb" class="rounded-3 p-3 mb-4">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                        <li class="breadcrumb-item active">Saved Jobs</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-3">
-                @include('components.sidebar')
-            </div>
-            <div class="col-lg-9">
-                @include('front.message')
-                <div class="card border-0 shadow mb-4">
-                    <div class="card-body p-4">
+@section('page-title', 'Saved Jobs')
+
+@section('jobseeker-content')
+<div class="card border-0 shadow mb-4">
+    <div class="card-body p-4">
                         <h3 class="fs-4 mb-1">Saved Jobs</h3>
                         <p class="mb-4 text-muted">Jobs you've saved for later</p>
                         
@@ -38,7 +22,7 @@
                                                             </a>
                                                         </h5>
                                                         <p class="text-muted mb-2">
-                                                            <i class="fas fa-building me-2"></i>{{ $job->company_name }}
+                                                            <i class="fas fa-building me-2"></i>{{ $job->company ? $job->company->company_name : 'N/A' }}
                                                         </p>
                                                         <p class="text-muted mb-2">
                                                             <i class="fas fa-map-marker-alt me-2"></i>{{ $job->location }}
@@ -91,10 +75,6 @@
                         @endif
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
 @endsection
 
 @section('customJs')
@@ -108,7 +88,7 @@ function removeSavedJob(jobId){
             dataType: 'json',
             success: function(response) {
                 if(response.status == true) {
-                    window.location.href="{{ route('account.savedJobs') }}";
+                    window.location.href="{{ route('account.saved-jobs.index') }}";
                 }
             }
         });

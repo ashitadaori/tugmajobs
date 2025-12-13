@@ -1,1241 +1,374 @@
 @extends('front.layouts.app')
 
-@push('styles')
-<style>
-/* HOMEPAGE FULLSCREEN STYLES - Override external CSS conflicts */
-.main-content {
-    margin-top: 0 !important;
-    margin-left: 0 !important;
-    padding: 0 !important;
-    background: none !important;
-    min-height: auto !important;
-}
-
-/* Override navbar positioning for homepage */
-.navbar {
-    position: fixed !important;
-    top: 0 !important;
-    width: 100% !important;
-    z-index: 1030 !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(15px) !important;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.1) !important;
-}
-
-/* Ensure body doesn't have conflicting margins */
-body {
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow-x: hidden !important;
-}
-
-/* Fix navbar height calculation */
-.hero-carousel {
-    height: 100vh;
-    width: 100%;
-    margin-top: 0;
-}
-
-/* Ensure proper navbar height on different screen sizes */
-@media (min-width: 992px) {
-    .hero-carousel {
-        height: calc(100vh - 76px);
-        margin-top: 76px;
-    }
-}
-
-@media (max-width: 991.98px) {
-    .hero-carousel {
-        height: calc(100vh - 70px);
-        margin-top: 70px;
-    }
-}
-
-@media (max-width: 767.98px) {
-    .hero-carousel {
-        height: calc(100vh - 65px);
-        margin-top: 65px;
-    }
-}
-
-.hero-section {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    background-size: cover !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
-}
-
-.search-section {
-    margin-top: -120px;
-    position: relative;
-    z-index: 10;
-    padding: 2rem 0 4rem 0;
-}
-
-/* Section backgrounds and spacing */
-.stats-section { 
-    background: #ffffff; 
-    padding: 5rem 0; 
-}
-
-.categories-section { 
-    background: #f8fafc; 
-    padding: 5rem 0; 
-}
-
-.how-it-works { 
-    background: #ffffff; 
-    padding: 5rem 0; 
-}
-
-.featured-jobs { 
-    background: #f8fafc; 
-    padding: 5rem 0; 
-}
-
-.latest-jobs { 
-    background: #ffffff; 
-    padding: 5rem 0; 
-}
-
-.testimonials { 
-    background: #f8fafc; 
-    padding: 5rem 0; 
-}
-
-.cta-section { 
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
-    padding: 5rem 0; 
-}
-
-/* Hero content styling */
-.hero-badge {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    display: inline-block;
-}
-
-.hero-title {
-    font-size: 3.5rem;
-    font-weight: 700;
-    line-height: 1.1;
-    color: white;
-}
-
-.hero-subtitle {
-    font-size: 1.25rem;
-    color: rgba(255, 255, 255, 0.9);
-    line-height: 1.6;
-}
-
-.hero-btn {
-    padding: 0.875rem 2rem;
-    font-weight: 600;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-/* Floating stats cards */
-.hero-stats-floating {
-    position: relative;
-}
-
-.floating-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 1rem;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    animation: float 6s ease-in-out infinite;
-}
-
-.floating-card:nth-child(2) {
-    animation-delay: -2s;
-}
-
-.floating-card:nth-child(3) {
-    animation-delay: -4s;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-
-.stat-icon {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-}
-
-/* Search box styling */
-.search-box {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-}
-
-.search-input-group {
-    margin-bottom: 1rem;
-}
-
-.search-label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #64748b;
-    margin-bottom: 0.5rem;
-}
-
-.search-input {
-    border: 2px solid #e2e8f0;
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-}
-
-.search-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.search-btn {
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    border-radius: 0.5rem;
-}
-
-/* Trending tags */
-.trending-tag {
-    display: inline-block;
-    background: #f1f5f9;
-    color: #475569;
-    padding: 0.375rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    margin: 0.25rem;
-    transition: all 0.2s ease;
-}
-
-.trending-tag:hover {
-    background: #3b82f6;
-    color: white;
-    transform: translateY(-1px);
-}
-
-/* Stats cards */
-.stats-card {
-    transition: all 0.3s ease;
-}
-
-.stats-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-/* Category cards */
-.category-card {
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-}
-
-.category-icon {
-    width: 4rem;
-    height: 4rem;
-    background: rgba(59, 130, 246, 0.1);
-    border-radius: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-}
-
-.category-arrow {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.category-card:hover .category-arrow {
-    opacity: 1;
-    transform: translateX(5px);
-}
-
-/* How it works */
-.how-it-works-card {
-    position: relative;
-    padding: 2rem 1rem;
-}
-
-.step-number {
-    position: absolute;
-    top: -1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 2.5rem;
-    height: 2.5rem;
-    background: #3b82f6;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.125rem;
-}
-
-.step-icon {
-    margin-top: 1rem;
-}
-
-/* Additional UI Enhancements */
-.bg-gradient {
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-}
-
-.section-title h2 {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1rem;
-}
-
-.section-title p {
-    font-size: 1.125rem;
-    color: #6b7280;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-/* Job Card Enhancements */
-.job-card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
-}
-
-.job-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-}
-
-.company-logo {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1.125rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.new-job-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    padding: 0.375rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    z-index: 2;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-}
-
-/* Save Job Button */
-.save-job-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.save-job-btn:hover {
-    background-color: #fee2e2;
-    border-color: #fca5a5;
-}
-
-.save-job-btn .fa-heart.text-danger {
-    color: #dc2626 !important;
-}
-
-/* Testimonial Cards */
-.testimonial-card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
-}
-
-.testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-}
-
-.stars i {
-    font-size: 0.875rem;
-    margin-right: 0.125rem;
-}
-
-.author-avatar {
-    font-size: 2.5rem;
-}
-
-/* CTA Section Enhancement */
-.cta-section {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    position: relative;
-    overflow: hidden;
-}
-
-.cta-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    opacity: 0.3;
-}
-
-.cta-section .container {
-    position: relative;
-    z-index: 2;
-}
-
-/* Carousel Enhancements */
-.carousel-indicators {
-    bottom: 2rem;
-}
-
-.carousel-indicators button {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.5);
-    background-color: transparent;
-    transition: all 0.3s ease;
-}
-
-.carousel-indicators button.active {
-    background-color: white;
-    border-color: white;
-}
-
-.carousel-control-prev,
-.carousel-control-next {
-    width: 5%;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-
-.carousel-control-prev:hover,
-.carousel-control-next:hover {
-    opacity: 1;
-}
-
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-    width: 2rem;
-    height: 2rem;
-    background-size: 100%;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 991.98px) {
-    .hero-title {
-        font-size: 2.5rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.125rem;
-    }
-    
-    .search-section {
-        margin-top: -80px;
-        padding: 1.5rem 0 3rem 0;
-    }
-    
-    .stats-section, .categories-section, .how-it-works,
-    .featured-jobs, .latest-jobs, .testimonials,
-    .cta-section {
-        padding: 3rem 0;
-    }
-    
-    .section-title h2 {
-        font-size: 1.875rem;
-    }
-    
-    .section-title p {
-        font-size: 1rem;
-    }
-}
-
-@media (max-width: 767.98px) {
-    .hero-title {
-        font-size: 2rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-    
-    .hero-actions .btn {
-        width: 100%;
-        margin-bottom: 0.75rem;
-    }
-    
-    .search-section {
-        margin-top: -60px;
-        padding: 1rem 0 2rem 0;
-    }
-    
-    .stats-section, .categories-section, .how-it-works,
-    .featured-jobs, .latest-jobs, .testimonials,
-    .cta-section {
-        padding: 2.5rem 0;
-    }
-    
-    .search-box {
-        padding: 1.5rem;
-    }
-    
-    .section-title h2 {
-        font-size: 1.5rem;
-    }
-    
-    .floating-card {
-        margin-bottom: 1rem;
-        padding: 1rem;
-    }
-    
-    .company-logo {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
-}
-</style>
-@endpush
+@section('title', 'TugmaJobs - Find Your Dream Job')
 
 @section('content')
-
-<!-- Enhanced Hero Section -->
-<div id="heroCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel">
-    <div class="carousel-indicators">
-        @foreach($bannerImages as $key => $banner)
-        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ $key }}" class="{{ $key === 0 ? 'active' : '' }}" aria-current="{{ $key === 0 ? 'true' : 'false' }}" aria-label="Slide {{ $key + 1 }}"></button>
-        @endforeach
-    </div>
-    <div class="carousel-inner h-100">
-        @foreach($bannerImages as $key => $banner)
-        <div class="carousel-item {{ $key === 0 ? 'active' : '' }} h-100">
-            <div class="hero-section h-100" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.8), rgba(29, 78, 216, 0.9)), url('{{ asset('assets/images/' . $banner['image']) }}') no-repeat center center; background-size: cover;">
-                <div class="container h-100 d-flex align-items-center">
-                    <div class="row w-100 align-items-center">
-                        <div class="col-12 col-lg-6 text-white">
-                            <div class="hero-badge mb-3">
-                                <i class="fas fa-star me-2"></i>
-                                #1 TugmaJobs in Digos City
-                            </div>
-                            <h1 class="hero-title mb-4">{{ $banner['title'] }}</h1>
-                            <p class="hero-subtitle mb-5">{{ $banner['subtitle'] }}</p>
-                            <div class="hero-actions">
-                                @guest
-                                    <a href="{{ route('register') }}" class="btn btn-light btn-lg me-3 hero-btn">
-                                        <i class="fas fa-user-plus me-2"></i>
-                                        Get Started Free
-                                    </a>
-                                    <a href="{{ route('jobs') }}" class="btn btn-outline-light btn-lg hero-btn">
-                                        <i class="fas fa-search me-2"></i>
-                                        Browse Jobs
-                                    </a>
-                                @else
-                                    <a href="{{ route('jobs') }}" class="btn btn-light btn-lg me-3 hero-btn">
-                                        <i class="fas fa-search me-2"></i>
-                                        Find Jobs Now
-                                    </a>
-                                    @if(Auth::user()->isEmployer())
-                                        <a href="{{ route('employer.jobs.create') }}" class="btn btn-outline-light btn-lg hero-btn">
-                                            <i class="fas fa-plus me-2"></i>
-                                            Post a Job
-                                        </a>
-                                    @else
-                                        <a href="{{ route('account.dashboard') }}" class="btn btn-outline-light btn-lg hero-btn">
-                                            <i class="fas fa-tachometer-alt me-2"></i>
-                                            My Dashboard
-                                        </a>
-                                    @endif
-                                @endguest
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 d-none d-lg-block">
-                            <div class="hero-stats-floating">
-                                <div class="floating-card">
-                                    <div class="d-flex align-items-center">
-                                        <div class="stat-icon bg-success">
-                                            <i class="fas fa-briefcase"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h4 class="mb-0">{{ number_format($stats['total_jobs']) }}+</h4>
-                                            <small>Active Jobs</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="floating-card">
-                                    <div class="d-flex align-items-center">
-                                        <div class="stat-icon bg-info">
-                                            <i class="fas fa-building"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h4 class="mb-0">{{ number_format($stats['companies']) }}+</h4>
-                                            <small>Companies</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="floating-card">
-                                    <div class="d-flex align-items-center">
-                                        <div class="stat-icon bg-warning">
-                                            <i class="fas fa-users"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h4 class="mb-0">{{ number_format($stats['applications']) }}+</h4>
-                                            <small>Happy Candidates</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endforeach
-    </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Previous</span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Next</span>
-    </button>
-</div>
-
-<!-- Enhanced Search Box Section -->
-<div class="search-section py-5 bg-gradient">
+<!-- Hero Section -->
+<section class="hero-section">
     <div class="container">
-        <div class="search-box bg-white p-4 rounded-4 shadow-lg">
-            <div class="text-center mb-4">
-                <h3 class="mb-2">Find Your Perfect Job</h3>
-                <p class="text-muted mb-0">Search from {{ number_format($stats['total_jobs']) }}+ active job opportunities</p>
-            </div>
-            
-            <form action="{{ route('jobs') }}" method="GET" id="searchForm">
-                <div class="row g-3">
-                    <div class="col-lg-4 col-md-6">
-                        <div class="search-input-group">
-                            <label class="search-label">
-                                <i class="fas fa-search text-primary"></i>
-                                What job are you looking for?
-                            </label>
-                            <input type="text" name="keyword" id="keyword" class="form-control search-input" 
-                                   placeholder="e.g. Software Engineer, Marketing Manager" 
-                                   value="{{ Request::get('keyword') }}">
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="search-input-group">
-                            <label class="search-label">
-                                <i class="fas fa-map-marker-alt text-success"></i>
-                                Location
-                            </label>
-                            <x-location-input 
-                                name="location" 
-                                :value="Request::get('location', '')" 
-                                placeholder="Search location in Digos City"
-                                id="homepage-location"
-                                class="form-select search-input"
-                            />
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="search-input-group">
-                            <label class="search-label">
-                                <i class="fas fa-briefcase text-info"></i>
-                                Job Type
-                            </label>
-                            <select name="job_type" id="job_type" class="form-select search-input">
-                                <option value="">All Types</option>
-                                @foreach($jobTypes as $jobType)
-                                    <option value="{{ $jobType->id }}" {{ Request::get('job_type') == $jobType->id ? 'selected' : '' }}>
-                                        {{ $jobType->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-6">
-                        <div class="search-input-group">
-                            <label class="search-label invisible">Search</label>
-                            <button type="submit" class="btn btn-primary w-100 search-btn">
-                                <i class="fas fa-search me-2"></i>
-                                Search Jobs
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h1 class="hero-title">Find & Hire Experts for<br>any Job</h1>
+                <p class="hero-subtitle">Find Jobs, Employment & Career Opportunities. Some of the companies we've helped recruit excellent applicants over the years.</p>
+                
+                <!-- Search Form -->
+                <div class="hero-search-form">
+                    <form action="{{ route('jobs') }}" method="GET" class="search-form">
+                        <div class="search-inputs">
+                            <input type="text" name="keyword" class="form-control search-input" placeholder="Job Title or Keywords" value="{{ request('keyword') }}">
+                            <div class="location-input-wrapper">
+                                <input type="text" 
+                                       name="location" 
+                                       id="locationSearch" 
+                                       class="form-control location-input" 
+                                       placeholder="Location (e.g., Poblacion, Sta. Cruz)" 
+                                       value="{{ request('location') }}"
+                                       autocomplete="off">
+                                <div id="locationSuggestions" class="location-suggestions"></div>
+                                <input type="hidden" name="location_lat" id="locationLat" value="{{ request('location_lat') }}">
+                                <input type="hidden" name="location_lng" id="locationLng" value="{{ request('location_lng') }}">
+                            </div>
+                            <button type="submit" class="btn btn-search">
+                                <i class="fas fa-search me-2"></i>Search
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
                 
-                <!-- Advanced Search Toggle -->
-                <div class="text-center mt-3">
-                    <button type="button" class="btn btn-link text-muted" data-bs-toggle="collapse" data-bs-target="#advancedSearch">
-                        <i class="fas fa-sliders-h me-1"></i>
-                        Advanced Search
-                    </button>
-                </div>
-                
-                <!-- Advanced Search Options -->
-                <div class="collapse mt-3" id="advancedSearch">
-                    <div class="row g-3 p-3 bg-light rounded-3">
-                        <div class="col-md-3">
-                            <label class="form-label small">Category</label>
-                            <select name="category" class="form-select form-select-sm">
-                                <option value="">All Categories</option>
-                                @foreach($allCategories as $category)
-                                    <option value="{{ $category->id }}" {{ Request::get('category') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small">Salary Range</label>
-                            <select name="salary_range" class="form-select form-select-sm">
-                                <option value="">Any Salary</option>
-                                <option value="0-25000" {{ Request::get('salary_range') == '0-25000' ? 'selected' : '' }}>₱0 - ₱25,000</option>
-                                <option value="25000-50000" {{ Request::get('salary_range') == '25000-50000' ? 'selected' : '' }}>₱25,000 - ₱50,000</option>
-                                <option value="50000-100000" {{ Request::get('salary_range') == '50000-100000' ? 'selected' : '' }}>₱50,000 - ₱100,000</option>
-                                <option value="100000+" {{ Request::get('salary_range') == '100000+' ? 'selected' : '' }}>₱100,000+</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small">Experience Level</label>
-                            <select name="experience" class="form-select form-select-sm">
-                                <option value="">Any Experience</option>
-                                <option value="entry" {{ Request::get('experience') == 'entry' ? 'selected' : '' }}>Entry Level</option>
-                                <option value="mid" {{ Request::get('experience') == 'mid' ? 'selected' : '' }}>Mid Level</option>
-                                <option value="senior" {{ Request::get('experience') == 'senior' ? 'selected' : '' }}>Senior Level</option>
-                                <option value="executive" {{ Request::get('experience') == 'executive' ? 'selected' : '' }}>Executive</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small">Posted Date</label>
-                            <select name="date_posted" class="form-select form-select-sm">
-                                <option value="">Any Time</option>
-                                <option value="today" {{ Request::get('date_posted') == 'today' ? 'selected' : '' }}>Today</option>
-                                <option value="week" {{ Request::get('date_posted') == 'week' ? 'selected' : '' }}>This Week</option>
-                                <option value="month" {{ Request::get('date_posted') == 'month' ? 'selected' : '' }}>This Month</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Popular Searches & Quick Actions -->
-        <div class="row mt-4">
-            <div class="col-md-8">
-                <div class="text-center">
-                    <p class="mb-2 text-muted">
-                        <i class="fas fa-fire text-warning me-1"></i>
-                        Trending Searches:
-                    </p>
-                    <div class="d-flex justify-content-center gap-2 flex-wrap">
-                        @if(isset($popularKeywords) && $popularKeywords->isNotEmpty())
-                            @foreach($popularKeywords as $keyword)
-                            <a href="{{ route('jobs', ['keyword' => $keyword]) }}" class="trending-tag">
-                                <i class="fas fa-hashtag me-1"></i>{{ ucfirst($keyword) }}
-                            </a>
-                            @endforeach
-                        @endif
-                        @if(isset($trendingJobTypes) && $trendingJobTypes->isNotEmpty())
-                            @foreach($trendingJobTypes->take(3) as $jobType)
-                            <a href="{{ route('jobs', ['job_type' => $jobType->id]) }}" class="trending-tag">
-                                <i class="fas fa-briefcase me-1"></i>{{ $jobType->name }}
-                            </a>
-                            @endforeach
-                        @endif
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="text-center">
-                    <p class="mb-2 text-muted">
-                        <i class="fas fa-bolt text-primary me-1"></i>
-                        Quick Actions:
-                    </p>
-                    <div class="d-flex justify-content-center gap-2">
-                        @auth
-                            @if(Auth::user()->isJobSeeker())
-                                <a href="{{ route('account.savedJobs') }}" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-heart me-1"></i>Saved Jobs
-                                </a>
-                                <a href="{{ route('account.ai.job-match') }}" class="btn btn-outline-success btn-sm">
-                                    <i class="fas fa-robot me-1"></i>AI Match
-                                </a>
-                            @endif
-                        @else
-                            <a href="{{ route('register') }}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-user-plus me-1"></i>Sign Up
-                            </a>
-                            <a href="{{ route('login') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-sign-in-alt me-1"></i>Sign In
-                            </a>
-                        @endauth
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Job Statistics Section -->
-<section class="stats-section py-5">
-    <div class="container">
-        <div class="row g-4">
-            <div class="col-md-3 col-sm-6">
-                <div class="stats-card text-center p-4 bg-white rounded-3 shadow-sm h-100">
-                    <i class="fas fa-briefcase fa-2x text-primary mb-3"></i>
-                    <h3 class="mb-2">{{ number_format($stats['total_jobs']) }}</h3>
-                    <p class="text-muted mb-0">Active Jobs</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stats-card text-center p-4 bg-white rounded-3 shadow-sm h-100">
-                    <i class="fas fa-building fa-2x text-success mb-3"></i>
-                    <h3 class="mb-2">{{ number_format($stats['companies']) }}</h3>
-                    <p class="text-muted mb-0">Companies</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stats-card text-center p-4 bg-white rounded-3 shadow-sm h-100">
-                    <i class="fas fa-users fa-2x text-info mb-3"></i>
-                    <h3 class="mb-2">{{ number_format($stats['applications']) }}</h3>
-                    <p class="text-muted mb-0">Applications</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stats-card text-center p-4 bg-white rounded-3 shadow-sm h-100">
-                    <i class="fas fa-chart-line fa-2x text-warning mb-3"></i>
-                    <h3 class="mb-2">{{ number_format($stats['jobs_this_week']) }}</h3>
-                    <p class="text-muted mb-0">New This Week</p>
+                <!-- Popular Searches -->
+                <div class="popular-searches">
+                    <span class="popular-label">Popular Searches:</span>
+                    @foreach($popularKeywords as $keyword)
+                        <a href="{{ route('jobs', ['keyword' => $keyword]) }}" class="popular-tag">{{ ucfirst($keyword) }}</a>
+                    @endforeach
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Enhanced Categories Section -->
-<section class="categories-section py-5 bg-light">
+<!-- Stats Section -->
+<section class="stats-section">
     <div class="container">
-        <div class="section-title text-center mb-5">
-            <h2 class="mb-3">
-                <i class="fas fa-th-large text-primary me-2"></i>
-                Browse by Category
-            </h2>
-            <p class="text-muted">Discover opportunities across different industries and specializations</p>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="ws-stat-box stat-box">
+                    <div class="ws-stat-icon stat-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3 class="ws-stat-number stat-number">{{ number_format($stats['total_jobs']) }}</h3>
+                    <p class="ws-stat-label stat-label">Active Jobs</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="ws-stat-box stat-box">
+                    <div class="ws-stat-icon stat-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3 class="ws-stat-number stat-number">{{ number_format($stats['companies']) }}</h3>
+                    <p class="ws-stat-label stat-label">Companies Hiring</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="ws-stat-box stat-box">
+                    <div class="ws-stat-icon stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="ws-stat-number stat-number">{{ number_format($stats['applications']) }}</h3>
+                    <p class="ws-stat-label stat-label">Applications Submitted</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="ws-stat-box stat-box">
+                    <div class="ws-stat-icon stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="ws-stat-number stat-number">{{ number_format($stats['jobs_this_week']) }}</h3>
+                    <p class="ws-stat-label stat-label">Jobs This Week</p>
+                </div>
+            </div>
         </div>
+    </div>
+</section>
+
+<!-- Browse Jobs By Category -->
+<section class="categories-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="section-title">Browse Jobs By Category</h2>
+                <p class="section-subtitle">Search all the open positions on the web. Get your own personalized salary<br>estimate. Read reviews on over 30,000+ companies worldwide.</p>
+            </div>
+        </div>
+        
         <div class="row g-4">
             @foreach($categories as $category)
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <a href="{{ route('jobs', ['category' => $category->id]) }}" class="text-decoration-none">
-                    <div class="category-card bg-white p-4 rounded-4 shadow-sm text-center h-100 position-relative overflow-hidden">
-                        <div class="category-icon-wrapper mb-3">
-                            @php
-                                $categoryIcons = [
-                                    'Technology' => 'fa-laptop-code',
-                                    'Healthcare' => 'fa-heartbeat',
-                                    'Education' => 'fa-graduation-cap',
-                                    'Finance' => 'fa-chart-line',
-                                    'Marketing' => 'fa-bullhorn',
-                                    'Sales' => 'fa-handshake',
-                                    'Engineering' => 'fa-cogs',
-                                    'Design' => 'fa-palette',
-                                    'Human Resources' => 'fa-users',
-                                    'Customer Service' => 'fa-headset',
-                                    'Manufacturing' => 'fa-industry',
-                                    'Retail' => 'fa-shopping-cart',
-                                    'Construction' => 'fa-hard-hat',
-                                    'Transportation' => 'fa-truck',
-                                    'Food Service' => 'fa-utensils',
-                                    'Legal' => 'fa-balance-scale',
-                                    'Media' => 'fa-video',
-                                    'Non-Profit' => 'fa-hands-helping',
-                                    'Government' => 'fa-landmark',
-                                    'Agriculture' => 'fa-seedling'
-                                ];
-                                $iconClass = $categoryIcons[$category->name] ?? $category->icon ?? 'fa-briefcase';
-                            @endphp
-                            <div class="category-icon">
-                                <i class="fas {{ $iconClass }} fa-2x text-primary"></i>
-                            </div>
+            <div class="col-lg-3 col-md-6">
+                <a href="{{ route('jobs', ['category' => $category->name]) }}" class="category-link">
+                    <div class="category-card ws-card">
+                        <div class="category-icon">
+                            @if(strpos($category->icon, 'fa-') !== false)
+                                <i class="{{ $category->icon }}"></i>
+                            @elseif(strpos($category->icon, 'http') === 0)
+                                <img src="{{ $category->icon }}" alt="{{ $category->name }}" class="img-fluid">
+                            @else
+                                <span class="category-emoji">{{ $category->icon }}</span>
+                            @endif
                         </div>
-                        <h5 class="mb-2 fw-bold">{{ $category->name }}</h5>
-                        <p class="text-muted mb-3">{{ $category->jobs_count }} {{ Str::plural('opening', $category->jobs_count) }}</p>
-                        <div class="category-arrow">
-                            <i class="fas fa-arrow-right text-primary"></i>
-                        </div>
-                        <div class="category-bg-pattern"></div>
+                        <h4 class="category-title">{{ $category->name }}</h4>
+                        <p class="category-count"><span class="ws-badge ws-badge-primary">{{ $category->jobs_count }} {{ Str::plural('Job', $category->jobs_count) }} Available</span></p>
                     </div>
                 </a>
             </div>
             @endforeach
         </div>
+    </div>
+</section>
+
+<!-- Featured Jobs Section -->
+<section class="popular-jobs-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="section-title">Featured Jobs</h2>
+                <p class="section-subtitle">Here are some of the most popular job openings.</p>
+            </div>
+        </div>
         
-        <!-- View All Categories Button -->
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="featured-jobs-carousel">
+                    @forelse($featuredJobs as $job)
+                    <!-- Job Card -->
+                    <a href="{{ route('jobDetail', $job->id) }}" class="text-decoration-none">
+                        <div class="ws-job-card job-card ws-card">
+                            <div class="ws-job-card-header job-company">
+                                <div class="ws-job-card-logo company-logo">
+                                    @if($job->employer && $job->employer->employerProfile && $job->employer->employerProfile->company_logo)
+                                        <img src="{{ asset('storage/' . $job->employer->employerProfile->company_logo) }}?v={{ time() }}"
+                                             alt="{{ $job->employer->name }}"
+                                             class="img-fluid"
+                                             onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-building\'></i>';">
+                                    @else
+                                        <i class="fas fa-building"></i>
+                                    @endif
+                                </div>
+                                <div class="ws-job-card-info company-info">
+                                    <h5 class="ws-job-card-company company-name">{{ $job->employer->employerProfileDirect->company_name ?? $job->employer->company_name ?? $job->employer->name ?? 'Company' }}</h5>
+                                    <span class="job-posted ws-text-secondary ws-text-sm">{{ $job->created_at->diffForHumans() }}</span>
+                                </div>
+                            </div>
+
+                            <div class="job-details">
+                                <h4 class="ws-job-card-title job-title">{{ $job->title }}</h4>
+                                <div class="job-location ws-text-secondary">
+                                    <i class="fas fa-map-marker-alt me-2"></i>{{ $job->location ?? 'Remote' }}
+                                </div>
+                                <div class="ws-job-card-meta job-meta">
+                                    <span class="job-applications ws-text-sm ws-text-secondary">{{ $job->applications_count ?? 0 }} applied of {{ $job->vacancy ?? 'multiple' }} {{ Str::plural('vacancy', $job->vacancy) }}</span>
+                                    <div class="ws-job-card-badges job-tags">
+                                        <span class="ws-badge ws-badge-primary job-type">{{ $job->jobType->name ?? 'Full Time' }}</span>
+                                        @if($job->salary_min && $job->salary_max)
+                                            <span class="ws-badge ws-badge-success job-salary">₱{{ number_format($job->salary_min) }} - ₱{{ number_format($job->salary_max) }}</span>
+                                        @elseif($job->salary_min)
+                                            <span class="ws-badge ws-badge-success job-salary">From ₱{{ number_format($job->salary_min) }}</span>
+                                        @elseif($job->salary_max)
+                                            <span class="ws-badge ws-badge-success job-salary">Up to ₱{{ number_format($job->salary_max) }}</span>
+                                        @else
+                                            <span class="ws-badge ws-badge-secondary job-salary">Salary Negotiable</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    @empty
+                    <div class="text-center py-5">
+                        <p class="ws-text-muted">No featured jobs available at the moment.</p>
+                    </div>
+                    @endforelse
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{{ route('jobs') }}" class="ws-btn ws-btn-primary ws-btn-lg btn btn-view-more">
+                        View More Jobs <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Companies Section -->
+<section class="featured-companies-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="section-title">Featured Companies</h2>
+                <p class="section-subtitle">Discover amazing companies that are hiring right now.</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            @forelse($featuredCompanies as $company)
+            <div class="col-lg-4 col-md-6">
+                <div class="ws-company-card company-card ws-card">
+                    <div class="company-header">
+                        <div class="company-logo-wrapper ws-company-logo">
+                            @if($company->company_logo)
+                                <img src="{{ asset('storage/' . $company->company_logo) }}?v={{ time() }}"
+                                     alt="{{ $company->company_name }}"
+                                     class="company-logo-img"
+                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'company-logo-placeholder\'><i class=\'fas fa-building\'></i></div>';">
+                            @else
+                                <div class="company-logo-placeholder">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="company-info">
+                            <h4 class="company-name ws-font-semibold">{{ $company->company_name }}</h4>
+                            <p class="company-location ws-text-secondary ws-text-sm">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                {{ $company->location ?? 'Location not specified' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="company-description">
+                        <p class="ws-text-secondary">{{ Str::limit($company->company_description ?? 'Company description not available', 120) }}</p>
+                    </div>
+
+                    <div class="company-stats">
+                        <div class="stat-item ws-flex ws-items-center ws-gap-2">
+                            <span class="stat-number ws-text-2xl ws-font-bold">{{ $company->jobs_count }}</span>
+                            <span class="stat-label ws-text-secondary ws-text-sm">Open {{ Str::plural('Job', $company->jobs_count) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="company-actions">
+                        @if($company->type === 'standalone' && $company->slug)
+                            <a href="{{ route('companies.show', $company->slug) }}" class="ws-btn ws-btn-success btn-view-company">
+                                View Company
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        @elseif($company->type === 'standalone')
+                            <a href="{{ route('companies.show', $company->id) }}" class="ws-btn ws-btn-success btn-view-company">
+                                View Company
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        @else
+                            <a href="{{ route('companies.show', $company->id) }}" class="ws-btn ws-btn-success btn-view-company">
+                                View Company
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @empty
+            <div class="col-12 text-center py-5">
+                <p class="ws-text-muted">No featured companies available at the moment.</p>
+            </div>
+            @endforelse
+        </div>
+
         <div class="text-center mt-5">
-            <a href="{{ route('jobs') }}" class="btn btn-outline-primary btn-lg">
-                <i class="fas fa-th me-2"></i>
-                View All Categories
+            <a href="{{ route('companies') }}" class="ws-btn ws-btn-primary ws-btn-lg btn btn-view-more">
+                View All Companies <i class="fas fa-arrow-right ms-2"></i>
             </a>
         </div>
     </div>
 </section>
 
 <!-- How It Works Section -->
-<section class="how-it-works py-5">
+<section class="how-it-works-section">
     <div class="container">
-        <div class="section-title text-center mb-5">
-            <h2 class="mb-3">
-                <i class="fas fa-lightbulb text-warning me-2"></i>
-                How It Works
-            </h2>
-            <p class="text-muted">Get started in just a few simple steps</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-3 col-md-6">
-                <div class="how-it-works-card text-center">
-                    <div class="step-number">1</div>
-                    <div class="step-icon mb-3">
-                        <i class="fas fa-user-plus fa-2x text-primary"></i>
-                    </div>
-                    <h5 class="mb-3">Create Account</h5>
-                    <p class="text-muted">Sign up for free and build your professional profile in minutes</p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="how-it-works-card text-center">
-                    <div class="step-number">2</div>
-                    <div class="step-icon mb-3">
-                        <i class="fas fa-search fa-2x text-success"></i>
-                    </div>
-                    <h5 class="mb-3">Search Jobs</h5>
-                    <p class="text-muted">Browse thousands of job opportunities that match your skills</p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="how-it-works-card text-center">
-                    <div class="step-number">3</div>
-                    <div class="step-icon mb-3">
-                        <i class="fas fa-paper-plane fa-2x text-info"></i>
-                    </div>
-                    <h5 class="mb-3">Apply Instantly</h5>
-                    <p class="text-muted">Submit your application with just one click using our smart system</p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="how-it-works-card text-center">
-                    <div class="step-number">4</div>
-                    <div class="step-icon mb-3">
-                        <i class="fas fa-trophy fa-2x text-warning"></i>
-                    </div>
-                    <h5 class="mb-3">Get Hired</h5>
-                    <p class="text-muted">Connect with employers and land your dream job</p>
-                </div>
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="section-title">How TugmaJobs Works</h2>
+                <p class="section-subtitle">Get started in just a few simple steps</p>
             </div>
         </div>
-    </div>
-</section>
 
-@if($featuredJobs->isNotEmpty())
-<section class="featured-jobs py-5">
-    <div class="container">
-        <div class="section-title text-center mb-5">
-            <h2 class="mb-3">Featured Jobs</h2>
-            <p class="text-muted">Handpicked opportunities for you</p>
-        </div>
-        <div class="row g-4">
-            @foreach($featuredJobs as $job)
-            <div class="col-lg-4 col-md-6">
-                <div class="card job-card border-0 shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="company-logo me-3 rounded-3 p-2" style="background-color: {{ '#' . substr(md5($job->employer->employerProfile->company_name ?? 'Company'), 0, 6) }}">
-                                <span class="text-white">{{ strtoupper(substr($job->employer->employerProfile->company_name ?? 'C', 0, 1)) }}</span>
-                            </div>
-                            <div>
-                                <h5 class="card-title mb-1">{{ $job->title }}</h5>
-                                <p class="text-muted mb-0 small">{{ $job->employer->employerProfile->company_name }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="job-meta mb-3">
-                            <div class="d-flex align-items-center text-muted mb-2">
-                                <i class="fas fa-map-marker-alt me-2"></i>
-                                <span>{{ $job->getFullAddress() ?: $job->location }}</span>
-                            </div>
-                            <div class="d-flex align-items-center text-muted">
-                                <i class="fas fa-clock me-2"></i>
-                                <span>{{ $job->jobType->name }}</span>
-                            </div>
-                            @if($job->salary_range || $job->salary)
-                            <div class="d-flex align-items-center text-muted mt-2">
-                                <i class="fas fa-money-bill-wave me-2"></i>
-                                <span>
-                                    @if($job->salary_min && $job->salary_max)
-                                        ₱{{ number_format($job->salary_min) }} - ₱{{ number_format($job->salary_max) }}
-                                    @elseif($job->salary_range)
-                                        {{ $job->salary_range }}
-                                    @else
-                                        {{ $job->salary }}
-                                    @endif
-                                </span>
-                            </div>
-                            @endif
-                        </div>
-                        
-                        @if($job->deadline || $job->application_deadline)
-                        <div class="job-deadline text-muted mb-3">
-                            <i class="fas fa-calendar-alt me-2"></i>
-                            Deadline: {{ ($job->application_deadline ?? $job->deadline)?->format('M d, Y') ?? 'No deadline' }}
-                        </div>
-                        @endif
-                        
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('jobDetail', $job->id) }}" class="btn btn-outline-primary flex-grow-1">View Details</a>
-                            <button onclick="toggleSaveJob({{ $job->id }})" class="btn btn-outline-secondary save-job-btn" id="saveJobBtn-{{ $job->id }}">
-                                <i class="fas fa-heart {{ Auth::check() && $job->savedByUser(Auth::id()) ? 'text-danger' : '' }}" id="saveJobIcon-{{ $job->id }}"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
+        <!-- Toggle Buttons -->
+        <div class="text-center mb-5">
+            <div class="btn-group role-toggle" role="group">
+                <input type="radio" class="btn-check" name="roleToggle" id="forJobseekers" checked>
+                <label class="btn btn-toggle" for="forJobseekers" onclick="showJobseekerSteps()">For Jobseekers</label>
 
-<!-- Enhanced Latest Jobs Section -->
-<section class="latest-jobs py-5 bg-light">
-    <div class="container">
-        <div class="section-title text-center mb-5">
-            <h2 class="mb-3">
-                <i class="fas fa-clock text-success me-2"></i>
-                Latest Job Opportunities
-            </h2>
-            <p class="text-muted">Fresh opportunities posted this week - don't miss out!</p>
-        </div>
-        
-        <div class="row g-4">
-            @foreach($latestJobs as $job)
-            <div class="col-md-6">
-                <div class="card job-card border-0 shadow-sm h-100 position-relative">
-                    @if($job->created_at->diffInDays() <= 1)
-                        <div class="new-job-badge">
-                            <i class="fas fa-star me-1"></i>NEW
-                        </div>
-                    @endif
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="company-logo rounded-3 p-2" style="background-color: {{ '#' . substr(md5($job->employer->employerProfile->company_name ?? 'Company'), 0, 6) }}">
-                                <span class="text-white fw-bold">{{ strtoupper(substr($job->employer->employerProfile->company_name ?? 'C', 0, 1)) }}</span>
-                            </div>
-                            <div class="job-info flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 class="card-title mb-1">{{ $job->title }}</h5>
-                                    @if($job->featured)
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="fas fa-star me-1"></i>Featured
-                                        </span>
-                                    @endif
-                                </div>
-                                <p class="text-muted mb-2 small">
-                                    <i class="fas fa-building me-1"></i>
-                                    {{ $job->employer->employerProfile->company_name }}
-                                </p>
-                                
-                                <div class="job-meta mb-3">
-                                    <div class="row g-2">
-                                        <div class="col-6">
-                                            <div class="d-flex align-items-center text-muted small">
-                                                <i class="fas fa-map-marker-alt me-2 text-success"></i>
-                                                <span>{{ $job->getFullAddress() ?: $job->location }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="d-flex align-items-center text-muted small">
-                                                <i class="fas fa-clock me-2 text-info"></i>
-                                                <span>{{ $job->jobType->name }}</span>
-                                            </div>
-                                        </div>
-                                        @if($job->salary_min && $job->salary_max)
-                                        <div class="col-6">
-                                            <div class="d-flex align-items-center text-muted small">
-                                                <i class="fas fa-money-bill-wave me-2 text-warning"></i>
-                                                <span>₱{{ number_format($job->salary_min) }} - ₱{{ number_format($job->salary_max) }}</span>
-                                            </div>
-                                        </div>
-                                        @endif
-                                        <div class="col-6">
-                                            <div class="d-flex align-items-center text-muted small">
-                                                <i class="fas fa-calendar me-2 text-primary"></i>
-                                                <span>{{ $job->created_at->diffForHumans() }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex gap-2 align-items-center">
-                                    <a href="{{ route('jobDetail', $job->id) }}" class="btn btn-sm btn-primary flex-grow-1">
-                                        <i class="fas fa-eye me-1"></i>View Details
-                                    </a>
-                                    <button onclick="toggleSaveJob({{ $job->id }})" class="btn btn-sm btn-outline-secondary save-job-btn" id="saveJobBtn-{{ $job->id }}" title="Save Job">
-                                        <i class="fas fa-heart {{ Auth::check() && $job->savedByUser(Auth::id()) ? 'text-danger' : '' }}" id="saveJobIcon-{{ $job->id }}"></i>
-                                    </button>
-                                    @auth
-                                        @if(Auth::user()->isJobSeeker())
-                                            <a href="{{ route('jobDetail', $job->id) }}#apply" class="btn btn-sm btn-success">
-                                                <i class="fas fa-paper-plane me-1"></i>Apply
-                                            </a>
-                                        @endif
-                                    @endauth
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <input type="radio" class="btn-check" name="roleToggle" id="forEmployers">
+                <label class="btn btn-toggle" for="forEmployers" onclick="showEmployerSteps()">For Employers</label>
             </div>
-            @endforeach
         </div>
-        
-        <!-- View All Jobs Button -->
-        <div class="text-center mt-5">
-            <a href="{{ route('jobs') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-search me-2"></i>
-                View All Jobs ({{ number_format($stats['total_jobs']) }}+)
-            </a>
-        </div>
-    </div>
-</section>
 
-<!-- Testimonials Section -->
-<section class="testimonials py-5">
-    <div class="container">
-        <div class="section-title text-center mb-5">
-            <h2 class="mb-3">
-                <i class="fas fa-quote-left text-primary me-2"></i>
-                Success Stories
-            </h2>
-            <p class="text-muted">Hear from job seekers and employers who found success with us</p>
+        <!-- Jobseeker Steps -->
+        <div id="jobseekerSteps" class="steps-container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h4 class="step-title">Create Your Account</h4>
+                        <p class="step-description">Sign up in seconds using your email or Google account. Build your professional profile.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h4 class="step-title">Search & Apply</h4>
+                        <p class="step-description">Browse thousands of jobs in Sta. Cruz, Davao del Sur and beyond. Apply with one click.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <h4 class="step-title">Get Hired</h4>
+                        <p class="step-description">Connect with employers, ace your interviews, and land your dream job.</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card bg-white p-4 rounded-4 shadow-sm h-100">
-                    <div class="testimonial-content mb-4">
-                        <div class="stars mb-3">
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
+
+        <!-- Employer Steps -->
+        <div id="employerSteps" class="steps-container" style="display: none;">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-icon">
+                            <i class="fas fa-building"></i>
                         </div>
-                        <p class="mb-0">"I found my dream job within a week of signing up! The AI job matching feature is incredible and saved me so much time."</p>
-                    </div>
-                    <div class="testimonial-author d-flex align-items-center">
-                        <div class="author-avatar me-3">
-                            <i class="fas fa-user-circle fa-2x text-primary"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0">Maria Santos</h6>
-                            <small class="text-muted">Software Developer</small>
-                        </div>
+                        <h4 class="step-title">Post Your Job</h4>
+                        <p class="step-description">Create a free account and post your job openings in minutes.</p>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card bg-white p-4 rounded-4 shadow-sm h-100">
-                    <div class="testimonial-content mb-4">
-                        <div class="stars mb-3">
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
+                <div class="col-lg-4 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-icon">
+                            <i class="fas fa-users"></i>
                         </div>
-                        <p class="mb-0">"As an employer, this platform helped us find qualified candidates quickly. The application management system is top-notch!"</p>
-                    </div>
-                    <div class="testimonial-author d-flex align-items-center">
-                        <div class="author-avatar me-3">
-                            <i class="fas fa-user-tie fa-2x text-success"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0">John Dela Cruz</h6>
-                            <small class="text-muted">HR Manager, TechCorp</small>
-                        </div>
+                        <h4 class="step-title">Review Candidates</h4>
+                        <p class="step-description">Get qualified applications from talented professionals in your area.</p>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card bg-white p-4 rounded-4 shadow-sm h-100">
-                    <div class="testimonial-content mb-4">
-                        <div class="stars mb-3">
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
+                <div class="col-lg-4 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-icon">
+                            <i class="fas fa-user-check"></i>
                         </div>
-                        <p class="mb-0">"The local focus on Digos City jobs is exactly what I needed. Finally, TugmaJobs understands our local market!"</p>
-                    </div>
-                    <div class="testimonial-author d-flex align-items-center">
-                        <div class="author-avatar me-3">
-                            <i class="fas fa-user-graduate fa-2x text-info"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0">Ana Rodriguez</h6>
-                            <small class="text-muted">Marketing Specialist</small>
-                        </div>
+                        <h4 class="step-title">Hire Top Talent</h4>
+                        <p class="step-description">Interview and hire the best candidates for your company.</p>
                     </div>
                 </div>
             </div>
@@ -1243,956 +376,1261 @@ body {
     </div>
 </section>
 
-<!-- Call to Action Section -->
-<section class="cta-section py-5 bg-primary text-white">
+<!-- CTA Section -->
+<section class="employer-cta-section">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h2 class="mb-3">Ready to Take the Next Step in Your Career?</h2>
-                <p class="mb-4 lead">Join thousands of professionals who have found their perfect job match through our platform.</p>
+            <div class="col-lg-7">
+                <h2 class="cta-title">Ready to Take the Next Step?</h2>
+                <p class="cta-subtitle">Whether you're looking for your dream job or searching for top talent, TugmaJobs connects you with the right opportunities in Sta. Cruz, Davao del Sur.</p>
+                <ul class="cta-benefits">
+                    <li><i class="fas fa-check-circle"></i> Free job posting for employers</li>
+                    <li><i class="fas fa-check-circle"></i> Access to qualified candidates</li>
+                    <li><i class="fas fa-check-circle"></i> Easy job search for seekers</li>
+                    <li><i class="fas fa-check-circle"></i> Fast and efficient process</li>
+                </ul>
             </div>
-            <div class="col-lg-4 text-lg-end">
-                @guest
-                    <a href="{{ route('register') }}" class="btn btn-light btn-lg me-3">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Sign Up Free
-                    </a>
-                    <a href="{{ route('jobs') }}" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-search me-2"></i>
-                        Browse Jobs
-                    </a>
-                @else
-                    @if(Auth::user()->isEmployer())
-                        <a href="{{ route('employer.jobs.create') }}" class="btn btn-light btn-lg">
-                            <i class="fas fa-plus me-2"></i>
-                            Post Your First Job
-                        </a>
+            <div class="col-lg-5 text-center">
+                <div class="cta-buttons">
+                    @auth
+                        @if(Auth::user()->isEmployer())
+                            <a href="{{ route('employer.jobs.create') }}" class="btn btn-cta btn-cta-employer">
+                                <i class="fas fa-plus-circle me-2"></i>Post a Job Now
+                            </a>
+                        @else
+                            <a href="{{ route('jobs') }}" class="btn btn-cta btn-cta-jobseeker">
+                                <i class="fas fa-search me-2"></i>Apply for a Job
+                            </a>
+                        @endif
                     @else
-                        <a href="{{ route('account.ai.job-match') }}" class="btn btn-light btn-lg">
-                            <i class="fas fa-robot me-2"></i>
-                            Try AI Job Match
-                        </a>
-                    @endif
-                @endguest
+                        <button type="button" class="btn btn-cta btn-cta-jobseeker" data-bs-toggle="modal" data-bs-target="#authModal" onclick="switchToLogin()">
+                            <i class="fas fa-search me-2"></i>Apply for a Job
+                        </button>
+                        <button type="button" class="btn btn-cta btn-cta-employer" data-bs-toggle="modal" data-bs-target="#employerAuthModal" onclick="switchToEmployerLogin()">
+                            <i class="fas fa-plus-circle me-2"></i>Post a Job Now
+                        </button>
+                    @endauth
+                </div>
+                <p class="cta-note mt-3">Join {{ number_format($stats['companies']) }}+ companies and thousands of job seekers on TugmaJobs</p>
             </div>
         </div>
     </div>
 </section>
 
 <style>
-/* CLEAN HOMEPAGE LAYOUT - FIXED MARGINS AND UI */
-
-/* Remove horizontal scroll and fix fullscreen layout */
-.homepage-fullscreen {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
-
-/* Fix navbar positioning and styling */
-.navbar {
-    position: fixed !important;
-    top: 0;
-    width: 100%;
-    z-index: 1030;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(15px);
-    box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-/* Adjust body for fixed navbar */
-body {
-    padding-top: 76px;
-    margin: 0;
-    overflow-x: hidden;
-}
-
-/* Hero Section - Clean and Consistent */
-.hero-carousel {
-    height: calc(100vh - 76px);
-    min-height: 600px;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-}
-
+/* Hero Section */
 .hero-section {
-    height: 100%;
-    min-height: inherit;
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+    padding: 140px 0 100px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    min-height: 600px;
     display: flex;
     align-items: center;
-    position: relative;
-    padding: 0;
 }
 
-.hero-section .container {
-    padding: 2rem 15px;
-}
-
-/* Search Section - Proper Positioning */
-.search-section {
-    margin-top: -120px;
-    position: relative;
-    z-index: 10;
-    padding: 2rem 0 4rem 0;
-}
-
-/* Fix section margins and padding consistently */
-.stats-section {
-    padding: 5rem 0;
-    margin: 0;
-}
-
-.categories-section {
-    padding: 5rem 0;
-    margin: 0;
-    background-color: #f8fafc;
-}
-
-.how-it-works {
-    padding: 5rem 0;
-    margin: 0;
-    background-color: #ffffff;
-}
-
-.featured-jobs {
-    padding: 5rem 0;
-    margin: 0;
-    background-color: #f8fafc;
-}
-
-.latest-jobs {
-    padding: 5rem 0;
-    margin: 0;
-    background-color: #ffffff;
-}
-
-.testimonials {
-    padding: 5rem 0;
-    margin: 0;
-    background-color: #f8fafc;
-}
-
-.cta-section {
-    padding: 5rem 0;
-    margin: 0;
-}
-
-/* Fix container margins */
-.container {
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 15px;
-    padding-right: 15px;
-}
-
-/* Fix floating cards positioning */
-.hero-stats-floating {
-    margin-top: 1rem;
-}
-
-.floating-card {
-    margin-bottom: 1.5rem;
-}
-
-/* Fix search box positioning */
-.search-box {
-    margin: 0 auto;
-    max-width: 100%;
-}
-
-/* Ensure proper spacing for all cards */
-.job-card,
-.category-card,
-.stats-card,
-.testimonial-card {
-    margin-bottom: 2rem;
-}
-
-/* Fix button spacing */
-.hero-actions .btn {
-    margin-bottom: 1rem;
-}
-
-/* Mobile Responsiveness - Clean and Consistent */
-@media (max-width: 991.98px) {
-    body {
-        padding-top: 70px;
-    }
-    
-    .hero-carousel {
-        height: calc(100vh - 70px);
-        min-height: 500px;
-    }
-    
-    .search-section {
-        margin-top: -80px;
-        padding: 1.5rem 0 3rem 0;
-    }
-    
-    .stats-section,
-    .categories-section,
-    .how-it-works,
-    .featured-jobs,
-    .latest-jobs,
-    .testimonials {
-        padding: 3rem 0;
-    }
-    
-    .cta-section {
-        padding: 3rem 0;
-    }
-}
-
-@media (max-width: 767.98px) {
-    body {
-        padding-top: 65px;
-    }
-    
-    .hero-carousel {
-        height: calc(100vh - 65px);
-        min-height: 450px;
-    }
-    
-    .hero-section .container {
-        padding: 1rem 15px;
-    }
-    
-    .search-section {
-        margin-top: -60px;
-        padding: 1rem 0 2rem 0;
-    }
-    
-    .hero-title {
-        font-size: 2.2rem;
-        line-height: 1.2;
-    }
-    
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-    
-    .hero-actions .btn {
-        width: 100%;
-        margin-bottom: 0.75rem;
-    }
-    
-    .stats-section,
-    .categories-section,
-    .how-it-works,
-    .featured-jobs,
-    .latest-jobs,
-    .testimonials {
-        padding: 2.5rem 0;
-    }
-    
-    .cta-section {
-        padding: 2.5rem 0;
-    }
-}
-
-.hero-badge {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    backdrop-filter: blur(10px);
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, 
+        rgba(67, 86, 99, 0.95) 0%,
+        rgba(67, 86, 99, 0.95) 100%);
 }
 
 .hero-title {
-    font-size: 3.5rem;
+    font-size: 4rem;
     font-weight: 800;
-    line-height: 1.2;
     margin-bottom: 1.5rem;
+    line-height: 1.2;
+    color: #78C841;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    letter-spacing: -0.5px;
 }
 
 .hero-subtitle {
     font-size: 1.25rem;
-    font-weight: 400;
-    opacity: 0.9;
-    line-height: 1.6;
-}
-
-.hero-btn {
-    padding: 0.875rem 2rem;
-    font-weight: 600;
-    border-radius: 50px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.hero-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.hero-stats-floating {
+    margin-bottom: 3rem;
+    line-height: 1.8;
+    color: #78C841;
+    font-weight: 500;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    background: rgba(67, 86, 99, 0.85);
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px solid rgba(120, 200, 65, 0.1);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
     position: relative;
-    animation: float 6s ease-in-out infinite;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.floating-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 1.5rem;
-    border-radius: 1rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
+.hero-search-form {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 2.5rem;
+    width: 100%;
 }
 
-.floating-card:hover {
-    transform: translateX(10px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+.search-form {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 10px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    max-width: 750px;
+    margin: 0 auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.stat-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
+.search-inputs {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-}
-
-/* Search Section Styles - Remove duplicate rule */
-
-.bg-gradient {
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-}
-
-.search-box {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.search-input-group {
-    margin-bottom: 1rem;
-}
-
-.search-label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.5rem;
-}
-
-.search-label i {
-    margin-right: 0.5rem;
+    align-items: stretch;
+    gap: 10px;
 }
 
 .search-input {
-    border: 2px solid #e5e7eb;
-    border-radius: 0.75rem;
-    padding: 0.875rem 1rem;
-    font-size: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px 24px;
+    font-size: 1rem;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    color: #1e293b;
     transition: all 0.3s ease;
 }
 
 .search-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 209, 197, 0.3);
+    border-color: #4fd1c5;
 }
 
-.search-btn {
-    padding: 0.875rem 1.5rem;
-    font-weight: 600;
-    border-radius: 0.75rem;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    border: none;
+.search-input::placeholder {
+    color: #64748b;
+}
+
+.location-input-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+}
+
+.location-input {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px 24px;
+    font-size: 1rem;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    color: #1e293b;
     transition: all 0.3s ease;
 }
 
-.search-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+.location-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 209, 197, 0.3);
+    border-color: #4fd1c5;
 }
 
-.trending-tag {
-    display: inline-block;
+.location-input::placeholder {
+    color: #64748b;
+}
+
+.location-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
     background: white;
-    color: #374151;
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    margin: 0.25rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
 }
 
-.trending-tag:hover {
-    background: #3b82f6;
+.location-suggestion {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.2s ease;
+}
+
+.location-suggestion:hover {
+    background-color: #f8fafc;
+}
+
+.location-suggestion:last-child {
+    border-bottom: none;
+}
+
+.location-suggestion.active {
+    background-color: #10b981;
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Stats Section */
-.stats-card {
+.suggestion-name {
+    font-weight: 500;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+
+.suggestion-address {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.location-suggestion.active .suggestion-name,
+.location-suggestion.active .suggestion-address {
+    color: white;
+}
+
+.btn-search {
+    background: linear-gradient(135deg, #78C841 0%, #5fb32e 100%);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.125rem;
+    cursor: pointer;
     transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px rgba(120, 200, 65, 0.2);
+    white-space: nowrap;
 }
 
-.stats-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+.btn-search:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(120, 200, 65, 0.3);
+    background: linear-gradient(135deg, #5fb32e 0%, #4a9e1f 100%);
+    color: white;
+}
+
+.btn-search:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.popular-searches {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.popular-label {
+    font-weight: 600;
+    color: #78C841;
+    background: rgba(67, 86, 99, 0.9);
+    padding: 0.75rem 1.5rem;
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 2px solid rgba(120, 200, 65, 0.2);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+    font-size: 1rem;
+}
+
+.popular-tag {
+    background: rgba(255, 255, 255, 0.95);
+    color: #78C841;
+    padding: 0.75rem 1.5rem;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(120, 200, 65, 0.3);
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    letter-spacing: 0.5px;
+}
+
+.popular-tag:hover {
+    background: #78C841;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(120, 200, 65, 0.3);
+    border-color: #78C841;
 }
 
 /* Categories Section */
+.categories-section {
+    padding: 100px 0;
+    background: #f8fafc;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1rem;
+}
+
+.section-subtitle {
+    font-size: 1.125rem;
+    color: #64748b;
+    line-height: 1.6;
+}
+
 .category-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 16px;
+    text-align: center;
     transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
-    position: relative;
-    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    height: 100%;
 }
 
 .category-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-}
-
-.category-card:hover .category-arrow {
-    transform: translateX(5px);
-}
-
-.category-icon-wrapper {
-    position: relative;
-    z-index: 2;
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-color: #10b981;
 }
 
 .category-icon {
     width: 80px;
     height: 80px;
-    background: rgba(59, 130, 246, 0.1);
-    border-radius: 20px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto;
-    transition: all 0.3s ease;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
 }
 
-.category-card:hover .category-icon {
-    background: rgba(59, 130, 246, 0.2);
-    transform: scale(1.1);
+.category-icon i {
+    font-size: 2rem;
+    color: white;
 }
 
-.category-arrow {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    transition: all 0.3s ease;
-}
-
-.category-bg-pattern {
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
-    z-index: 1;
-}
-
-/* How It Works Section */
-.how-it-works-card {
-    position: relative;
-    padding: 2rem;
-}
-
-.step-number {
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
+.category-icon img {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    object-fit: contain;
 }
 
-.step-icon {
-    background: rgba(59, 130, 246, 0.1);
-    width: 80px;
-    height: 80px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    transition: all 0.3s ease;
+.category-emoji {
+    font-size: 2rem;
+    line-height: 1;
 }
 
-.how-it-works-card:hover .step-icon {
-    background: rgba(59, 130, 246, 0.2);
-    transform: scale(1.1);
+.category-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
 }
 
-/* Job Cards */
+.category-count {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0;
+}
+
+.category-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+}
+
+.category-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Popular Jobs Section */
+.popular-jobs-section {
+    padding: 100px 0;
+    background: white;
+}
+
 .job-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 20px;
     transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .job-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-color: #10b981;
 }
 
-.new-job-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    padding: 0.375rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    z-index: 2;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-}
-
-/* Company Logo Styles */
-.company-logo {
-    width: 50px;
-    height: 50px;
+.job-company {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1.125rem;
+    margin-bottom: 20px;
+}
+
+.company-logo {
+    width: 60px;
+    height: 60px;
+    background: #1877f2;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-/* Testimonial Card Styles */
-.testimonial-card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
-}
-
-.testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-}
-
-.stars i {
-    font-size: 0.875rem;
-    margin-right: 0.125rem;
-}
-
-.author-avatar {
-    font-size: 2.5rem;
-}
-
-/* Save Job Button Styles */
-.save-job-btn {
-    width: 40px;
-    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    margin-right: 15px;
 }
 
-.save-job-btn:hover {
-    background-color: #fee2e2;
-    border-color: #fca5a5;
-}
-
-.save-job-btn .fa-heart.text-danger {
-    color: #dc2626 !important;
-}
-
-/* Section Title Styles */
-.section-title h2 {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1rem;
-}
-
-.section-title p {
-    font-size: 1.125rem;
-    color: #6b7280;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-/* CTA Section Enhancements */
-.cta-section {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    position: relative;
-    overflow: hidden;
-}
-
-.cta-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="20" cy="80" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    opacity: 0.3;
-}
-
-.cta-section .container {
-    position: relative;
-    z-index: 2;
-}
-
-/* Fix any remaining layout issues */
-.main-content {
-    margin-top: 0 !important;
-    margin-left: 0 !important;
-    padding: 0 !important;
-    background: none !important;
-    min-height: auto !important;
-}
-
-/* Ensure no horizontal scroll */
-html, body {
-    overflow-x: hidden;
-    max-width: 100%;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-/* Fix carousel indicators */
-.carousel-indicators {
-    bottom: 2rem;
-}
-
-.carousel-indicators button {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.5);
-    background-color: transparent;
-    transition: all 0.3s ease;
-}
-
-.carousel-indicators button.active {
-    background-color: white;
-    border-color: white;
-}
-
-/* Fix carousel controls */
-.carousel-control-prev,
-.carousel-control-next {
-    width: 5%;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-
-.carousel-control-prev:hover,
-.carousel-control-next:hover {
-    opacity: 1;
-}
-
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-    width: 2rem;
-    height: 2rem;
-    background-size: 100%;
-}
-</style>
-
-@push('scripts')
-<script>
-// Save Job Functionality
-function toggleSaveJob(jobId) {
-    @auth
-        console.log('Toggling save for job ID:', jobId);
-        fetch(`/jobs/${jobId}/toggle-save`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            const icon = document.getElementById(`saveJobIcon-${jobId}`);
-            if (data.saved) {
-                icon.classList.add('text-danger');
-                console.log('Job saved - icon updated to red');
-            } else {
-                icon.classList.remove('text-danger');
-                console.log('Job unsaved - icon updated to normal');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving job:', error);
-            alert('Error saving job. Please try again.');
-        });
-    @else
-        window.location.href = '{{ route("login") }}';
-    @endauth
-}
-
-// Initialize carousel with proper settings
-document.addEventListener('DOMContentLoaded', function() {
-    const carousel = document.getElementById('heroCarousel');
-    if (carousel) {
-        new bootstrap.Carousel(carousel, {
-            interval: 5000,
-            wrap: true,
-            pause: 'hover'
-        });
-    }
-});
-</script>
-@endpush
-
-@push('styles')
-<style>
-.company-logo {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.company-logo i {
     font-size: 1.5rem;
+    color: white;
+}
+
+.company-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.company-name {
+    font-size: 1.125rem;
     font-weight: 600;
-    color: #fff;
+    color: #1e293b;
+    margin: 0;
+}
+
+.job-posted {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.job-title {
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.job-location {
+    color: #64748b;
+    margin-bottom: 15px;
 }
 
 .job-meta {
-    font-size: 0.875rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.save-job-btn {
-    width: 40px;
-    height: 38px;
-    padding: 0;
+.job-applications {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.job-tags {
+    display: flex;
+    gap: 10px;
+}
+
+.job-type {
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.job-salary {
+    background: #f3f4f6;
+    color: #1f2937;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.btn-view-more {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.125rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+}
+
+.btn-view-more:hover {
+    background: #4338ca;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+}
+
+/* Featured Companies Section */
+.featured-companies-section {
+    padding: 100px 0;
+    background: #f8fafc;
+}
+
+.company-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 30px;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.company-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.12);
+    border-color: #10b981;
+}
+
+.company-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.company-logo-wrapper {
+    width: 70px;
+    height: 70px;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.company-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+}
+
+.company-logo-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
-.save-job-btn:hover {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
-    color: white;
-    transform: scale(1.1);
-}
-
-.save-job-btn:hover i:not(.text-danger) {
+.company-logo-placeholder i {
+    font-size: 1.8rem;
     color: white;
 }
 
-.save-job-btn i.text-danger {
-    color: #dc2626 !important;
+.company-info {
+    flex: 1;
 }
 
-/* Testimonials */
-.testimonial-card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
+.company-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 8px 0;
+    line-height: 1.3;
 }
 
-.testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-}
-
-.stars i {
+.company-location {
+    color: #64748b;
     font-size: 0.875rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
 }
 
-/* CTA Section */
-.cta-section {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    position: relative;
-    overflow: hidden;
+.company-location i {
+    color: #94a3b8;
+    font-size: 0.8rem;
 }
 
-.cta-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.1"/><circle cx="10" cy="90" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    opacity: 0.1;
+.company-description {
+    flex: 1;
+    margin-bottom: 20px;
+}
+
+.company-description p {
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.company-stats {
+    margin-bottom: 25px;
+    padding: 15px 0;
+    border-top: 1px solid #f1f5f9;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+.stat-label {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.company-actions {
+    margin-top: auto;
+}
+
+.btn-view-company {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.btn-view-company:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-view-company i {
+    transition: transform 0.3s ease;
+}
+
+.btn-view-company:hover i {
+    transform: translateX(4px);
 }
 
 /* Responsive Design */
-@media (max-width: 991.98px) {
+@media (max-width: 768px) {
     .hero-title {
         font-size: 2.5rem;
     }
     
-    .hero-subtitle {
-        font-size: 1.1rem;
+    .search-inputs {
+        flex-direction: column;
+        gap: 10px;
     }
     
-    .search-section {
-        margin-top: -100px;
+    .search-input,
+    .location-input-wrapper {
+        width: 100%;
     }
     
-    .hero-stats-floating {
-        margin-top: 3rem;
+    .popular-searches {
+        flex-direction: column;
+        gap: 10px;
     }
     
-    .floating-card {
-        margin-bottom: 1rem;
-    }
-}
-
-@media (max-width: 767.98px) {
-    .hero-title {
+    .section-title {
         font-size: 2rem;
     }
     
-    .hero-btn {
-        padding: 0.75rem 1.5rem;
-        font-size: 0.9rem;
-    }
-    
-    .search-section {
-        margin-top: -80px;
-    }
-    
-    .search-input {
-        padding: 0.75rem;
-    }
-    
-    .trending-tag {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.8rem;
+    .job-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 }
 
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.6s ease-in;
+/* Fix for white tooltip boxes on hover */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove default browser tooltips */
+[title]:hover::after,
+[title]:hover::before {
+    display: none !important;
+}
+
+/* Prevent white boxes from appearing */
+.nav-link::before,
+.nav-link::after,
+.category-card::before,
+.category-card::after,
+.job-card::before,
+.job-card::after {
+    display: none !important;
+}
+
+/* Clean hover states */
+a:hover, button:hover {
+    outline: none;
+}
+
+/* Stats Section */
+.stats-section {
+    padding: 80px 0;
+    background: white;
+    border-top: 1px solid #f1f5f9;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-radius: 20px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stat-box:hover {
+    transform: translateY(-10px);
+    border-color: #78C841;
+    box-shadow: 0 20px 40px rgba(120, 200, 65, 0.15);
+}
+
+.stat-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #78C841 0%, #5fb32e 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 30px rgba(120, 200, 65, 0.25);
+}
+
+.stat-icon i {
+    font-size: 2rem;
+    color: white;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 10px;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #64748b;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* How It Works Section */
+.how-it-works-section {
+    padding: 100px 0;
+    background: #f8fafc;
+}
+
+.role-toggle {
+    display: inline-flex;
+    background: white;
+    border-radius: 50px;
+    padding: 6px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.btn-toggle {
+    padding: 12px 40px;
+    border-radius: 50px;
+    border: none;
+    font-weight: 600;
+    color: #64748b;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-check:checked + .btn-toggle {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.steps-container {
+    animation: fadeIn 0.5s ease-in-out;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.slide-up {
-    animation: slideUp 0.6s ease-out;
+.step-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    height: 100%;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+    position: relative;
 }
 
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+.step-card:hover {
+    transform: translateY(-10px);
+    border-color: #2563eb;
+    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
 }
 
-/* Loading States */
-.loading {
-    opacity: 0.6;
-    pointer-events: none;
+.step-number {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
 }
 
-.loading::after {
+.step-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 30px auto 25px;
+}
+
+.step-icon i {
+    font-size: 2.5rem;
+    color: #2563eb;
+}
+
+.step-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 15px;
+}
+
+.step-description {
+    color: #64748b;
+    line-height: 1.7;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Employer CTA Section */
+.employer-cta-section {
+    padding: 100px 0;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.employer-cta-section::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    margin: -10px 0 0 -10px;
-    border: 2px solid #3b82f6;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.employer-cta-section::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -5%;
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.cta-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 30px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+}
+
+.cta-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.cta-benefits li {
+    display: flex;
+    align-items: center;
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.cta-benefits i {
+    color: #78C841;
+    margin-right: 12px;
+    font-size: 1.25rem;
+}
+
+.cta-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn-cta {
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border: none;
+    min-width: 250px;
+    cursor: pointer;
+}
+
+.btn-cta-jobseeker {
+    background: white;
+    color: #2563eb;
+}
+
+.btn-cta-jobseeker:hover {
+    background: #78C841;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.btn-cta-employer {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-cta-employer:hover {
+    background: white;
+    color: #2563eb;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.cta-note {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+}
+
+/* Responsive adjustments for new sections */
+@media (max-width: 992px) {
+    .carousel-control-prev {
+        left: -30px;
+    }
+
+    .carousel-control-next {
+        right: -30px;
+    }
+
+    .cta-benefits {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .stat-box {
+        padding: 30px 15px;
+    }
+
+    .role-toggle {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-toggle {
+        width: 100%;
+        padding: 12px 20px;
+    }
+
+    .step-card {
+        margin-bottom: 40px;
+    }
+
+    .cta-title {
+        font-size: 1.75rem;
+    }
+
+    .cta-subtitle {
+        font-size: 1rem;
+    }
+
+    .employer-cta-section .col-lg-5 {
+        margin-top: 30px;
+    }
+
+    .btn-cta {
+        padding: 14px 30px;
+        font-size: 1rem;
+        min-width: 220px;
+    }
 }
 </style>
-@endpush
 
-@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize carousel
-    var carousel = new bootstrap.Carousel(document.getElementById('heroCarousel'), {
-        interval: 5000,
-        wrap: true
+    const locationInput = document.getElementById('locationSearch');
+    const suggestionsContainer = document.getElementById('locationSuggestions');
+    const locationLatInput = document.getElementById('locationLat');
+    const locationLngInput = document.getElementById('locationLng');
+    
+    let searchTimeout;
+    let currentSuggestions = [];
+    let selectedIndex = -1;
+
+    // Handle location input
+    locationInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // Clear previous timeout
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            hideSuggestions();
+            return;
+        }
+        
+        // Debounce the search
+        searchTimeout = setTimeout(() => {
+            searchLocations(query);
+        }, 300);
     });
-});
 
-function toggleSaveJob(jobId) {
-    @auth
-        console.log('Toggling save for job ID:', jobId);
-        fetch(`/jobs/${jobId}/toggle-save`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            const icon = document.getElementById(`saveJobIcon-${jobId}`);
-            if (data.saved) {
-                icon.classList.add('text-danger');
-                console.log('Job saved - icon updated to red');
+    // Handle keyboard navigation
+    locationInput.addEventListener('keydown', function(e) {
+        if (!suggestionsContainer.style.display || suggestionsContainer.style.display === 'none') {
+            return;
+        }
+
+        switch(e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, currentSuggestions.length - 1);
+                updateSelection();
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection();
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (selectedIndex >= 0 && currentSuggestions[selectedIndex]) {
+                    selectSuggestion(currentSuggestions[selectedIndex]);
+                }
+                break;
+            case 'Escape':
+                hideSuggestions();
+                break;
+        }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!locationInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            hideSuggestions();
+        }
+    });
+
+    // Search for locations using Mapbox API
+    async function searchLocations(query) {
+        try {
+            const response = await fetch(`/api/location/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data.suggestions && data.suggestions.length > 0) {
+                currentSuggestions = data.suggestions;
+                displaySuggestions(data.suggestions);
             } else {
-                icon.classList.remove('text-danger');
-                console.log('Job unsaved - icon updated to normal');
+                hideSuggestions();
             }
-        })
-        .catch(error => {
-            console.error('Error saving job:', error);
-            alert('Error saving job. Please try again.');
+        } catch (error) {
+            console.error('Location search error:', error);
+            hideSuggestions();
+        }
+    }
+
+    // Display location suggestions
+    function displaySuggestions(suggestions) {
+        suggestionsContainer.innerHTML = '';
+        selectedIndex = -1;
+        
+        suggestions.forEach((suggestion, index) => {
+            const suggestionElement = document.createElement('div');
+            suggestionElement.className = 'location-suggestion';
+            suggestionElement.innerHTML = `
+                <div class="suggestion-name">${suggestion.name}</div>
+                <div class="suggestion-address">${suggestion.full_address || suggestion.place_name}</div>
+            `;
+            
+            suggestionElement.addEventListener('click', () => {
+                selectSuggestion(suggestion);
+            });
+            
+            suggestionsContainer.appendChild(suggestionElement);
         });
-    @else
-        window.location.href = '{{ route("login") }}';
-    @endauth
-}
+        
+        suggestionsContainer.style.display = 'block';
+    }
+
+    // Update visual selection
+    function updateSelection() {
+        const suggestions = suggestionsContainer.querySelectorAll('.location-suggestion');
+        suggestions.forEach((suggestion, index) => {
+            suggestion.classList.toggle('active', index === selectedIndex);
+        });
+    }
+
+    // Select a suggestion
+    function selectSuggestion(suggestion) {
+        locationInput.value = suggestion.name;
+        locationLatInput.value = suggestion.coordinates ? suggestion.coordinates.latitude : '';
+        locationLngInput.value = suggestion.coordinates ? suggestion.coordinates.longitude : '';
+        hideSuggestions();
+    }
+
+    // Hide suggestions
+    function hideSuggestions() {
+        suggestionsContainer.style.display = 'none';
+        selectedIndex = -1;
+        currentSuggestions = [];
+    }
+
+    // Add some popular Sta. Cruz, Davao del Sur locations as quick options
+    const popularLocations = [
+        { name: 'Poblacion', full_address: 'Poblacion, Sta. Cruz, Davao del Sur' },
+        { name: 'Darong', full_address: 'Darong, Sta. Cruz, Davao del Sur' },
+        { name: 'Coronon', full_address: 'Coronon, Sta. Cruz, Davao del Sur' },
+        { name: 'Inawayan', full_address: 'Inawayan, Sta. Cruz, Davao del Sur' },
+        { name: 'Remote Work', full_address: 'Work from anywhere' }
+    ];
+
+    // Show popular locations when input is focused and empty
+    locationInput.addEventListener('focus', function() {
+        if (this.value.trim() === '') {
+            currentSuggestions = popularLocations;
+            displaySuggestions(popularLocations);
+        }
+    });
+
+    // How It Works - Toggle between Jobseeker and Employer steps
+    window.showJobseekerSteps = function() {
+        document.getElementById('jobseekerSteps').style.display = 'block';
+        document.getElementById('employerSteps').style.display = 'none';
+    };
+
+    window.showEmployerSteps = function() {
+        document.getElementById('jobseekerSteps').style.display = 'none';
+        document.getElementById('employerSteps').style.display = 'block';
+    };
+});
 </script>
-@endpush
 
+<!-- Jobseeker Warning Modal -->
+@auth
+@if(!Auth::user()->isEmployer())
+<div class="modal fade" id="jobseekerWarningModal" tabindex="-1" aria-labelledby="jobseekerWarningModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div class="modal-header border-0 pb-0" style="padding: 1.5rem 1.5rem 0;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center" style="padding: 1rem 2rem 2rem;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #d97706;"></i>
+                </div>
+                <h5 class="modal-title mb-3" id="jobseekerWarningModalLabel" style="font-weight: 700; color: #1e293b; font-size: 1.5rem;">Employer Feature Only</h5>
+                <p style="color: #64748b; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                    The "Post a Job" feature is exclusively available for employer accounts. As a jobseeker, you can browse and apply for jobs instead.
+                </p>
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <a href="{{ route('jobs') }}" class="btn" style="background: linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%); color: #0f172a; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px; border: none;">
+                        <i class="fas fa-search me-2"></i>Browse Jobs
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 500;">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<!-- End homepage-wrapper -->
-
+@endif
+@endauth
 @endsection

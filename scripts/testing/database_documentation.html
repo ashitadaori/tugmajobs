@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Portal Database Documentation</title>
+<style>
+body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+h1, h2, h3 { color: #333; }
+table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+th { background-color: #f2f2f2; font-weight: bold; }
+tr:nth-child(even) { background-color: #f9f9f9; }
+code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+.table-section { margin: 30px 0; border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
+.stats { background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0; }
+</style>
+</head>
+<body>
+<h1>Job Portal Database Documentation</h1>
+<p><strong>Generated on:</strong> 2025-08-11 13:56:07</p>
+<div class="stats">
+<h2>Database Statistics</h2>
+<ul>
+<li><strong>Total Tables:</strong> 24</li>
+<li><strong>Total Records:</strong> 286</li>
+</ul>
+</div>
+<h2>Tables Overview</h2>
+<table>
+<tr><th>Table</th><th>Records</th><th>Purpose</th></tr>
+<tr><td><code>admins</code></td><td>1</td><td>Administrative user profiles with permissions and access control settings</td></tr>
+<tr><td><code>categories</code></td><td>20</td><td>Job categories/industries for organizing and filtering job postings</td></tr>
+<tr><td><code>company_sizes</code></td><td>6</td><td>Purpose not documented - requires manual review</td></tr>
+<tr><td><code>employer_documents</code></td><td>6</td><td>Business documents and certificates uploaded by employers for verification</td></tr>
+<tr><td><code>employer_profiles</code></td><td>3</td><td>Legacy employer profile table, may contain additional employer information</td></tr>
+<tr><td><code>employers</code></td><td>2</td><td>Extended profile information for users with employer role, company details and verification</td></tr>
+<tr><td><code>industries</code></td><td>10</td><td>Purpose not documented - requires manual review</td></tr>
+<tr><td><code>job_application_status_histories</code></td><td>3</td><td>Audit trail of job application status changes over time</td></tr>
+<tr><td><code>job_applications</code></td><td>2</td><td>Applications submitted by job seekers for specific job postings, tracking application status</td></tr>
+<tr><td><code>job_categories</code></td><td>10</td><td>Purpose not documented - requires manual review</td></tr>
+<tr><td><code>job_skills</code></td><td>17</td><td>Purpose not documented - requires manual review</td></tr>
+<tr><td><code>job_types</code></td><td>8</td><td>Employment types (full-time, part-time, contract, etc.) for job classification</td></tr>
+<tr><td><code>job_user</code></td><td>0</td><td>Many-to-many pivot table for saved jobs relationship between users and jobs</td></tr>
+<tr><td><code>job_views</code></td><td>99</td><td>Tracking table for job post views and analytics, helps with recommendations</td></tr>
+<tr><td><code>jobs</code></td><td>2</td><td>Job postings created by employers with all job details, requirements, and status information</td></tr>
+<tr><td><code>jobseekers</code></td><td>5</td><td>Comprehensive profile information for job seekers including skills, experience, and preferences</td></tr>
+<tr><td><code>kyc_data</code></td><td>2</td><td>Stored KYC verification data and documents for verified users</td></tr>
+<tr><td><code>kyc_verifications</code></td><td>0</td><td>Know Your Customer verification sessions and status for user identity verification</td></tr>
+<tr><td><code>locations</code></td><td>10</td><td>Purpose not documented - requires manual review</td></tr>
+<tr><td><code>migrations</code></td><td>37</td><td>Laravel migration history table tracking database schema changes</td></tr>
+<tr><td><code>notifications</code></td><td>31</td><td>System notifications and alerts for users about various events and updates</td></tr>
+<tr><td><code>personal_access_tokens</code></td><td>0</td><td>API tokens for authenticated access to the application</td></tr>
+<tr><td><code>saved_jobs</code></td><td>1</td><td>User saved/bookmarked jobs for later viewing or application</td></tr>
+<tr><td><code>users</code></td><td>11</td><td>Core user accounts table storing authentication and basic profile information for all user types (admin, employer, jobseeker)</td></tr>
+</table>
+<h2>Detailed Table Documentation</h2>
+<div class="table-section">
+<h3><code>admins</code> Table</h3>
+<p><strong>Purpose:</strong> Administrative user profiles with permissions and access control settings</p>
+<p><strong>Records:</strong> 1</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>admin_level</code></td><td>varchar(255)</td><td>❌</td><td>MUL</td><td>admin</td><td>Administrative level or hierarchy</td></tr>
+<tr><td><code>department</code></td><td>varchar(255)</td><td>✅</td><td>MUL</td><td>-</td><td>Administrative department</td></tr>
+<tr><td><code>position</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Administrative position</td></tr>
+<tr><td><code>responsibilities</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>List of admin responsibilities</td></tr>
+<tr><td><code>permissions</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of detailed permissions</td></tr>
+<tr><td><code>accessible_modules</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of accessible system modules</td></tr>
+<tr><td><code>can_manage_users</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Permission to manage users</td></tr>
+<tr><td><code>can_manage_jobs</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Permission to manage jobs</td></tr>
+<tr><td><code>can_manage_employers</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Permission to manage employers</td></tr>
+<tr><td><code>can_view_analytics</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Permission to view analytics</td></tr>
+<tr><td><code>can_manage_settings</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Permission to manage system settings</td></tr>
+<tr><td><code>can_manage_admins</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Permission to manage other admins</td></tr>
+<tr><td><code>status</code></td><td>enum('active','inactive','suspended')</td><td>❌</td><td>-</td><td>active</td><td>Current status of the record</td></tr>
+<tr><td><code>last_login_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Last login timestamp</td></tr>
+<tr><td><code>last_login_ip</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>IP address of last login</td></tr>
+<tr><td><code>login_history</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of login history</td></tr>
+<tr><td><code>actions_performed</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>Count of administrative actions performed</td></tr>
+<tr><td><code>promoted_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when user was promoted to admin</td></tr>
+<tr><td><code>promoted_by</code></td><td>bigint(20) unsigned</td><td>✅</td><td>MUL</td><td>-</td><td>ID of admin who promoted this user</td></tr>
+<tr><td><code>force_password_change</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Boolean flag to force password change</td></tr>
+<tr><td><code>password_changed_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp of last password change</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>promoted_by</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>categories</code> Table</h3>
+<p><strong>Purpose:</strong> Job categories/industries for organizing and filtering job postings</p>
+<p><strong>Records:</strong> 20</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Name or title field</td></tr>
+<tr><td><code>slug</code></td><td>varchar(255)</td><td>❌</td><td>UNI</td><td>-</td><td>SEO-friendly URL identifier for the category</td></tr>
+<tr><td><code>status</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>1</td><td>Current status of the record</td></tr>
+<tr><td><code>icon</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Icon class name for displaying category icon</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+<tr><td><code>deleted_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>company_sizes</code> Table</h3>
+<p><strong>Purpose:</strong> Purpose not documented - requires manual review</p>
+<p><strong>Records:</strong> 6</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>range</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>min_employees</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>max_employees</code></td><td>int(11)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>label</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>sort_order</code></td><td>int(11)</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>employer_documents</code> Table</h3>
+<p><strong>Purpose:</strong> Business documents and certificates uploaded by employers for verification</p>
+<p><strong>Records:</strong> 6</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>document_type</code></td><td>varchar(255)</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>document_name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>file_path</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>file_name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>file_size</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>mime_type</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>status</code></td><td>enum('pending','approved','rejected')</td><td>❌</td><td>-</td><td>pending</td><td>Current status of the record</td></tr>
+<tr><td><code>admin_notes</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>submitted_at</code></td><td>timestamp</td><td>❌</td><td>-</td><td>current_timestamp()</td><td>No description available</td></tr>
+<tr><td><code>reviewed_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>reviewed_by</code></td><td>bigint(20) unsigned</td><td>✅</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>reviewed_by</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>employer_profiles</code> Table</h3>
+<p><strong>Purpose:</strong> Legacy employer profile table, may contain additional employer information</p>
+<p><strong>Records:</strong> 3</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>company_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_description</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>industry</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_size</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>website</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_logo</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>location</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Job location (city, state, country)</td></tr>
+<tr><td><code>social_links</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>status</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>draft</td><td>Current status of the record</td></tr>
+<tr><td><code>company_culture</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>benefits_offered</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>total_jobs_posted</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>active_jobs</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>total_applications_received</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>profile_views</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_verified</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_featured</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Boolean flag for featured job posts</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+<tr><td><code>deleted_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>founded_year</code></td><td>year(4)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>headquarters</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>specialties</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_video</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>gallery_images</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>hiring_process</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>contact_email</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>contact_phone</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>meta_title</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>meta_description</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>employers</code> Table</h3>
+<p><strong>Purpose:</strong> Extended profile information for users with employer role, company details and verification</p>
+<p><strong>Records:</strong> 2</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>company_name</code></td><td>varchar(255)</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_slug</code></td><td>varchar(255)</td><td>✅</td><td>UNI</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_description</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_website</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_logo</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>company_size</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Size category of the company</td></tr>
+<tr><td><code>industry</code></td><td>varchar(255)</td><td>✅</td><td>MUL</td><td>-</td><td>Industry or business sector</td></tr>
+<tr><td><code>founded_year</code></td><td>year(4)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>contact_person_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>contact_person_designation</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>business_email</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>business_phone</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>business_address</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>city</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>City of residence</td></tr>
+<tr><td><code>state</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>State or province</td></tr>
+<tr><td><code>country</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>Philippines</td><td>Country</td></tr>
+<tr><td><code>postal_code</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>ZIP or postal code</td></tr>
+<tr><td><code>latitude</code></td><td>decimal(10,8)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>longitude</code></td><td>decimal(11,8)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>business_registration_number</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>tax_identification_number</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>business_documents</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>linkedin_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>LinkedIn profile URL</td></tr>
+<tr><td><code>facebook_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>twitter_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>instagram_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>subscription_plan</code></td><td>varchar(255)</td><td>❌</td><td>MUL</td><td>free</td><td>No description available</td></tr>
+<tr><td><code>subscription_starts_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>subscription_ends_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>job_posts_limit</code></td><td>int(11)</td><td>❌</td><td>-</td><td>5</td><td>No description available</td></tr>
+<tr><td><code>job_posts_used</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>status</code></td><td>enum('active','inactive','suspended','pending')</td><td>❌</td><td>MUL</td><td>pending</td><td>Current status of the record</td></tr>
+<tr><td><code>is_verified</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_featured</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Boolean flag for featured job posts</td></tr>
+<tr><td><code>verified_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>notification_preferences</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>settings</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>total_jobs_posted</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>total_applications_received</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>total_hires</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>average_rating</code></td><td>decimal(3,2)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>industries</code> Table</h3>
+<p><strong>Purpose:</strong> Purpose not documented - requires manual review</p>
+<p><strong>Records:</strong> 10</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Name or title field</td></tr>
+<tr><td><code>slug</code></td><td>varchar(255)</td><td>❌</td><td>UNI</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>description</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Detailed job description</td></tr>
+<tr><td><code>sort_order</code></td><td>int(11)</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_active</code></td><td>tinyint(1)</td><td>❌</td><td>MUL</td><td>1</td><td>Boolean flag indicating if record is active</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>job_application_status_histories</code> Table</h3>
+<p><strong>Purpose:</strong> Audit trail of job application status changes over time</p>
+<p><strong>Records:</strong> 3</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>job_application_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>status</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Current status of the record</td></tr>
+<tr><td><code>notes</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>job_application_id</code></td><td><code>job_applications.id</code></td><td>Links to job_applications table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>job_applications</code> Table</h3>
+<p><strong>Purpose:</strong> Applications submitted by job seekers for specific job postings, tracking application status</p>
+<p><strong>Records:</strong> 2</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>job_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>employer_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key to users table (employer)</td></tr>
+<tr><td><code>status</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>pending</td><td>Current status of the record</td></tr>
+<tr><td><code>shortlisted</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>applied_date</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>cover_letter</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>resume</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>interview_type</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>interview_date</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>interview_details</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>notes</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>preliminary_answers</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>application_step</code></td><td>enum('basic_info','screening','documents','review','submitted')</td><td>❌</td><td>-</td><td>basic_info</td><td>No description available</td></tr>
+<tr><td><code>profile_updated</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>source</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+<tr><td><code>deleted_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>employer_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+<tr><td><code>job_id</code></td><td><code>jobs.id</code></td><td>Links to jobs table</td></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>job_categories</code> Table</h3>
+<p><strong>Purpose:</strong> Purpose not documented - requires manual review</p>
+<p><strong>Records:</strong> 10</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Name or title field</td></tr>
+<tr><td><code>slug</code></td><td>varchar(255)</td><td>❌</td><td>UNI</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>description</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Detailed job description</td></tr>
+<tr><td><code>icon</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>sort_order</code></td><td>int(11)</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_active</code></td><td>tinyint(1)</td><td>❌</td><td>MUL</td><td>1</td><td>Boolean flag indicating if record is active</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>job_skills</code> Table</h3>
+<p><strong>Purpose:</strong> Purpose not documented - requires manual review</p>
+<p><strong>Records:</strong> 17</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Name or title field</td></tr>
+<tr><td><code>slug</code></td><td>varchar(255)</td><td>❌</td><td>UNI</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>category</code></td><td>varchar(255)</td><td>✅</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>description</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Detailed job description</td></tr>
+<tr><td><code>popularity_score</code></td><td>int(11)</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_active</code></td><td>tinyint(1)</td><td>❌</td><td>MUL</td><td>1</td><td>Boolean flag indicating if record is active</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>job_types</code> Table</h3>
+<p><strong>Purpose:</strong> Employment types (full-time, part-time, contract, etc.) for job classification</p>
+<p><strong>Records:</strong> 8</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Name or title field</td></tr>
+<tr><td><code>slug</code></td><td>varchar(255)</td><td>❌</td><td>UNI</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>status</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>1</td><td>Current status of the record</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+<tr><td><code>deleted_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>job_user</code> Table</h3>
+<p><strong>Purpose:</strong> Many-to-many pivot table for saved jobs relationship between users and jobs</p>
+<p><strong>Records:</strong> 0</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>job_views</code> Table</h3>
+<p><strong>Purpose:</strong> Tracking table for job post views and analytics, helps with recommendations</p>
+<p><strong>Records:</strong> 99</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>job_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>ip_address</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>IP address of the viewer for analytics</td></tr>
+<tr><td><code>user_agent</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>device_type</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>referrer</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Source website or page that referred the view</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>job_id</code></td><td><code>jobs.id</code></td><td>Links to jobs table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>jobs</code> Table</h3>
+<p><strong>Purpose:</strong> Job postings created by employers with all job details, requirements, and status information</p>
+<p><strong>Records:</strong> 2</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>employer_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key to users table (employer)</td></tr>
+<tr><td><code>job_type_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key to job_types table</td></tr>
+<tr><td><code>category_id</code></td><td>bigint(20) unsigned</td><td>✅</td><td>MUL</td><td>-</td><td>Foreign key to categories table</td></tr>
+<tr><td><code>title</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Job title or position name</td></tr>
+<tr><td><code>description</code></td><td>text</td><td>❌</td><td>-</td><td>-</td><td>Detailed job description</td></tr>
+<tr><td><code>address</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>requirements</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Job requirements and qualifications</td></tr>
+<tr><td><code>benefits</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Job benefits and perks</td></tr>
+<tr><td><code>salary_min</code></td><td>decimal(12,2)</td><td>✅</td><td>-</td><td>-</td><td>Minimum salary range</td></tr>
+<tr><td><code>salary_max</code></td><td>decimal(12,2)</td><td>✅</td><td>-</td><td>-</td><td>Maximum salary range</td></tr>
+<tr><td><code>experience_level</code></td><td>enum('entry','intermediate','expert')</td><td>✅</td><td>-</td><td>-</td><td>Required experience level</td></tr>
+<tr><td><code>vacancies</code></td><td>int(11)</td><td>❌</td><td>-</td><td>1</td><td>No description available</td></tr>
+<tr><td><code>location_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>location_address</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>barangay</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>city</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>Digos City</td><td>City of residence</td></tr>
+<tr><td><code>province</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>Davao del Sur</td><td>No description available</td></tr>
+<tr><td><code>latitude</code></td><td>decimal(10,8)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>longitude</code></td><td>decimal(11,8)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>location</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Job location (city, state, country)</td></tr>
+<tr><td><code>status</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>1</td><td>Current status of the record</td></tr>
+<tr><td><code>featured</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>deadline</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>views</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>source</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>meta_data</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>preliminary_questions</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>requires_screening</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>deleted_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+<tr><td><code>rejection_reason</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>approved_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>rejected_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>category_id</code></td><td><code>categories.id</code></td><td>Links to categories table</td></tr>
+<tr><td><code>employer_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+<tr><td><code>job_type_id</code></td><td><code>job_types.id</code></td><td>Links to job_types table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>jobseekers</code> Table</h3>
+<p><strong>Purpose:</strong> Comprehensive profile information for job seekers including skills, experience, and preferences</p>
+<p><strong>Records:</strong> 5</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>first_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>First name</td></tr>
+<tr><td><code>last_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Last name</td></tr>
+<tr><td><code>middle_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Middle name</td></tr>
+<tr><td><code>date_of_birth</code></td><td>date</td><td>✅</td><td>-</td><td>-</td><td>Date of birth</td></tr>
+<tr><td><code>gender</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Gender</td></tr>
+<tr><td><code>nationality</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Nationality</td></tr>
+<tr><td><code>marital_status</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Marital status</td></tr>
+<tr><td><code>phone</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Primary phone number</td></tr>
+<tr><td><code>alternate_phone</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Secondary phone number</td></tr>
+<tr><td><code>linkedin_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>LinkedIn profile URL</td></tr>
+<tr><td><code>portfolio_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Portfolio website URL</td></tr>
+<tr><td><code>github_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>GitHub profile URL</td></tr>
+<tr><td><code>current_address</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Current residential address</td></tr>
+<tr><td><code>permanent_address</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Permanent address</td></tr>
+<tr><td><code>city</code></td><td>varchar(255)</td><td>✅</td><td>MUL</td><td>-</td><td>City of residence</td></tr>
+<tr><td><code>state</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>State or province</td></tr>
+<tr><td><code>country</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>Philippines</td><td>Country</td></tr>
+<tr><td><code>postal_code</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>ZIP or postal code</td></tr>
+<tr><td><code>current_job_title</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Current job position</td></tr>
+<tr><td><code>current_company</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Current employer</td></tr>
+<tr><td><code>professional_summary</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Professional summary or objective</td></tr>
+<tr><td><code>total_experience_years</code></td><td>int(11)</td><td>❌</td><td>MUL</td><td>-</td><td>Total years of experience</td></tr>
+<tr><td><code>total_experience_months</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>Total months of experience</td></tr>
+<tr><td><code>skills</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of user skills</td></tr>
+<tr><td><code>soft_skills</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of soft skills</td></tr>
+<tr><td><code>languages</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of spoken languages</td></tr>
+<tr><td><code>certifications</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of certifications</td></tr>
+<tr><td><code>education</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of education history</td></tr>
+<tr><td><code>courses</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of completed courses</td></tr>
+<tr><td><code>work_experience</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of work history</td></tr>
+<tr><td><code>projects</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of projects</td></tr>
+<tr><td><code>preferred_job_types</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of preferred employment types</td></tr>
+<tr><td><code>preferred_categories</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of preferred job categories</td></tr>
+<tr><td><code>preferred_locations</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of preferred work locations</td></tr>
+<tr><td><code>open_to_remote</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Boolean flag for remote work preference</td></tr>
+<tr><td><code>open_to_relocation</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Boolean flag for relocation willingness</td></tr>
+<tr><td><code>expected_salary_min</code></td><td>decimal(10,2)</td><td>✅</td><td>MUL</td><td>-</td><td>Minimum expected salary</td></tr>
+<tr><td><code>expected_salary_max</code></td><td>decimal(10,2)</td><td>✅</td><td>MUL</td><td>-</td><td>Maximum expected salary</td></tr>
+<tr><td><code>salary_currency</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>PHP</td><td>Currency for salary (USD, PHP, etc.)</td></tr>
+<tr><td><code>salary_period</code></td><td>enum('hourly','daily','weekly','monthly','yearly')</td><td>❌</td><td>-</td><td>monthly</td><td>Salary period (hourly, monthly, yearly)</td></tr>
+<tr><td><code>availability</code></td><td>enum('immediate','1_week','2_weeks','1_month','2_months','3_months')</td><td>❌</td><td>MUL</td><td>immediate</td><td>Job start availability</td></tr>
+<tr><td><code>available_from</code></td><td>date</td><td>✅</td><td>-</td><td>-</td><td>Date available to start work</td></tr>
+<tr><td><code>currently_employed</code></td><td>tinyint(1)</td><td>❌</td><td>MUL</td><td>-</td><td>Boolean flag for current employment status</td></tr>
+<tr><td><code>notice_period_days</code></td><td>int(11)</td><td>✅</td><td>-</td><td>-</td><td>Notice period in days for current job</td></tr>
+<tr><td><code>resume_file</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Resume file path</td></tr>
+<tr><td><code>cover_letter_file</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Cover letter file path</td></tr>
+<tr><td><code>profile_photo</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Profile photo file path</td></tr>
+<tr><td><code>portfolio_files</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of portfolio file paths</td></tr>
+<tr><td><code>notification_preferences</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>privacy_settings</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>profile_visibility</code></td><td>tinyint(1)</td><td>❌</td><td>MUL</td><td>1</td><td>No description available</td></tr>
+<tr><td><code>allow_recruiter_contact</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>1</td><td>No description available</td></tr>
+<tr><td><code>job_alert_preferences</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>facebook_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>twitter_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>instagram_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>profile_status</code></td><td>enum('incomplete','complete','verified','suspended')</td><td>❌</td><td>-</td><td>incomplete</td><td>No description available</td></tr>
+<tr><td><code>is_featured</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>Boolean flag for featured job posts</td></tr>
+<tr><td><code>is_premium</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>premium_expires_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>profile_completion_percentage</code></td><td>decimal(5,2)</td><td>❌</td><td>MUL</td><td>0.00</td><td>No description available</td></tr>
+<tr><td><code>profile_views</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>total_applications</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>interviews_attended</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>jobs_offered</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>average_rating</code></td><td>decimal(3,2)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>search_keywords</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>search_score</code></td><td>decimal(8,2)</td><td>❌</td><td>MUL</td><td>0.00</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>kyc_data</code> Table</h3>
+<p><strong>Purpose:</strong> Stored KYC verification data and documents for verified users</p>
+<p><strong>Records:</strong> 2</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>session_id</code></td><td>varchar(255)</td><td>❌</td><td>UNI</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>status</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Current status of the record</td></tr>
+<tr><td><code>didit_status</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>first_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>First name</td></tr>
+<tr><td><code>last_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Last name</td></tr>
+<tr><td><code>full_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>date_of_birth</code></td><td>date</td><td>✅</td><td>-</td><td>-</td><td>Date of birth</td></tr>
+<tr><td><code>gender</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Gender</td></tr>
+<tr><td><code>nationality</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Nationality</td></tr>
+<tr><td><code>place_of_birth</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>marital_status</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Marital status</td></tr>
+<tr><td><code>document_type</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>document_number</code></td><td>varchar(255)</td><td>✅</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>document_issue_date</code></td><td>date</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>document_expiration_date</code></td><td>date</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>issuing_state</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>issuing_state_name</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>address</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>formatted_address</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>city</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>City of residence</td></tr>
+<tr><td><code>region</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>country</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Country</td></tr>
+<tr><td><code>postal_code</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>ZIP or postal code</td></tr>
+<tr><td><code>latitude</code></td><td>decimal(10,8)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>longitude</code></td><td>decimal(11,8)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>face_match_score</code></td><td>decimal(5,2)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>face_match_status</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>liveness_score</code></td><td>decimal(5,2)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>liveness_status</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>id_verification_status</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>ip_analysis_status</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>age_estimation</code></td><td>decimal(5,2)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>ip_address</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>ip_country</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>ip_city</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_vpn_or_tor</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>device_brand</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>device_model</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>browser_family</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>os_family</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>front_image_url</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>back_image_url</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>portrait_image_url</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>liveness_video_url</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>raw_payload</code></td><td>longtext</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>warnings</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>verification_method</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>webhook</td><td>No description available</td></tr>
+<tr><td><code>didit_created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>verified_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>kyc_verifications</code> Table</h3>
+<p><strong>Purpose:</strong> Know Your Customer verification sessions and status for user identity verification</p>
+<p><strong>Records:</strong> 0</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>session_id</code></td><td>varchar(255)</td><td>❌</td><td>UNI</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>status</code></td><td>varchar(255)</td><td>❌</td><td>MUL</td><td>pending</td><td>Current status of the record</td></tr>
+<tr><td><code>document_type</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>document_number</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>firstname</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>lastname</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>date_of_birth</code></td><td>date</td><td>✅</td><td>-</td><td>-</td><td>Date of birth</td></tr>
+<tr><td><code>gender</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Gender</td></tr>
+<tr><td><code>address</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>nationality</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Nationality</td></tr>
+<tr><td><code>raw_data</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>verification_data</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>completed_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>verified_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>locations</code> Table</h3>
+<p><strong>Purpose:</strong> Purpose not documented - requires manual review</p>
+<p><strong>Records:</strong> 10</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Name or title field</td></tr>
+<tr><td><code>type</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>city</td><td>Notification type or category</td></tr>
+<tr><td><code>country</code></td><td>varchar(255)</td><td>❌</td><td>MUL</td><td>Philippines</td><td>Country</td></tr>
+<tr><td><code>state_province</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>latitude</code></td><td>decimal(10,8)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>longitude</code></td><td>decimal(11,8)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>job_count</code></td><td>int(11)</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_active</code></td><td>tinyint(1)</td><td>❌</td><td>MUL</td><td>1</td><td>Boolean flag indicating if record is active</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>migrations</code> Table</h3>
+<p><strong>Purpose:</strong> Laravel migration history table tracking database schema changes</p>
+<p><strong>Records:</strong> 37</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>int(10) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>migration</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>batch</code></td><td>int(11)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>notifications</code> Table</h3>
+<p><strong>Purpose:</strong> System notifications and alerts for users about various events and updates</p>
+<p><strong>Records:</strong> 31</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>title</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Job title or position name</td></tr>
+<tr><td><code>message</code></td><td>text</td><td>❌</td><td>-</td><td>-</td><td>Notification message content</td></tr>
+<tr><td><code>type</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>system</td><td>Notification type or category</td></tr>
+<tr><td><code>data</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON data associated with notification</td></tr>
+<tr><td><code>action_url</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>URL to redirect when notification is clicked</td></tr>
+<tr><td><code>read_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when notification was read</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>personal_access_tokens</code> Table</h3>
+<p><strong>Purpose:</strong> API tokens for authenticated access to the application</p>
+<p><strong>Records:</strong> 0</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>tokenable_type</code></td><td>varchar(255)</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>tokenable_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Name or title field</td></tr>
+<tr><td><code>token</code></td><td>varchar(64)</td><td>❌</td><td>UNI</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>abilities</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>last_used_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>expires_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Job posting expiration date</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>saved_jobs</code> Table</h3>
+<p><strong>Purpose:</strong> User saved/bookmarked jobs for later viewing or application</p>
+<p><strong>Records:</strong> 1</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>job_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>user_id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>MUL</td><td>-</td><td>Foreign key reference to users table</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>job_id</code></td><td><code>jobs.id</code></td><td>Links to jobs table</td></tr>
+<tr><td><code>user_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+<div class="table-section">
+<h3><code>users</code> Table</h3>
+<p><strong>Purpose:</strong> Core user accounts table storing authentication and basic profile information for all user types (admin, employer, jobseeker)</p>
+<p><strong>Records:</strong> 11</p>
+<h4>Columns</h4>
+<table>
+<tr><th>Column</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>bigint(20) unsigned</td><td>❌</td><td>PRI</td><td>-</td><td>Primary key - unique identifier</td></tr>
+<tr><td><code>parent_id</code></td><td>bigint(20) unsigned</td><td>✅</td><td>MUL</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>name</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Name or title field</td></tr>
+<tr><td><code>email</code></td><td>varchar(255)</td><td>❌</td><td>UNI</td><td>-</td><td>Email address</td></tr>
+<tr><td><code>email_verified_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>password</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>-</td><td>Encrypted password hash</td></tr>
+<tr><td><code>mobile</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Mobile phone number</td></tr>
+<tr><td><code>designation</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Job title or position</td></tr>
+<tr><td><code>job_title</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>location</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Job location (city, state, country)</td></tr>
+<tr><td><code>salary</code></td><td>decimal(10,2)</td><td>✅</td><td>-</td><td>-</td><td>Salary or compensation amount</td></tr>
+<tr><td><code>salary_type</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>qualification</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>language</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>categories</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>image</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Profile image file path</td></tr>
+<tr><td><code>role</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>jobseeker</td><td>User role: admin, employer, jobseeker</td></tr>
+<tr><td><code>skills</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of user skills</td></tr>
+<tr><td><code>education</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>JSON array of education history</td></tr>
+<tr><td><code>experience_years</code></td><td>int(11)</td><td>✅</td><td>-</td><td>-</td><td>Years of work experience</td></tr>
+<tr><td><code>bio</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>User biography or description</td></tr>
+<tr><td><code>address</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>is_verified</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>verification_document</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>preferred_job_types</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of preferred employment types</td></tr>
+<tr><td><code>preferred_categories</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON array of preferred job categories</td></tr>
+<tr><td><code>preferred_location</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>preferred_salary_range</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>phone</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Primary phone number</td></tr>
+<tr><td><code>is_active</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>1</td><td>Boolean flag indicating if record is active</td></tr>
+<tr><td><code>notification_preferences</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>privacy_settings</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>remember_token</code></td><td>varchar(100)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>google_id</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Google OAuth user ID</td></tr>
+<tr><td><code>google_token</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>Google OAuth access token</td></tr>
+<tr><td><code>google_refresh_token</code></td><td>text</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>profile_image</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Profile image URL or path</td></tr>
+<tr><td><code>two_factor_enabled</code></td><td>tinyint(1)</td><td>❌</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>two_factor_secret</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>created_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was created</td></tr>
+<tr><td><code>updated_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when record was last updated</td></tr>
+<tr><td><code>deleted_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>kyc_status</code></td><td>varchar(255)</td><td>❌</td><td>-</td><td>pending</td><td>KYC verification status</td></tr>
+<tr><td><code>kyc_session_id</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Reference to KYC verification session</td></tr>
+<tr><td><code>kyc_inquiry_id</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>kyc_completed_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when KYC was completed</td></tr>
+<tr><td><code>kyc_verified_at</code></td><td>timestamp</td><td>✅</td><td>-</td><td>-</td><td>Timestamp when KYC was verified</td></tr>
+<tr><td><code>kyc_data</code></td><td>longtext</td><td>✅</td><td>-</td><td>-</td><td>JSON data from KYC verification</td></tr>
+<tr><td><code>experience_level</code></td><td>varchar(255)</td><td>✅</td><td>-</td><td>-</td><td>Required experience level</td></tr>
+<tr><td><code>salary_expectation_min</code></td><td>int(10) unsigned</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+<tr><td><code>salary_expectation_max</code></td><td>int(10) unsigned</td><td>✅</td><td>-</td><td>-</td><td>No description available</td></tr>
+</table>
+<h4>Foreign Keys</h4>
+<table>
+<tr><th>Column</th><th>References</th><th>Description</th></tr>
+<tr><td><code>parent_id</code></td><td><code>users.id</code></td><td>Links to users table</td></tr>
+</table>
+</div>
+</body>
+</html>

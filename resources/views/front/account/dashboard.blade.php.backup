@@ -1,0 +1,922 @@
+@extends('layouts.jobseeker')
+
+@section('page-title', 'Dashboard')
+
+@push('styles')
+{{-- No external CSS - using inline styles only like other account pages --}}
+@endpush
+
+@push('scripts')
+<script>
+// Ensure page scrolls to top on load to prevent disoriented view
+window.addEventListener('load', function() {
+    window.scrollTo(0, 0);
+});
+
+// Also scroll to top immediately
+if (history.scrollRestoration) {
+    history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+</script>
+@endpush
+
+@section('jobseeker-content')
+<div class="modern-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div>
+                    <h1 class="dashboard-title">Dashboard</h1>
+                    <div class="status-indicator d-flex align-items-center mt-2">
+                        <div class="status-dot"></div>
+                        <span>Profile Active</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="profile-completion">
+                        <div class="completion-circle">
+                            @php
+                                $percentage = $completionPercentage ?? 0;
+                                $circumference = 2 * 3.14159 * 20; // 2πr where r=20
+                                $offset = $circumference - ($percentage / 100) * $circumference;
+                            @endphp
+                            <svg width="50" height="50">
+                                <circle cx="25" cy="25" r="20" stroke="#e5e7eb" stroke-width="3" fill="none"/>
+                                <circle cx="25" cy="25" r="20" stroke="#3b82f6" stroke-width="3" fill="none" 
+                                        stroke-dasharray="{{ $circumference }}" stroke-dashoffset="{{ $offset }}" stroke-linecap="round" 
+                                        transform="rotate(-90 25 25)"/>
+                            </svg>
+                            <span class="completion-text">{{ $percentage }}%</span>
+                        </div>
+                        <small class="completion-label">Profile Complete</small>
+                    </div>
+                    <a href="{{ route('jobs') }}" class="btn btn-primary">
+                        Find Jobs
+                    </a>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="dashboard-nav-tabs mt-4">
+                <div class="nav-pills-container">
+                    <ul class="nav nav-pills">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#overview">Overview</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('account.myJobApplications') }}">Applications</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('account.saved-jobs.index') }}">
+                                Saved Jobs
+                                <span class="badge bg-success ms-2">{{ $stats['saved_jobs'] ?? 1 }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('account.resumes') }}">Resumes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('account.myProfile') }}">Profile</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div class="dashboard-content">
+        <div class="container-fluid">
+            <!-- Welcome Message -->
+            <div class="welcome-section">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="welcome-title">
+                            Good {{ date('H') < 12 ? 'morning' : (date('H') < 18 ? 'afternoon' : 'evening') }}, {{ Auth::check() ? explode(' ', Auth::user()->name)[0] : 'Guest' }}!
+                            <span class="minimal-wave">👋</span>
+                        </h2>
+                        <p class="welcome-subtitle mb-0">Ready to find your next opportunity?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KYC Verification Section -->
+            <x-kyc-status-card :user="Auth::user()" />
+
+            <!-- Statistics Cards Row -->
+            <div class="statistics-section mb-4">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card applications-stat">
+                            <div class="stat-icon-wrapper">
+                                <div class="stat-icon">
+                                    <i class="fas fa-paper-plane"></i>
+                                </div>
+                            </div>
+                            <div class="stat-details">
+                                <h3 class="stat-number">{{ $stats['applications'] ?? 0 }}</h3>
+                                <p class="stat-label">Total Applications</p>
+                                <a href="{{ route('account.myJobApplications') }}" class="stat-link">View all <i class="fas fa-arrow-right ms-1"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card saved-stat">
+                            <div class="stat-icon-wrapper">
+                                <div class="stat-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                            </div>
+                            <div class="stat-details">
+                                <h3 class="stat-number">{{ $stats['saved_jobs'] ?? 0 }}</h3>
+                                <p class="stat-label">Saved Jobs</p>
+                                <a href="{{ route('account.saved-jobs.index') }}" class="stat-link">View all <i class="fas fa-arrow-right ms-1"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card views-stat">
+                            <div class="stat-icon-wrapper">
+                                <div class="stat-icon">
+                                    <i class="fas fa-eye"></i>
+                                </div>
+                            </div>
+                            <div class="stat-details">
+                                <h3 class="stat-number">{{ $stats['profile_views'] ?? 0 }}</h3>
+                                <p class="stat-label">Profile Views</p>
+                                <a href="{{ route('account.analytics') }}" class="stat-link">View analytics <i class="fas fa-arrow-right ms-1"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stat-card completion-stat">
+                            <div class="stat-icon-wrapper">
+                                <div class="stat-icon">
+                                    @if($completionPercentage >= 100)
+                                        <i class="fas fa-check-circle"></i>
+                                    @elseif($completionPercentage >= 80)
+                                        <i class="fas fa-user-check"></i>
+                                    @else
+                                        <i class="fas fa-user-edit"></i>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="stat-details">
+                                <h3 class="stat-number">{{ $completionPercentage ?? 0 }}%</h3>
+                                <p class="stat-label">Profile Complete</p>
+                                @if($completionPercentage >= 100)
+                                    <a href="{{ route('account.myProfile') }}" class="stat-link text-success">
+                                        <i class="fas fa-star me-1"></i>Profile Complete!
+                                    </a>
+                                @elseif($completionPercentage >= 80)
+                                    <a href="{{ route('account.myProfile') }}" class="stat-link">
+                                        Almost there! <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
+                                @else
+                                    <a href="{{ route('account.myProfile') }}" class="stat-link">
+                                        Complete profile <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Applications Section -->
+            @if(isset($recentApplications) && $recentApplications->count() > 0)
+            <div class="recent-applications-section mb-4">
+                <div class="section-header">
+                    <h3 class="section-title">Recent Applications</h3>
+                    <a href="{{ route('account.myJobApplications') }}" class="view-all-link">View All <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+                <div class="applications-list">
+                    @foreach($recentApplications as $application)
+                    @if($application->job)
+                    <div class="application-item">
+                        <div class="application-info">
+                            <div class="job-logo">
+                                @if($application->job->company && $application->job->company->logo)
+                                    <img src="{{ asset('storage/' . $application->job->company->logo) }}" alt="Company Logo">
+                                @else
+                                    <div class="logo-placeholder">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="job-details">
+                                <h4 class="job-title">
+                                    <a href="{{ route('jobDetail', $application->job->id) }}">{{ $application->job->title ?? 'Job Position' }}</a>
+                                </h4>
+                                <p class="company-name">{{ $application->job->company->name ?? $application->job->employer->name ?? 'Company' }}</p>
+                                <p class="application-date">
+                                    <i class="far fa-calendar me-1"></i>
+                                    Applied {{ $application->created_at->diffForHumans() }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="application-status">
+                            @if($application->status == 'pending')
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-clock me-1"></i> Pending
+                                </span>
+                            @elseif($application->status == 'approved' || $application->status == 'accepted')
+                                <span class="status-badge status-approved">
+                                    <i class="fas fa-check-circle me-1"></i> Approved
+                                </span>
+                            @elseif($application->status == 'rejected')
+                                <span class="status-badge status-rejected">
+                                    <i class="fas fa-times-circle me-1"></i> Rejected
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+                    @endforeach
+                </div>
+            </div>
+            @else
+            <!-- Empty State for No Applications -->
+            <div class="empty-state-section mb-4">
+                <div class="empty-state-card">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3 class="empty-state-title">No Applications Yet</h3>
+                    <p class="empty-state-description">Start your job search journey by applying to positions that match your skills and interests.</p>
+                    <a href="{{ route('jobs') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Browse Jobs
+                    </a>
+                </div>
+            </div>
+            @endif
+
+            <!-- Recommended Jobs Section -->
+            @if(isset($recommendedJobs) && $recommendedJobs->count() > 0)
+            <div class="recommended-jobs-section mb-4">
+                <div class="section-header">
+                    <h3 class="section-title">Recommended For You</h3>
+                    <a href="{{ route('jobs') }}" class="view-all-link">View All <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+                <div class="row g-4">
+                    @foreach($recommendedJobs->take(3) as $job)
+                    <div class="col-md-4">
+                        <div class="job-card-compact">
+                            <div class="job-card-header">
+                                <h4 class="job-card-title">
+                                    <a href="{{ route('jobDetail', $job->id) }}">{{ Str::limit($job->title ?? 'Job Position', 40) }}</a>
+                                </h4>
+                                <button class="btn-save-job" data-job-id="{{ $job->id }}">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="job-company">
+                                <i class="fas fa-building me-1"></i>
+                                {{ $job->company->name ?? $job->employer->name ?? 'Company' }}
+                            </p>
+                            <p class="job-location">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {{ $job->location ?? 'Remote' }}
+                            </p>
+                            @if(isset($job->salary_from) && isset($job->salary_to))
+                            <p class="job-salary">
+                                <i class="fas fa-dollar-sign me-1"></i>
+                                ${{ number_format($job->salary_from) }} - ${{ number_format($job->salary_to) }}
+                            </p>
+                            @endif
+                            <div class="job-card-footer">
+                                <a href="{{ route('jobDetail', $job->id) }}" class="btn btn-sm btn-outline-primary">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            <!-- Action Cards Grid -->
+            <div class="action-cards-section">
+                <div class="section-header mb-3">
+                    <h3 class="section-title">Quick Actions</h3>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="modern-action-card create-resume-card">
+                            <div class="card-icon">
+                                <i class="fas fa-file-text"></i>
+                            </div>
+                            <div class="card-content">
+                                <h5 class="card-title">Create Resume</h5>
+                                <p class="card-description">Create and manage your professional resume</p>
+                                <a href="{{ route('account.resume-builder.index') }}" class="btn-card-action">Get Started</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="modern-action-card saved-jobs-card">
+                            <div class="card-icon">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <div class="card-content">
+                                <h5 class="card-title">Saved Jobs</h5>
+                                <p class="card-description">View and manage your saved job opportunities</p>
+                                <a href="{{ route('account.saved-jobs.index') }}" class="btn-card-action">View Jobs</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="modern-action-card analytics-card">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="card-content">
+                                <h5 class="card-title">Application Analytics</h5>
+                                <p class="card-description">Track your applications, profile views, and job search progress</p>
+                                <a href="{{ route('account.analytics') }}" class="btn-card-action">View Analytics</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="modern-action-card profile-card">
+                            <div class="card-icon">
+                                <i class="fas fa-user-edit"></i>
+                            </div>
+                            <div class="card-content">
+                                <h5 class="card-title">Edit Profile</h5>
+                                <p class="card-description">Update your personal information and preferences</p>
+                                <a href="{{ route('account.myProfile') }}" class="btn-card-action">Edit Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern Dashboard Styles */
+.modern-dashboard {
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    background: white;
+    padding: 2rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #10b981;
+    font-size: 0.875rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+}
+
+.profile-completion {
+    text-align: center;
+}
+
+.completion-circle {
+    position: relative;
+    display: inline-block;
+}
+
+.completion-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 600;
+    color: #3b82f6;
+    font-size: 0.875rem;
+}
+
+.completion-label {
+    display: block;
+    margin-top: 0.5rem;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.dashboard-nav-tabs .nav-pills {
+    background: #f1f5f9;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+}
+
+.dashboard-nav-tabs .nav-link {
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    color: #64748b;
+    border: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.dashboard-nav-tabs .nav-link.active {
+    background: white;
+    color: #1e293b;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-content {
+    padding: 2rem 0;
+}
+
+.welcome-section {
+    margin-bottom: 2rem;
+}
+
+.welcome-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-subtitle {
+    color: #64748b;
+    font-size: 1rem;
+}
+
+/* Wave animation now handled by loading-animation.css with minimal-wave class */
+
+.action-cards-section {
+    margin-top: 2rem;
+}
+
+.modern-action-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.modern-action-card .card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.create-resume-card .card-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.saved-jobs-card .card-icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.analytics-card .card-icon {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.profile-card .card-icon {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: white;
+}
+
+.modern-action-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 0.75rem;
+}
+
+.modern-action-card .card-description {
+    color: #64748b;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    flex: 1;
+}
+
+.btn-card-action {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #f8fafc;
+    color: #334155;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+/* Statistics Cards */
+.statistics-section {
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+    height: 100%;
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-icon-wrapper {
+    flex-shrink: 0;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.applications-stat .stat-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.saved-stat .stat-icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.views-stat .stat-icon {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.completion-stat .stat-icon {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-details {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-label {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+}
+
+.stat-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0;
+}
+
+.view-all-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Recent Applications */
+.recent-applications-section {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+}
+
+.applications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.application-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 0.75rem;
+}
+
+.application-info {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+}
+
+.job-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.job-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.logo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 1.25rem;
+}
+
+.job-details {
+    flex: 1;
+}
+
+.job-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+
+.job-title a {
+    color: #1a202c;
+    text-decoration: none;
+}
+
+.company-name {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin: 0 0 0.25rem 0;
+}
+
+.application-date {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Empty State */
+.empty-state-section {
+    background: white;
+    border-radius: 1rem;
+    padding: 3rem 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+}
+
+.empty-state-card {
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+}
+
+.empty-state-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state-description {
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+/* Recommended Jobs */
+.recommended-jobs-section {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+}
+
+.job-card-compact {
+    background: #f8fafc;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    height: 100%;
+    border: 1px solid #e2e8f0;
+}
+
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.job-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+}
+
+.job-card-title a {
+    color: #1a202c;
+    text-decoration: none;
+}
+
+.btn-save-job {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.btn-save-job:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+    color: #dc2626;
+}
+
+.job-company,
+.job-location,
+.job-salary {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+}
+
+.job-card-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 1.5rem 0;
+    }
+
+    .dashboard-title {
+        font-size: 1.5rem;
+    }
+
+    .welcome-title {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-nav-tabs .nav-pills {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .modern-action-card {
+        padding: 1.5rem;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stat-icon-wrapper {
+        margin: 0 auto;
+    }
+
+    .application-item {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .application-status {
+        width: 100%;
+        text-align: center;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .stat-number {
+        font-size: 1.75rem;
+    }
+}
+</style>
+@endsection

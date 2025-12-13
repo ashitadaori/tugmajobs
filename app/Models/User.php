@@ -24,23 +24,44 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        // Authentication & Basic Info
         'name',
         'email',
         'password',
         'role',
-        'mobile',
-        'designation',
+        'email_verified_at',
+
+        // Contact
+        'phone',
+
+        // Profile Images
         'image',
-        'skills',
-        'education',
-        'experience_years',
-        'bio',
+        'profile_image',
+
+        // Account Status
         'is_active',
+
+        // KYC Fields
         'kyc_status',
         'kyc_session_id',
         'kyc_completed_at',
         'kyc_verified_at',
-        'kyc_data'
+        'kyc_data',
+
+        // Social Authentication
+        'google_id',
+        'google_token',
+        'google_refresh_token',
+
+        // Settings
+        'notification_preferences',
+        'privacy_settings',
+
+        // Two-Factor Authentication
+        'two_factor_enabled',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
     ];
 
     /**
@@ -60,18 +81,15 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'skills' => 'array',
-        'education' => 'array',
-        'preferred_job_types' => 'array',
-        'preferred_categories' => 'array',
         'notification_preferences' => 'array',
-        'is_verified' => 'boolean',
+        'privacy_settings' => 'array',
         'is_active' => 'boolean',
-        'salary' => 'decimal:2',
-        'categories' => 'string',
         'kyc_completed_at' => 'datetime',
         'kyc_verified_at' => 'datetime',
-        'kyc_data' => 'array'
+        'kyc_data' => 'array',
+        'deleted_at' => 'datetime',
+        'two_factor_enabled' => 'boolean',
+        'two_factor_confirmed_at' => 'datetime',
     ];
     
     /**
@@ -93,47 +111,101 @@ class User extends Authenticatable
     /**
      * Get the jobs saved by the user.
      */
-    public function savedJobs()
+    public function savedJobs(): HasMany
     {
-        return $this->belongsToMany(Job::class, 'saved_jobs')
-            ->withTimestamps();
+        return $this->hasMany(SavedJob::class);
     }
 
-    // Profile relationships
+    /**
+     * Get the saved jobs with job details.
+     */
+    public function savedJobsWithDetails(): HasMany
+    {
+        return $this->hasMany(SavedJob::class)->with(['job', 'job.employer', 'job.jobType', 'job.category']);
+    }
+
+    /**
+     * Get the KYC verifications for the user.
+     */
+    public function kycVerifications(): HasMany
+    {
+        return $this->hasMany(KycVerification::class);
+    }
+
+    /**
+     * Get the latest KYC verification for the user.
+     */
+    public function latestKycVerification()
+    {
+        return $this->hasOne(KycVerification::class)->latest();
+    }
+
+
+
+    // Profile relationships - using new table structure
     public function jobSeekerProfile(): HasOne
     {
-        return $this->hasOne(JobSeekerProfile::class);
+        return $this->hasOne(Jobseeker::class);
     }
 
     public function employerProfile(): HasOne
     {
-        return $this->hasOne(EmployerProfile::class);
+        return $this->hasOne(Employer::class);
     }
 
-    public function kycDocuments(): HasMany
+
+    /**
+     * Get the KYC data for the user.
+     */
+    public function kycData(): HasMany
     {
-        return $this->hasMany(KycDocument::class);
+        return $this->hasMany(KycData::class);
     }
 
-    // Role and Permission relationships
-    public function roles()
+    /**
+     * Get the latest KYC data for the user.
+     */
+    public function latestKycData()
     {
-        return $this->belongsToMany(Role::class, 'user_roles');
+        return $this->hasOne(KycData::class)->latest();
     }
 
+    /**
+     * Get the employer profile for the user.
+     */
+    public function employer(): HasOne
+    {
+        return $this->hasOne(Employer::class);
+    }
+
+    /**
+     * Get the jobseeker profile for the user.
+     */
+    public function jobseeker(): HasOne
+    {
+        return $this->hasOne(Jobseeker::class);
+    }
+
+    /**
+     * Get the resumes for the user.
+     */
+    public function resumes(): HasMany
+    {
+        return $this->hasMany(Resume::class);
+    }
+
+    /**
+     * Get the employer documents for the user.
+     */
+    public function employerDocuments(): HasMany
+    {
+        return $this->hasMany(EmployerDocument::class);
+    }
+
+    // Role checks using the simple role column (roles/permissions tables were removed)
     public function hasRole($roleName)
     {
-        // Check both the role column and the roles relationship
-        return $this->role === strtolower($roleName) || 
-               $this->roles()->where('name', $roleName)->exists();
-    }
-
-    public function hasPermission($permissionName)
-    {
-        return $this->roles()
-            ->whereHas('permissions', function($query) use ($permissionName) {
-                $query->where('name', $permissionName);
-            })->exists();
+        return $this->role === strtolower($roleName);
     }
 
     // Role checks using the simple role column
@@ -216,7 +288,49 @@ class User extends Authenticatable
 
     public function canStartKycVerification(): bool
     {
-        return in_array($this->kyc_status, ['pending', 'failed', 'expired']);
+        // Allow starting verification for these statuses
+        if (in_array($this->kyc_status, ['pending', 'failed', 'expired'])) {
+            return true;
+        }
+        
+        // Allow restarting if in_progress but session is old (more than 30 minutes)
+        // Extended timeout to give users more time to complete verification
+        if ($this->kyc_status === 'in_progress' && $this->updated_at) {
+            $thirtyMinutesAgo = now()->subMinutes(30);
+            if ($this->updated_at->lt($thirtyMinutesAgo)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if the current KYC session has timed out
+     */
+    public function hasKycSessionTimedOut(): bool
+    {
+        if ($this->kyc_status !== 'in_progress' || !$this->updated_at) {
+            return false;
+        }
+        
+        $thirtyMinutesAgo = now()->subMinutes(30);
+        return $this->updated_at->lt($thirtyMinutesAgo);
+    }
+    
+    /**
+     * Reset expired KYC session back to pending
+     */
+    public function resetExpiredKycSession(): bool
+    {
+        if ($this->hasKycSessionTimedOut()) {
+            $this->update([
+                'kyc_status' => 'pending',
+                'kyc_session_id' => null,
+            ]);
+            return true;
+        }
+        return false;
     }
 
     // Messaging
@@ -234,5 +348,156 @@ class User extends Authenticatable
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class);
+    }
+    
+    /**
+     * Get the user's notifications.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+    
+    /**
+     * Get the user's unread notifications count.
+     */
+    public function getUnreadNotificationsCountAttribute(): int
+    {
+        return $this->notifications()->whereNull('read_at')->count();
+    }
+
+    // Google Authentication Helper Methods
+    public function hasGoogleAccount(): bool
+    {
+        return !empty($this->google_id);
+    }
+
+    public function getConnectedSocialProviders(): array
+    {
+        $providers = [];
+        
+        if ($this->hasGoogleAccount()) {
+            $providers[] = 'google';
+        }
+        
+        return $providers;
+    }
+
+    public function getProfileImageAttribute($value): ?string
+    {
+        // Return social profile image if no custom image is set
+        if (empty($value) && empty($this->image)) {
+            if ($this->hasGoogleAccount()) {
+                return $this->attributes['profile_image'] ?? null;
+            }
+        }
+        
+        // Return custom uploaded image
+        if (!empty($this->image)) {
+            return asset('storage/' . $this->image);
+        }
+        
+        // Return social profile image
+        return $value;
+    }
+
+    public function isSocialUser(): bool
+    {
+        return $this->hasGoogleAccount();
+    }
+
+    /**
+     * Check if employer has all required documents approved.
+     */
+    public function hasRequiredDocumentsApproved(): bool
+    {
+        if (!$this->isEmployer()) {
+            return false;
+        }
+
+        $requiredTypes = collect(EmployerDocument::getDocumentTypes())
+            ->filter(fn($config) => $config['required'])
+            ->keys();
+
+        foreach ($requiredTypes as $type) {
+            $hasApprovedDocument = $this->employerDocuments()
+                ->where('document_type', $type)
+                ->where('status', 'approved')
+                ->exists();
+                
+            if (!$hasApprovedDocument) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if employer can post jobs.
+     *
+     * Supports three modes:
+     * 1. KYC Only: Only KYC verification required (EMPLOYER_KYC_ONLY=true)
+     * 2. Full Verification: KYC + Document approval (default, EMPLOYER_KYC_ONLY=false)
+     * 3. Disabled: No checks (testing only, DISABLE_KYC_FOR_EMPLOYERS=true)
+     */
+    public function canPostJobs(): bool
+    {
+        if (!$this->isEmployer()) {
+            return false;
+        }
+
+        // Mode 1: All checks disabled (testing only)
+        if (config('app.disable_kyc_for_employers', false)) {
+            return true;
+        }
+
+        // Mode 2: KYC-only mode (like jobseekers)
+        if (config('app.employer_kyc_only', false)) {
+            return $this->isKycVerified();
+        }
+
+        // Mode 3: Full verification (default)
+        // Requires both KYC and approved documents
+        return $this->isKycVerified() && $this->hasRequiredDocumentsApproved();
+    }
+
+    /**
+     * Get employer verification status.
+     *
+     * Returns different status based on verification mode.
+     */
+    public function getEmployerVerificationStatus(): array
+    {
+        if (!$this->isEmployer()) {
+            return ['status' => 'not_employer', 'message' => 'Not an employer'];
+        }
+
+        // Check if all checks are disabled
+        if (config('app.disable_kyc_for_employers', false)) {
+            return ['status' => 'verified', 'message' => 'Verification disabled for testing'];
+        }
+
+        $kycVerified = $this->isKycVerified();
+
+        // KYC-only mode (like jobseekers)
+        if (config('app.employer_kyc_only', false)) {
+            if ($kycVerified) {
+                return ['status' => 'verified', 'message' => 'KYC verified - can post jobs'];
+            } else {
+                return ['status' => 'kyc_pending', 'message' => 'KYC verification required'];
+            }
+        }
+
+        // Full verification mode (default)
+        $documentsApproved = $this->hasRequiredDocumentsApproved();
+
+        if ($kycVerified && $documentsApproved) {
+            return ['status' => 'verified', 'message' => 'Fully verified - can post jobs'];
+        } elseif (!$kycVerified) {
+            return ['status' => 'kyc_pending', 'message' => 'KYC verification required'];
+        } else {
+            return ['status' => 'documents_pending', 'message' => 'Document approval required'];
+        }
     }
 }

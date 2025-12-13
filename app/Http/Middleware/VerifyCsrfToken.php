@@ -12,6 +12,11 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        'kyc/webhook',
+        '/kyc/webhook',
+        'api/kyc/webhook',
+        '/api/kyc/webhook',
+        'logout',
+        '/logout'
     ];
 }

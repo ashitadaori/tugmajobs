@@ -42,7 +42,7 @@ function removeSavedJob(jobId){
             dataType: 'json',
             success: function(response) {
                 if(response.status == true) {
-                    window.location.href="{{ route('account.savedJobs') }}";
+                    window.location.href="{{ route('account.saved-jobs.index') }}";
                 }
             }
         });

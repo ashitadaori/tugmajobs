@@ -1,0 +1,33 @@
+/* Active state for navigation items */
+.nav-item-active {
+  @apply bg-indigo-600 text-white;
+}
+
+/* Custom hover effects */
+.nav-item:hover {
+  @apply bg-indigo-50 text-indigo-600;
+}
+
+/* Smooth transitions */
+.nav-item {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: #f7fafc;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background-color: #cbd5e0;
+  border-radius: 3px;
+} 

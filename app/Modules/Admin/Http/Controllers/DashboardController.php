@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Job;
 use App\Models\JobApplication;
-use App\Models\KycDocument;
+use App\Models\KycData;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -33,9 +33,9 @@ class DashboardController extends Controller
             ->count();
         $jobGrowth = $lastMonthJobs > 0 ? round(($activeJobs - $lastMonthJobs) / $lastMonthJobs * 100, 1) : 0;
 
-        // Get pending KYC count and change
-        $pendingKyc = KycDocument::where('status', 'pending')->count();
-        $lastMonthPendingKyc = KycDocument::where('status', 'pending')
+        // Get pending KYC count and change (users with in_progress status)
+        $pendingKyc = User::where('kyc_status', 'in_progress')->count();
+        $lastMonthPendingKyc = User::where('kyc_status', 'in_progress')
             ->where('created_at', '<=', $lastMonthEnd)
             ->count();
         $kycChange = $pendingKyc - $lastMonthPendingKyc;

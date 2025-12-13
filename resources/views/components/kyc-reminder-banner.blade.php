@@ -4,7 +4,7 @@
     $user = $user ?? Auth::user();
 @endphp
 
-@if($user && $user->needsKycVerification() && !session('kyc_banner_dismissed'))
+@if($user && $user->needsKycVerification() && !session('kyc_banner_dismissed') && !request()->has('force_home') && !request()->routeIs('home'))
 <div class="alert alert-warning alert-dismissible fade show kyc-reminder-banner" role="alert" id="kycReminderBanner">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between flex-wrap">
@@ -31,10 +31,10 @@
             </div>
             
             <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
-                <a href="{{ route('kyc.start.form') }}" class="btn btn-warning btn-sm">
+                <button type="button" class="btn btn-warning btn-sm" onclick="startInlineVerification()">
                     <i class="fas fa-check-circle me-1"></i>
                     Verify Now
-                </a>
+                </button>
                 @if($dismissible)
                 <button type="button" class="btn btn-link btn-sm text-muted p-0 ms-2" onclick="dismissKycBanner()">
                     <i class="fas fa-times"></i>
@@ -45,7 +45,13 @@
     </div>
 </div>
 
+<!-- Include KYC inline verification script -->
+<script src="{{ asset('assets/js/kyc-inline-verification.js') }}"></script>
+
 <script>
+// Set current user ID for verification polling
+window.currentUserId = {{ Auth::id() }};
+
 function dismissKycBanner() {
     document.getElementById('kycReminderBanner').style.display = 'none';
     
@@ -64,7 +70,10 @@ function dismissKycBanner() {
 
 // Check if banner was dismissed in this session
 if (sessionStorage.getItem('kyc_banner_dismissed')) {
-    document.getElementById('kycReminderBanner').style.display = 'none';
+    const banner = document.getElementById('kycReminderBanner');
+    if (banner) {
+        banner.style.display = 'none';
+    }
 }
 </script>
 

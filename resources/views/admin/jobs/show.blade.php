@@ -25,19 +25,27 @@
                                 </tr>
                                 <tr>
                                     <th>Category:</th>
-                                    <td>{{ $job->category->name }}</td>
+                                    <td>{{ $job->category->name ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Type:</th>
-                                    <td>{{ $job->jobType->name }}</td>
+                                    <td>{{ $job->jobType->name ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Location:</th>
-                                    <td>{{ $job->location }}</td>
+                                    <td>{{ $job->location ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Salary Range:</th>
-                                    <td>{{ $job->salary_range }}</td>
+                                    <td>
+                                        @if($job->salary_min && $job->salary_max)
+                                            ₱{{ number_format($job->salary_min, 2) }} - ₱{{ number_format($job->salary_max, 2) }}
+                                        @elseif($job->salary_range)
+                                            {{ $job->salary_range }}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th>Posted:</th>
@@ -50,16 +58,44 @@
                             <table class="table">
                                 <tr>
                                     <th>Name:</th>
-                                    <td>{{ $job->employer->name }}</td>
+                                    <td>{{ $job->employer->name ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Email:</th>
-                                    <td>{{ $job->employer->email }}</td>
+                                    <td>{{ $job->employer->email ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Company:</th>
-                                    <td>{{ $job->employer->company_name ?? 'N/A' }}</td>
+                                    <td>
+                                        @if($job->employer && $job->employer->company_name)
+                                            {{ $job->employer->company_name }}
+                                        @elseif($job->company_name)
+                                            {{ $job->company_name }}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
                                 </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <span class="badge bg-{{ $job->status === 'active' ? 'success' : ($job->status === 'pending' ? 'warning' : 'danger') }}">
+                                            {{ ucfirst($job->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @if($job->vacancies)
+                                <tr>
+                                    <th>Vacancies:</th>
+                                    <td>{{ $job->vacancies }}</td>
+                                </tr>
+                                @endif
+                                @if($job->experience_level)
+                                <tr>
+                                    <th>Experience Level:</th>
+                                    <td>{{ ucfirst($job->experience_level) }}</td>
+                                </tr>
+                                @endif
                             </table>
                         </div>
                     </div>

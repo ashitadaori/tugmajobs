@@ -5,12 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\LogsAudit;
 
 class Job extends Model
 {
+    use LogsAudit, SoftDeletes;
     protected $fillable = [
         'title',
         'description',
+        'posted_by_admin',
+        'qualifications',
         'requirements',
         'benefits',
         'location',
@@ -23,6 +28,8 @@ class Job extends Model
         'city',
         'province',
         'salary_range',
+        'salary_min',
+        'salary_max',
         'experience',
         'vacancy',
         'deadline',
@@ -33,11 +40,22 @@ class Job extends Model
         'is_featured',
         'is_remote',
         'experience_level',
-        'education_level'
+        'education_level',
+        'preliminary_questions',
+        'requires_screening',
+        'employer_id',
+        'user_id',
+        'category_id',
+        'job_type_id',
+        'company_id',
+        'company_name',
+        'company_website'
     ];
 
     protected $casts = [
         'meta_data' => 'array',
+        'preliminary_questions' => 'array',
+        'requires_screening' => 'boolean',
         'deadline' => 'datetime',
         'is_featured' => 'boolean',
         'is_remote' => 'boolean',
@@ -49,16 +67,59 @@ class Job extends Model
         'rejected_at' => 'datetime',
     ];
 
-    // Status constants
-    const STATUS_PENDING = 'pending';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';
-    const STATUS_EXPIRED = 'expired';
-    const STATUS_CLOSED = 'closed';
+    // Status constants (integer values to match database tinyint column)
+    const STATUS_PENDING = 0;
+    const STATUS_APPROVED = 1;
+    const STATUS_REJECTED = 2;
+    const STATUS_EXPIRED = 3;
+    const STATUS_CLOSED = 4;
+
+    /**
+     * Get human-readable status name
+     */
+    public function getStatusNameAttribute()
+    {
+        $statusNames = [
+            self::STATUS_PENDING => 'Pending Approval',
+            self::STATUS_APPROVED => 'Approved',
+            self::STATUS_REJECTED => 'Rejected',
+            self::STATUS_EXPIRED => 'Expired',
+            self::STATUS_CLOSED => 'Closed',
+        ];
+
+        return $statusNames[$this->status] ?? 'Unknown';
+    }
+
+    /**
+     * Get status badge class for UI
+     */
+    public function getStatusBadgeClassAttribute()
+    {
+        $badgeClasses = [
+            self::STATUS_PENDING => 'badge bg-warning',
+            self::STATUS_APPROVED => 'badge bg-success',
+            self::STATUS_REJECTED => 'badge bg-danger',
+            self::STATUS_EXPIRED => 'badge bg-secondary',
+            self::STATUS_CLOSED => 'badge bg-dark',
+        ];
+
+        return $badgeClasses[$this->status] ?? 'badge bg-light text-dark';
+    }
 
     public function employer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'employer_id');
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function employerCompany(): BelongsTo
+    {
+        // Access company information through the employer's profile
+        return $this->belongsTo(Employer::class, 'employer_id', 'user_id');
     }
 
     public function jobType(): BelongsTo
@@ -76,9 +137,55 @@ class Job extends Model
         return $this->hasMany(JobApplication::class);
     }
 
+    /**
+     * Get the requirements for the job.
+     * Note: Use jobRequirements() to avoid conflict with 'requirements' column
+     */
+    public function jobRequirements(): HasMany
+    {
+        return $this->hasMany(JobRequirement::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Get only required requirements.
+     */
+    public function requiredRequirements(): HasMany
+    {
+        return $this->hasMany(JobRequirement::class)->where('is_required', true)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Check if job has requirements defined.
+     */
+    public function hasRequirements(): bool
+    {
+        return $this->jobRequirements()->exists();
+    }
+
     public function views(): HasMany
     {
         return $this->hasMany(JobView::class);
+    }
+
+    public function savedByUsers(): HasMany
+    {
+        return $this->hasMany(SavedJob::class);
+    }
+
+    /**
+     * Check if job is saved by a specific user
+     */
+    public function isSavedByUser($userId): bool
+    {
+        return $this->savedByUsers()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Get saved count for this job
+     */
+    public function getSavedCountAttribute(): int
+    {
+        return $this->savedByUsers()->count();
     }
 
     /**
@@ -103,7 +210,32 @@ class Job extends Model
      */
     public function hasUserApplied($userId): bool
     {
-        return $this->applications()->where('user_id', $userId)->exists();
+        return $this->applications()
+            ->where('user_id', $userId)
+            ->where('application_step', 'submitted')
+            ->exists();
+    }
+
+    /**
+     * Get incomplete application for a user
+     */
+    public function getIncompleteApplication($userId)
+    {
+        return $this->applications()
+            ->where('user_id', $userId)
+            ->where('application_step', '!=', 'submitted')
+            ->first();
+    }
+
+    /**
+     * Clean up old abandoned draft applications (older than 24 hours)
+     */
+    public function cleanupAbandonedDrafts()
+    {
+        return $this->applications()
+            ->where('application_step', '!=', 'submitted')
+            ->where('created_at', '<', now()->subHours(24))
+            ->delete();
     }
 
     public function scopeActive($query)
@@ -137,7 +269,17 @@ class Job extends Model
 
     public function getRejectionReason(): ?string
     {
-        return $this->meta_data['rejection_reason'] ?? null;
+        return $this->rejection_reason;
+    }
+
+    public function getRejectionFeedback(): ?string
+    {
+        return $this->rejection_reason;
+    }
+
+    public function needsAdminReview(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
     }
 
     /**
@@ -158,10 +300,10 @@ class Job extends Model
         $parts = array_filter([
             $this->location_name ?: $this->location,
             $this->barangay,
-            $this->city ?: 'Digos City',
+            $this->city ?: 'Sta. Cruz',
             $this->province ?: 'Davao del Sur'
         ]);
-        
+
         return implode(', ', $parts) ?: $this->location;
     }
 
@@ -215,11 +357,62 @@ class Job extends Model
     }
 
     /**
-     * Scope to find jobs in Digos City
+     * Scope to find jobs in Sta. Cruz, Davao del Sur
      */
-    public function scopeInDigosCity($query)
+    public function scopeInStaCruz($query)
     {
-        return $query->where('city', 'Digos City')
-                    ->orWhere('city', 'like', '%Digos%');
+        return $query->where('city', 'Sta. Cruz')
+                    ->orWhere('city', 'like', '%Sta. Cruz%')
+                    ->orWhere('city', 'like', '%Santa Cruz%');
+    }
+
+    /**
+     * Get count of approved/accepted applications
+     */
+    public function getAcceptedApplicationsCountAttribute()
+    {
+        return $this->applications()
+            ->where('status', JobApplication::STATUS_APPROVED)
+            ->count();
+    }
+
+    /**
+     * Check if job vacancies are filled
+     */
+    public function isFilled()
+    {
+        if (!$this->vacancy || $this->vacancy <= 0) {
+            return false;
+        }
+
+        return $this->accepted_applications_count >= $this->vacancy;
+    }
+
+    /**
+     * Auto-close job if vacancies are filled
+     */
+    public function checkAndAutoClose()
+    {
+        if ($this->isFilled() && $this->status === self::STATUS_APPROVED) {
+            $this->update([
+                'status' => self::STATUS_CLOSED
+            ]);
+            
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Scope to get only open jobs (approved and not filled)
+     */
+    public function scopeOpen($query)
+    {
+        return $query->where('status', self::STATUS_APPROVED)
+                    ->where(function($q) {
+                        $q->whereNull('vacancy')
+                          ->orWhereRaw('vacancy > (SELECT COUNT(*) FROM job_applications WHERE job_applications.job_id = jobs.id AND job_applications.status = ?)', [JobApplication::STATUS_APPROVED]);
+                    });
     }
 }

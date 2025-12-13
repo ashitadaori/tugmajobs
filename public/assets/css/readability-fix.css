@@ -1,0 +1,362 @@
+/* Readability Fix - Override any problematic text colors */
+
+/* Ensure all text has proper contrast and readability */
+body {
+    color: #374151 !important; /* Dark gray for good contrast */
+    font-size: 16px !important; /* Standard readable size */
+    line-height: 1.6 !important;
+}
+
+/* Headings with strong contrast */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    color: #1f2937 !important; /* Very dark gray */
+    font-weight: 600 !important;
+}
+
+/* Paragraph text */
+p {
+    color: #374151 !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Navigation text */
+.nav-link {
+    color: #374151 !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+}
+
+.nav-link:hover {
+    color: #2563eb !important;
+}
+
+.navbar-brand {
+    color: #2563eb !important;
+    font-size: 24px !important;
+    font-weight: 700 !important;
+}
+
+/* Dropdown text */
+.dropdown-item {
+    color: #374151 !important;
+    font-size: 16px !important;
+}
+
+.dropdown-item:hover {
+    color: #1f2937 !important;
+    background-color: #f3f4f6 !important;
+}
+
+.dropdown-header {
+    color: #1f2937 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+/* Button text */
+.btn {
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    padding: 12px 24px !important;
+}
+
+.btn-primary {
+    color: white !important;
+    background-color: #2563eb !important;
+}
+
+.btn-primary:hover {
+    color: white !important;
+    background-color: #1d4ed8 !important;
+}
+
+/* Form text */
+.form-control {
+    color: #1f2937 !important;
+    font-size: 16px !important;
+    border: 2px solid #d1d5db !important;
+}
+
+.form-control::placeholder {
+    color: #6b7280 !important;
+}
+
+.form-label {
+    color: #374151 !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+}
+
+/* Table text */
+.table th {
+    color: #1f2937 !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.table td {
+    color: #374151 !important;
+    font-size: 16px !important;
+}
+
+/* Card text */
+.card-title {
+    color: #1f2937 !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+}
+
+.card-text {
+    color: #374151 !important;
+    font-size: 16px !important;
+}
+
+/* Alert text */
+.alert {
+    font-size: 16px !important;
+    font-weight: 500 !important;
+}
+
+.alert-success {
+    color: #047857 !important;
+    background-color: #d1fae5 !important;
+}
+
+.alert-danger {
+    color: #dc2626 !important;
+    background-color: #fee2e2 !important;
+}
+
+.alert-warning {
+    color: #d97706 !important;
+    background-color: #fef3c7 !important;
+}
+
+.alert-info {
+    color: #1d4ed8 !important;
+    background-color: #dbeafe !important;
+}
+
+/* Badge text */
+.badge {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    padding: 6px 12px !important;
+}
+
+/* Breadcrumb text */
+.breadcrumb-item {
+    font-size: 16px !important;
+}
+
+.breadcrumb-item a {
+    color: #6b7280 !important;
+}
+
+.breadcrumb-item.active {
+    color: #1f2937 !important;
+}
+
+/* Muted text - ensure it's still readable */
+.text-muted {
+    color: #6b7280 !important;
+}
+
+.text-light {
+    color: #9ca3af !important;
+}
+
+small, .small {
+    color: #6b7280 !important;
+    font-size: 14px !important;
+}
+
+/* Dashboard specific fixes */
+.dashboard-title {
+    color: #1f2937 !important;
+    font-size: 32px !important;
+    font-weight: 700 !important;
+}
+
+.dashboard-subtitle {
+    color: #6b7280 !important;
+    font-size: 18px !important;
+}
+
+.stats-value {
+    color: #1f2937 !important;
+    font-size: 36px !important;
+    font-weight: 800 !important;
+}
+
+.stats-label {
+    color: #6b7280 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+.modern-card-title {
+    color: #1f2937 !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+}
+
+.job-title {
+    color: #1f2937 !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+}
+
+.company-name {
+    color: #6b7280 !important;
+    font-size: 16px !important;
+}
+
+.job-meta-item {
+    color: #6b7280 !important;
+    font-size: 16px !important;
+}
+
+/* Auth modal fixes */
+.auth-title {
+    color: white !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+}
+
+.auth-features {
+    color: white !important;
+    font-size: 16px !important;
+}
+
+.auth-features .feature-item {
+    color: white !important;
+}
+
+.auth-features .feature-item span {
+    color: white !important;
+}
+
+#welcomeSubtitle {
+    color: white !important;
+}
+
+/* Link colors */
+a {
+    color: #2563eb !important;
+    text-decoration: none !important;
+}
+
+a:hover {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+}
+
+/* List text */
+li {
+    color: #374151 !important;
+    font-size: 16px !important;
+}
+
+/* Input group text */
+.input-group-text {
+    color: #6b7280 !important;
+    background-color: #f9fafb !important;
+    border: 2px solid #d1d5db !important;
+}
+
+/* Modal text */
+.modal-title {
+    color: #1f2937 !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+}
+
+.modal-body {
+    color: #374151 !important;
+    font-size: 16px !important;
+}
+
+/* Pagination text */
+.page-link {
+    color: #374151 !important;
+    font-size: 16px !important;
+}
+
+.page-link:hover {
+    color: white !important;
+    background-color: #2563eb !important;
+}
+
+/* List group text */
+.list-group-item {
+    color: #374151 !important;
+    font-size: 16px !important;
+}
+
+/* Ensure sufficient contrast for all interactive elements */
+.btn:focus,
+.form-control:focus,
+.nav-link:focus {
+    outline: 2px solid #2563eb !important;
+    outline-offset: 2px !important;
+}
+
+/* Mobile responsive text sizes */
+@media (max-width: 768px) {
+    body {
+        font-size: 16px !important;
+    }
+    
+    .dashboard-title {
+        font-size: 24px !important;
+    }
+    
+    .dashboard-subtitle {
+        font-size: 16px !important;
+    }
+    
+    .stats-value {
+        font-size: 28px !important;
+    }
+    
+    .navbar-brand {
+        font-size: 20px !important;
+    }
+    
+    .nav-link {
+        font-size: 16px !important;
+    }
+    
+    .btn {
+        font-size: 16px !important;
+        padding: 12px 20px !important;
+    }
+}
+
+/* Ensure text remains readable in all states */
+.text-primary { color: #2563eb !important; }
+.text-secondary { color: #6b7280 !important; }
+.text-success { color: #059669 !important; }
+.text-danger { color: #dc2626 !important; }
+.text-warning { color: #d97706 !important; }
+.text-info { color: #0891b2 !important; }
+.text-dark { color: #1f2937 !important; }
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    body {
+        color: #000000 !important;
+    }
+    
+    .text-muted {
+        color: #374151 !important;
+    }
+    
+    .text-light {
+        color: #6b7280 !important;
+    }
+}

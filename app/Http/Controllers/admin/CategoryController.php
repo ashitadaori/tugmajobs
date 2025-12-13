@@ -52,11 +52,11 @@ class CategoryController extends Controller
         }
     }
 
-    public function destroy(Request $request){
+    public function destroy($id){
 
-        $category = Category::find($request->id);
+        $category = Category::find($id);
         if($category == null){
-            $message = "Job not found.";
+            $message = "Category not found.";
             Session()->flash('error',$message);
             return response()->json([
                 'status' => false,
@@ -65,7 +65,7 @@ class CategoryController extends Controller
         }
 
         $category->delete();
-        $message = "Job deleted successfully.";
+        $message = "Category deleted successfully.";
         Session()->flash('success',$message);
         return response()->json([
             'status' => true,
@@ -77,7 +77,7 @@ class CategoryController extends Controller
         return view('admin.categories.create');
     }
 
-    public function save(Request $request){
+    public function store(Request $request){
         $validator = Validator::make($request->all(),[
             'name' => 'required',
         ]);

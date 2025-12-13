@@ -37,6 +37,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\EncourageKycVerification::class,
+            \App\Http\Middleware\CheckMaintenanceMode::class,
         ],
 
         'api' => [
@@ -66,6 +67,12 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\CheckAdmin::class,
         'role' => \App\Http\Middleware\CheckRole::class,
+        'has.role' => \App\Http\Middleware\EnsureUserHasRole::class,
         'kyc.verified' => \App\Http\Middleware\CheckKycVerification::class,
+        'employer.kyc' => \App\Http\Middleware\CheckEmployerKyc::class,
+        'jobseeker.kyc' => \App\Http\Middleware\JobseekerKycVerification::class,
+        'check.jobseeker' => \App\Http\Middleware\CheckJobseeker::class,
+        'mark.notification.read' => \App\Http\Middleware\MarkNotificationAsRead::class,
+        'rate.limit' => \App\Http\Middleware\RateLimitByAction::class,
     ];
 }

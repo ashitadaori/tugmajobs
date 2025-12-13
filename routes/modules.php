@@ -1,9 +1,7 @@
 <?php
 
-// Admin Routes - Commented out to avoid namespace conflicts
-// Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin'], 'namespace' => 'App\Modules\Admin\Http\Controllers'], function () {
-//     require __DIR__ . '/admin.php';
-// });
+// Admin Routes - Include admin.php routes
+require __DIR__ . '/admin.php';
 
 // Employer Routes - Commented out to avoid conflicts with web.php routes
 // Route::group(['prefix' => 'employer', 'middleware' => ['auth', 'employer'], 'namespace' => 'App\Modules\Employer\Http\Controllers'], function () {

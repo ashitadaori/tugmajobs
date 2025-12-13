@@ -1,0 +1,606 @@
+openapi: 3.0.3
+info:
+  title: Job Portal API
+  description: |
+    RESTful API for the Job Portal System.
+
+    ## Authentication
+    This API uses Bearer token authentication via Laravel Sanctum.
+    Include the token in the Authorization header: `Authorization: Bearer {token}`
+
+    ## Rate Limiting
+    - Public endpoints: 60 requests/minute
+    - Authenticated endpoints: 60 requests/minute
+    - Login/Register: 5 requests/minute
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@jobportal.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+  - url: https://api.jobportal.com/v1
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Jobs
+    description: Job listing operations
+  - name: Applications
+    description: Job application operations
+  - name: Employers
+    description: Employer profile operations
+  - name: Search
+    description: Search and discovery operations
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - password_confirmation
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                password_confirmation:
+                  type: string
+                  format: password
+                role:
+                  type: string
+                  enum: [jobseeker, employer]
+                  default: jobseeker
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+
+  /auth/user:
+    get:
+      tags:
+        - Authentication
+      summary: Get authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /jobs:
+    get:
+      tags:
+        - Jobs
+      summary: List approved jobs
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            maximum: 100
+        - name: category_id
+          in: query
+          schema:
+            type: integer
+        - name: job_type_id
+          in: query
+          schema:
+            type: integer
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobList'
+
+  /jobs/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: Get job details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '404':
+          description: Job not found
+
+  /jobs/featured:
+    get:
+      tags:
+        - Jobs
+      summary: Get featured jobs
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            maximum: 20
+            default: 8
+      responses:
+        '200':
+          description: Featured jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+
+  /jobs/{jobId}/apply:
+    post:
+      tags:
+        - Applications
+      summary: Apply to a job
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                cover_letter:
+                  type: string
+                resume:
+                  type: string
+                  format: binary
+                preliminary_answers:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Application submitted
+        '422':
+          description: Already applied or job closed
+
+  /applications:
+    get:
+      tags:
+        - Applications
+      summary: List user's applications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationList'
+
+  /employers:
+    get:
+      tags:
+        - Employers
+      summary: List employers
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of employers
+
+  /employers/{id}:
+    get:
+      tags:
+        - Employers
+      summary: Get employer details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Employer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employer'
+
+  /search/autocomplete:
+    get:
+      tags:
+        - Search
+      summary: Get search autocomplete suggestions
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [jobs, companies, all]
+            default: all
+      responses:
+        '200':
+          description: Autocomplete suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        value:
+                          type: string
+
+  /search/jobs:
+    get:
+      tags:
+        - Search
+      summary: Advanced job search
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: category_id
+          in: query
+          schema:
+            type: integer
+        - name: job_type_id
+          in: query
+          schema:
+            type: integer
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: salary_min
+          in: query
+          schema:
+            type: number
+        - name: salary_max
+          in: query
+          schema:
+            type: number
+        - name: experience_level
+          in: query
+          schema:
+            type: string
+            enum: [entry, junior, mid, senior, executive]
+        - name: is_remote
+          in: query
+          schema:
+            type: boolean
+        - name: posted_within
+          in: query
+          schema:
+            type: string
+            enum: [24h, 7d, 30d]
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [relevance, date, salary]
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobList'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            token:
+              type: string
+            token_type:
+              type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        kyc_status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: string
+        qualifications:
+          type: string
+        benefits:
+          type: string
+        salary_min:
+          type: number
+        salary_max:
+          type: number
+        location:
+          type: string
+        is_remote:
+          type: boolean
+        experience_level:
+          type: string
+        status:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        category:
+          $ref: '#/components/schemas/Category'
+        job_type:
+          $ref: '#/components/schemas/JobType'
+        employer:
+          $ref: '#/components/schemas/Employer'
+
+    JobList:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Job'
+        meta:
+          $ref: '#/components/schemas/Pagination'
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: integer
+        job_id:
+          type: integer
+        user_id:
+          type: integer
+        status:
+          type: string
+        shortlisted:
+          type: boolean
+        cover_letter:
+          type: string
+        applied_date:
+          type: string
+          format: date-time
+        job:
+          $ref: '#/components/schemas/Job'
+
+    ApplicationList:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+        meta:
+          $ref: '#/components/schemas/Pagination'
+
+    Employer:
+      type: object
+      properties:
+        id:
+          type: integer
+        company_name:
+          type: string
+        company_description:
+          type: string
+        company_logo:
+          type: string
+        industry:
+          type: string
+        company_size:
+          type: string
+        city:
+          type: string
+        is_verified:
+          type: boolean
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+
+    JobType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    Pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string

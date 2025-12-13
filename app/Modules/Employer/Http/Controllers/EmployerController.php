@@ -584,8 +584,8 @@ class EmployerController extends Controller
             ->values();
         $jobTypes = JobType::where('status', 1)->get();
         
-        // Digos City locations
-        $digosLocations = [
+        // Sta. Cruz, Davao del Sur locations
+        $staCruzLocations = [
             ['name' => 'Aplaya', 'lat' => 6.7489, 'lng' => 125.3714],
             ['name' => 'Binaton', 'lat' => 6.7623, 'lng' => 125.3897],
             ['name' => 'Cogon', 'lat' => 6.7512, 'lng' => 125.3567],
@@ -607,7 +607,7 @@ class EmployerController extends Controller
         return view('front.account.employer.jobs.create', [
             'categories' => $categories,
             'jobTypes' => $jobTypes,
-            'locations' => $digosLocations
+            'locations' => $staCruzLocations
         ]);
     }
 
@@ -619,6 +619,7 @@ class EmployerController extends Controller
             'job_type_id' => 'required|exists:job_types,id',
             'location' => 'required|max:50',
             'description' => 'required',
+            'qualifications' => 'required|min:10',
             'requirements' => 'nullable',
             'benefits' => 'nullable',
             'salary_range' => 'nullable|string',
@@ -627,7 +628,7 @@ class EmployerController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -647,6 +648,7 @@ class EmployerController extends Controller
             $job->latitude = $request->latitude;
             $job->longitude = $request->longitude;
             $job->description = $request->description;
+            $job->qualifications = $request->qualifications;
             $job->requirements = $request->requirements;
             $job->benefits = $request->benefits;
             
@@ -708,6 +710,7 @@ class EmployerController extends Controller
             'job_type_id' => 'required|exists:job_types,id',
             'location' => 'required|max:50',
             'description' => 'required',
+            'qualifications' => 'required|min:10',
             'requirements' => 'nullable',
             'benefits' => 'nullable',
             'salary_range' => 'nullable|string',
@@ -716,7 +719,7 @@ class EmployerController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -733,16 +736,17 @@ class EmployerController extends Controller
             $job->latitude = $request->latitude;
             $job->longitude = $request->longitude;
             $job->description = $request->description;
+            $job->qualifications = $request->qualifications;
             $job->requirements = $request->requirements;
             $job->benefits = $request->benefits;
             $job->salary_range = $request->salary_range;
             $job->deadline = $request->deadline;
             $job->featured = $request->featured ?? false;
-            
+
             // If job was approved and significant fields changed, set back to pending
-            if ($job->status === Job::STATUS_APPROVED && 
-                ($job->isDirty('title') || $job->isDirty('description') || 
-                 $job->isDirty('requirements') || $job->isDirty('benefits'))) {
+            if ($job->status === Job::STATUS_APPROVED &&
+                ($job->isDirty('title') || $job->isDirty('description') ||
+                 $job->isDirty('qualifications') || $job->isDirty('requirements') || $job->isDirty('benefits'))) {
                 $job->status = Job::STATUS_PENDING;
             } else if ($request->is_draft) {
                 $job->status = Job::STATUS_DRAFT;

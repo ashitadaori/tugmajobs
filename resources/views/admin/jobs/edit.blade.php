@@ -112,17 +112,83 @@
                                 <p></p>
                             </div>
                             <div class="mb-4">
+                                <label for="" class="mb-2">Qualifications<span class="req">*</span></label>
+                                <small class="text-muted d-block mb-1">List the qualifications required for this position (one per line)</small>
+                                <textarea class="textarea" name="qualifications" id="qualifications" cols="5" rows="8" placeholder="- Graduate of a 4-year BUSINESS-related course (preferably Accountancy)
+- With experience as an advantage, or without experience as long as trainable
+- Knowledge in accounting and business management
+- Has keen attention to detail and paperwork
+- Good communication skills
+- Honest and trustworthy">{{ $job->qualifications }}</textarea>
+                                <p></p>
+                            </div>
+                            <div class="mb-4">
+                                <label for="" class="mb-2">Additional Requirements</label>
+                                <small class="text-muted d-block mb-1">Any special requirements (licenses, certifications, physical requirements, etc.)</small>
+                                <textarea class="textarea" name="requirements" id="requirements" cols="5" rows="4" placeholder="- Must have own motorcycle (with driver's license)
+- Must be willing to be assigned for field work
+- With valid professional driver's license">{{ $job->requirements }}</textarea>
+                            </div>
+                            <div class="mb-4">
                                 <label for="" class="mb-2">Benefits</label>
-                                <textarea class="textarea" name="benefits" id="benefits" cols="5" rows="5" placeholder="Benefits">{{ $job->benefits }}</textarea>
+                                <textarea class="textarea" name="benefits" id="benefits" cols="5" rows="4" placeholder="- Competitive salary
+- Health insurance
+- 13th month pay">{{ $job->benefits }}</textarea>
                             </div>
                             <div class="mb-4">
                                 <label for="" class="mb-2">Responsibility</label>
-                                <textarea class="textarea" name="responsibility" id="responsibility" cols="5" rows="5" placeholder="Responsibility">{{ $job->responsibility }}</textarea>
+                                <textarea class="textarea" name="responsibility" id="responsibility" cols="5" rows="4" placeholder="Responsibility">{{ $job->responsibility }}</textarea>
                             </div>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Qualifications</label>
-                                <textarea class="textarea" name="qualifications" id="qualifications" cols="5" rows="5" placeholder="Qualifications">{{ $job->qualifications }}</textarea>
+
+                            <!-- Required Documents Section -->
+                            <h3 class="fs-4 mb-1 mt-5 border-top pt-5">Required Documents</h3>
+                            <p class="text-muted small mb-3">Add documents that applicants must submit during the hiring process</p>
+
+                            <div id="requirements-container">
+                                @if($job->jobRequirements && $job->jobRequirements->count() > 0)
+                                    @foreach($job->jobRequirements as $index => $requirement)
+                                        <div class="requirement-item card mb-3" data-index="{{ $index }}">
+                                            <div class="card-body py-3">
+                                                <div class="row align-items-start">
+                                                    <div class="col-md-5">
+                                                        <input type="hidden" name="job_requirements[{{ $index }}][id]" value="{{ $requirement->id }}">
+                                                        <input type="text" class="form-control"
+                                                               name="job_requirements[{{ $index }}][name]"
+                                                               placeholder="Document name (e.g., 2x2 ID Photo)"
+                                                               value="{{ $requirement->name }}" required>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <input type="text" class="form-control"
+                                                               name="job_requirements[{{ $index }}][description]"
+                                                               placeholder="Description (optional)"
+                                                               value="{{ $requirement->description }}">
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-check mt-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                   name="job_requirements[{{ $index }}][is_required]"
+                                                                   id="req_required_{{ $index }}"
+                                                                   value="1" {{ $requirement->is_required ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="req_required_{{ $index }}">
+                                                                Required
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-1">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm remove-requirement" title="Remove">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
                             </div>
+
+                            <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="add-requirement-btn">
+                                <i class="fas fa-plus me-2"></i>Add Document Requirement
+                            </button>
 
                             <div class="mb-4">
                                 <label for="" class="mb-2">Experience<span class="req">*</span></label>
@@ -182,6 +248,69 @@
 
 @section('customJs')
     <script type="text/javascript">
+        // ========== Document Requirements Management ==========
+        let requirementIndex = {{ $job->jobRequirements ? $job->jobRequirements->count() : 0 }};
+        const requirementsContainer = document.getElementById('requirements-container');
+        const addRequirementBtn = document.getElementById('add-requirement-btn');
+
+        if (addRequirementBtn) {
+            addRequirementBtn.addEventListener('click', function() {
+                addRequirement();
+            });
+        }
+
+        function addRequirement(name = '', description = '', isRequired = true) {
+            const requirementHtml = `
+                <div class="requirement-item card mb-3" data-index="${requirementIndex}">
+                    <div class="card-body py-3">
+                        <div class="row align-items-start">
+                            <div class="col-md-5">
+                                <input type="text" class="form-control"
+                                       name="job_requirements[${requirementIndex}][name]"
+                                       placeholder="Document name (e.g., 2x2 ID Photo)"
+                                       value="${name}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control"
+                                       name="job_requirements[${requirementIndex}][description]"
+                                       placeholder="Description (optional)"
+                                       value="${description}">
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="job_requirements[${requirementIndex}][is_required]"
+                                           id="req_required_${requirementIndex}"
+                                           value="1" ${isRequired ? 'checked' : ''}>
+                                    <label class="form-check-label" for="req_required_${requirementIndex}">
+                                        Required
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-requirement" title="Remove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            requirementsContainer.insertAdjacentHTML('beforeend', requirementHtml);
+            requirementIndex++;
+        }
+
+        // Remove requirement functionality
+        if (requirementsContainer) {
+            requirementsContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-requirement')) {
+                    e.target.closest('.requirement-item').remove();
+                }
+            });
+        }
+        // ========== End Document Requirements Management ==========
+
         $("#updateJobForm").submit(function (e) {
             e.preventDefault();
 

@@ -73,13 +73,13 @@
                                 <div class="mb-4 col-md-6">
                                     <label for="location" class="mb-2">Location<span class="req">*</span></label>
                                     <select name="location" id="location" class="form-select">
-                                        <option value="">Select Location in Digos City</option>
+                                        <option value="">Select Location in Sta. Cruz, Davao del Sur</option>
                                         @foreach($locations as $location)
                                             <option value="{{ $location['name'] }}" 
                                                 data-lat="{{ $location['lat'] }}"
                                                 data-lng="{{ $location['lng'] }}"
-                                                data-address="{{ $location['name'] }}, Digos City, Davao del Sur">
-                                                {{ $location['name'] }}, Digos City
+                                                data-address="{{ $location['name'] }}, Sta. Cruz, Davao del Sur">
+                                                {{ $location['name'] }}, Sta. Cruz
                                             </option>
                                         @endforeach
                                     </select>

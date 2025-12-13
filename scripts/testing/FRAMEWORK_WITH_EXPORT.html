@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Portal System - Complete Functional Framework</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .export-btn {
+            position: fixed;
+            top: 20px;
+            right: 250px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: -30px;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+        
+        .flowchart {
+            position: relative;
+            width: 100%;
+            height: 800px;
+            margin: 0 auto;
+        }
+        
+        .node {
+            position: absolute;
+            border-radius: 25px;
+            padding: 15px 25px;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 120px;
+            word-wrap: break-word;
+        }
+        
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .start-end {
+            background: linear-gradient(135deg, #a8e6cf, #88d8a3);
+            color: #2d5016;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .process {
+            background: linear-gradient(135deg, #ffd3a5, #fd9853);
+            color: #8b4513;
+            font-size: 14px;
+        }
+        
+        .admin-node {
+            background: linear-gradient(135deg, #a6c0fe, #f68084);
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .decision {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #2c3e50;
+            font-size: 14px;
+            border-radius: 15px;
+        }
+        
+        .module {
+            background: linear-gradient(135deg, #d299c2, #fef9d7);
+            color: #5d4037;
+            font-size: 13px;
+        }
+        
+        .kmeans-node {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            color: #2c3e50;
+            font-size: 13px;
+            border-radius: 15px;
+        }
+        
+        .detail-list {
+            font-size: 11px;
+            text-align: left;
+            line-height: 1.4;
+            margin-top: 8px;
+        }
+        
+        .detail-list li {
+            margin: 2px 0;
+        }
+        
+        .line {
+            position: absolute;
+            background-color: #34495e;
+            z-index: 1;
+        }
+        
+        .horizontal-line {
+            height: 2px;
+        }
+        
+        .vertical-line {
+            width: 2px;
+        }
+        
+        .arrow-container {
+            position: absolute;
+            width: 0;
+            height: 0;
+            z-index: 2;
+        }
+        
+        .arrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #34495e;
+            position: absolute;
+        }
+        
+        .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .tech-stack {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 200px;
+        }
+        
+        .tech-stack h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .tech-stack ul {
+            margin: 0;
+            padding: 0 0 0 15px;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #555;
+        }
+        
+        .stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 180px;
+        }
+        
+        .stats h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .stats .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        .integration-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .integration-box h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .integration-icons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .integration-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <button class="export-btn" onclick="downloadAsImage()">📸 Download PNG</button>
+    
+    <div class="container" id="framework-container">
+        <h1 class="title">Job Portal System - Complete Functional Framework</h1>
+        <h2 class="subtitle">All Working Components Including K-means Clustering</h2>
+        
+        <!-- Statistics Box -->
+        <div class="stats">
+            <h4>System Statistics</h4>
+            <div class="stat-item">
+                <span>Tables:</span>
+                <span>24</span>
+            </div>
+            <div class="stat-item">
+                <span>Records:</span>
+                <span>286+</span>
+            </div>
+            <div class="stat-item">
+                <span>Categories:</span>
+                <span>20</span>
+            </div>
+            <div class="stat-item">
+                <span>Users:</span>
+                <span>11</span>
+            </div>
+            <div class="stat-item">
+                <span>Applications:</span>
+                <span>2</span>
+            </div>
+        </div>
+        
+        <!-- Technology Stack -->
+        <div class="tech-stack">
+            <h4>Technology Stack</h4>
+            <ul>
+                <li>Laravel 9+ / PHP 8.2+</li>
+                <li>MySQL Database</li>
+                <li>Blade Templates</li>
+                <li>Vite.js Build System</li>
+                <li>Bootstrap Framework</li>
+                <li>Laravel Sanctum</li>
+            </ul>
+        </div>
+        
+        <div class="flowchart">
+            <!-- Start Node -->
+            <div class="node start-end" style="top: 50px; left: 50%; transform: translateX(-50%);">
+                Start
+            </div>
+            
+            <!-- User Register Node -->
+            <div class="node process" style="top: 140px; left: 50%; transform: translateX(-50%);">
+                User Register
+                <div class="badge">3</div>
+            </div>
+            
+            <!-- Connect Start to User Register -->
+            <div class="line vertical-line" style="top: 85px; left: 50%; height: 55px;"></div>
+            
+            <!-- Branch three ways from User Register -->
+            <div class="line vertical-line" style="top: 190px; left: 50%; height: 40px;"></div>
+            <div class="line horizontal-line" style="top: 230px; left: 20%; width: 60%;"></div>
+            
+            <!-- Job Seeker Node -->
+            <div class="node process" style="top: 270px; left: 20%; transform: translateX(-50%); width: 180px;">
+                Job Seeker
+                <div class="detail-list">
+                    <li>• Profile Management</li>
+                    <li>• Job Search & Filter</li>
+                    <li>• Apply for Jobs</li>
+                    <li>• Saved Jobs</li>
+                    <li>• Application Tracking</li>
+                </div>
+            </div>
+            
+            <!-- Admin Node -->
+            <div class="node admin-node" style="top: 270px; left: 50%; transform: translateX(-50%); width: 180px;">
+                Admin
+                <div class="detail-list">
+                    <li>• Dashboard & Analytics</li>
+                    <li>• User Management</li>
+                    <li>• Job Approval</li>
+                    <li>• KYC Management</li>
+                    <li>• Category Management</li>
+                    <li>• System Settings</li>
+                </div>
+            </div>
+            
+            <!-- Employer Node -->
+            <div class="node process" style="top: 270px; right: 20%; transform: translateX(50%); width: 180px;">
+                Employer
+                <div class="detail-list">
+                    <li>• Company Profile</li>
+                    <li>• Job Posting</li>
+                    <li>• Application Review</li>
+                    <li>• Document Upload</li>
+                    <li>• Dashboard</li>
+                </div>
+            </div>
+            
+            <!-- Connect branches to modules -->
+            <div class="line vertical-line" style="top: 350px; left: 20%; height: 50px;"></div>
+            <div class="line vertical-line" style="top: 350px; left: 50%; height: 50px;"></div>
+            <div class="line vertical-line" style="top: 350px; right: 20%; height: 50px;"></div>
+            
+            <!-- Tuoma Jobs Node (central hub) -->
+            <div class="node decision" style="top: 440px; left: 50%; transform: translateX(-50%); width: 180px;">
+                TuomaJobs
+                <div class="detail-list">
+                    <li>• Job Management</li>
+                    <li>• User Management</li>
+                    <li>• Application Processing</li>
+                    <li>• Category System</li>
+                </div>
+            </div>
+            
+            <!-- Connect all three branches to central node -->
+            <div class="line horizontal-line" style="top: 400px; left: 20%; width: 30%;"></div>
+            <div class="line horizontal-line" style="top: 400px; right: 20%; width: 30%;"></div>
+            
+            <!-- Add K-means Clustering Module -->
+            <div class="node kmeans-node" style="top: 510px; left: 50%; transform: translateX(-50%); width: 180px;">
+                K-means Clustering
+                <div class="detail-list">
+                    <li>• Job Recommendations</li>
+                    <li>• Category-Based Matching</li>
+                    <li>• Profile Clustering</li>
+                    <li>• Related Jobs</li>
+                </div>
+            </div>
+            
+            <!-- Connect TuomaJobs to K-means -->
+            <div class="line vertical-line" style="top: 490px; left: 50%; height: 20px;"></div>
+            
+            <!-- Branch from K-means to modules -->
+            <div class="line vertical-line" style="top: 560px; left: 50%; height: 20px;"></div>
+            <div class="line horizontal-line" style="top: 580px; left: 30%; width: 40%;"></div>
+            
+            <!-- KYC Node -->
+            <div class="node module" style="top: 620px; left: 30%; transform: translateX(-50%); width: 180px;">
+                Didit KYC
+                <div class="detail-list">
+                    <li>• Identity Verification</li>
+                    <li>• Document Validation</li>
+                    <li>• Webhook Processing</li>
+                    <li>• Status Management</li>
+                </div>
+            </div>
+            
+            <!-- Application Tracking Node -->
+            <div class="node module" style="top: 620px; right: 30%; transform: translateX(50%); width: 180px;">
+                Application/Review
+                <div class="detail-list">
+                    <li>• Job Applications</li>
+                    <li>• Status Tracking</li>
+                    <li>• Document Review</li>
+                    <li>• Notifications</li>
+                </div>
+            </div>
+            
+            <!-- Connect branches to final modules -->
+            <div class="line vertical-line" style="top: 580px; left: 30%; height: 40px;"></div>
+            <div class="line vertical-line" style="top: 580px; right: 30%; height: 40px;"></div>
+            
+            <!-- Connect modules to End -->
+            <div class="line vertical-line" style="top: 680px; left: 30%; height: 20px;"></div>
+            <div class="line vertical-line" style="top: 680px; right: 30%; height: 20px;"></div>
+            <div class="line horizontal-line" style="top: 700px; left: 30%; width: 40%;"></div>
+            <div class="line vertical-line" style="top: 700px; left: 50%; height: 30px;"></div>
+            
+            <!-- End Node -->
+            <div class="node start-end" style="top: 730px; left: 50%; transform: translateX(-50%);">
+                End
+            </div>
+            
+            <!-- Arrows -->
+            <div class="arrow-container" style="top: 95px; left: 50%;">
+                <div class="arrow" style="transform: translateX(-50%);"></div>
+            </div>
+            <div class="arrow-container" style="top: 225px; left: 20%;">
+                <div class="arrow" style="transform: translateX(-50%);"></div>
+            </div>
+            <div class="arrow-container" style="top: 225px; left: 50%;">
+                <div class="arrow" style="transform: translateX(-50%);"></div>
+            </div>
+            <div class="arrow-container" style="top: 225px; right: 20%;">
+                <div class="arrow" style="transform: translateX(50%);"></div>
+            </div>
+            <div class="arrow-container" style="top: 395px; left: 35%;">
+                <div class="arrow" style="transform: rotate(-30deg);"></div>
+            </div>
+            <div class="arrow-container" style="top: 395px; right: 35%;">
+                <div class="arrow" style="transform: rotate(30deg);"></div>
+            </div>
+            <div class="arrow-container" style="top: 485px; left: 50%;">
+                <div class="arrow" style="transform: translateX(-50%);"></div>
+            </div>
+            <div class="arrow-container" style="top: 575px; left: 30%;">
+                <div class="arrow" style="transform: translateX(-50%);"></div>
+            </div>
+            <div class="arrow-container" style="top: 575px; right: 30%;">
+                <div class="arrow" style="transform: translateX(50%);"></div>
+            </div>
+            <div class="arrow-container" style="top: 695px; left: 50%;">
+                <div class="arrow" style="transform: translateX(-50%);"></div>
+            </div>
+        </div>
+        
+        <!-- External Integrations -->
+        <div class="integration-box">
+            <h4>Functional External Integrations</h4>
+            <div class="integration-icons">
+                <div class="integration-icon">Didit KYC</div>
+                <div class="integration-icon">Mapbox</div>
+                <div class="integration-icon">Laravel Sanctum</div>
+                <div class="integration-icon">Google Auth</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function downloadAsImage() {
+            const button = document.querySelector('.export-btn');
+            button.innerHTML = '⏳ Converting...';
+            button.disabled = true;
+            
+            const element = document.getElementById('framework-container');
+            
+            html2canvas(element, {
+                backgroundColor: '#f5f7fa',
+                scale: 3, // High quality
+                useCORS: true,
+                allowTaint: true,
+                width: 1200,
+                height: 1000,
+                scrollX: 0,
+                scrollY: 0
+            }).then(function(canvas) {
+                // Create download link
+                const link = document.createElement('a');
+                link.download = 'job-portal-framework-complete.png';
+                link.href = canvas.toDataURL('image/png');
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Reset button
+                button.innerHTML = '📸 Download PNG';
+                button.disabled = false;
+                
+                alert('Framework image downloaded successfully!');
+            }).catch(function(error) {
+                console.error('Error capturing image:', error);
+                button.innerHTML = '❌ Error';
+                setTimeout(() => {
+                    button.innerHTML = '📸 Download PNG';
+                    button.disabled = false;
+                }, 2000);
+            });
+        }
+
+        // Add interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const nodes = document.querySelectorAll('.node');
+            
+            nodes.forEach(node => {
+                node.addEventListener('click', function() {
+                    this.style.animation = 'pulse 0.6s ease-in-out';
+                    setTimeout(() => {
+                        this.style.animation = '';
+                    }, 600);
+                });
+            });
+        });
+        
+        // Add CSS animation for pulse effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

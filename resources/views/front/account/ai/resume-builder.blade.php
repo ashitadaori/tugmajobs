@@ -18,8 +18,6 @@
                 @include('components.sidebar')
             </div>
             <div class="col-lg-9">
-                @include('front.message')
-                
                 <!-- AI Resume Builder Card -->
                 <div class="card border-0 shadow mb-4">
                     <div class="card-body p-4">

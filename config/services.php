@@ -38,8 +38,8 @@ return [
     ],
 
     'didit' => [
-        'auth_url' => env('DIDIT_AUTH_URL', 'https://business.didit.me'),
-        'base_url' => env('DIDIT_BASE_URL', 'https://business.didit.me'),
+        'auth_url' => env('DIDIT_AUTH_URL', 'https://auth.didit.me'),
+        'base_url' => env('DIDIT_BASE_URL', 'https://verification.didit.me'),
         'api_key' => env('DIDIT_API_KEY'),
         'client_id' => env('DIDIT_CLIENT_ID'),
         'client_secret' => env('DIDIT_CLIENT_SECRET'),
@@ -47,6 +47,13 @@ return [
         'callback_url' => env('DIDIT_CALLBACK_URL'),
         'redirect_url' => env('DIDIT_REDIRECT_URL'),
         'webhook_secret' => env('DIDIT_WEBHOOK_SECRET'),
+    ],
+
+    // Social Authentication Services
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
 ];

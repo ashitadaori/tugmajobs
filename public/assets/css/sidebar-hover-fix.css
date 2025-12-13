@@ -1,0 +1,207 @@
+/* 
+ * Sidebar Hover Animation Fix
+ * Removes all transform animations on hover to prevent content movement
+ */
+
+/* Remove transform animations from all nav-link hover states */
+.employer-sidebar .nav-link:hover,
+.sidebar .nav-link:hover,
+.nav-link:hover {
+    transform: none !important;
+}
+
+/* Remove transform animations from active nav-link hover states */
+.employer-sidebar .nav-link.active:hover,
+.sidebar .nav-link.active:hover,
+.nav-link.active:hover {
+    transform: none !important;
+}
+
+/* Remove transform animations from button hover states */
+.employer-sidebar button:hover,
+.sidebar button:hover,
+.employer-sidebar .btn:hover,
+.sidebar .btn:hover {
+    transform: none !important;
+}
+
+/* Remove transform animations from logout button hover */
+.employer-sidebar .btn-outline-danger:hover,
+.sidebar .btn-outline-danger:hover,
+button.nav-link:hover {
+    transform: none !important;
+}
+
+/* Keep only essential transitions for smooth color/background changes */
+.employer-sidebar .nav-link,
+.sidebar .nav-link {
+    transition: color 0.2s ease, background-color 0.2s ease !important;
+}
+
+.employer-sidebar .btn,
+.sidebar .btn,
+.employer-sidebar button,
+.sidebar button {
+    transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Ensure collapse button animations are preserved (they should move with sidebar) */
+.sidebar-collapse-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.sidebar-collapse-btn:hover {
+    transform: translateY(-50%) scale(1.1) !important;
+}
+
+.sidebar-collapse-btn:active {
+    transform: translateY(-50%) scale(0.95) !important;
+}
+
+/* Mobile toggle animations are okay since they don't affect content layout */
+.mobile-sidebar-toggle:hover {
+    transform: scale(1.05) !important;
+}
+
+/* ===== DASHBOARD CARD HOVER FIX ===== */
+/* Remove all transform animations from dashboard cards to prevent content movement */
+
+/* Welcome Card */
+.welcome-card:hover {
+    transform: none !important;
+    /* Keep only shadow and other visual effects */
+    box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* Stats Cards */
+.stats-card:hover {
+    transform: none !important;
+    /* Keep shadow effects */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.stats-card.gradient-border-primary:hover {
+    transform: none !important;
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2) !important;
+}
+
+.stats-card.gradient-border-success:hover {
+    transform: none !important;
+    box-shadow: 0 20px 40px rgba(17, 153, 142, 0.2) !important;
+}
+
+.stats-card.gradient-border-warning:hover {
+    transform: none !important;
+    box-shadow: 0 20px 40px rgba(240, 147, 251, 0.2) !important;
+    animation: none !important; /* Remove shake animation */
+}
+
+.stats-card.gradient-border-info:hover {
+    transform: none !important;
+    box-shadow: 0 20px 40px rgba(79, 172, 254, 0.2) !important;
+}
+
+/* Stats Card Icons */
+.stats-card:hover .stats-icon {
+    transform: none !important;
+}
+
+/* Quick Action Cards */
+.quick-action-card:hover {
+    transform: none !important;
+    /* Keep shadow and border effects */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    border-color: rgba(102, 126, 234, 0.3) !important;
+}
+
+/* Quick Action Card Icons */
+.quick-action-card:hover .icon-wrapper {
+    transform: none !important;
+}
+
+/* Remove floating animations that cause movement */
+.card-floating {
+    animation: none !important;
+}
+
+/* Keep only essential transitions for smooth visual feedback */
+.welcome-card,
+.stats-card,
+.quick-action-card {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease !important;
+}
+
+.stats-icon,
+.quick-action-card .icon-wrapper {
+    transition: box-shadow 0.3s ease !important;
+}
+
+/* ===== ADDITIONAL DASHBOARD ELEMENT FIXES ===== */
+/* Remove transform animations from all interactive elements to prevent layout shift */
+
+/* Table rows and cells */
+.table tr:hover,
+.table td:hover,
+.table th:hover {
+    transform: none !important;
+}
+
+/* Button groups and dropdowns */
+.btn-group:hover,
+.dropdown:hover,
+.dropdown-toggle:hover {
+    transform: none !important;
+}
+
+/* Card headers and bodies */
+.card-header:hover,
+.card-body:hover,
+.card-footer:hover {
+    transform: none !important;
+}
+
+/* Form elements */
+.form-control:hover,
+.form-select:hover,
+.form-check:hover {
+    transform: none !important;
+}
+
+/* Badges and labels */
+.badge:hover,
+.label:hover {
+    transform: none !important;
+}
+
+/* Icons and small elements */
+i:hover,
+.fas:hover,
+.far:hover,
+.fal:hover,
+.fab:hover,
+.bi:hover {
+    transform: none !important;
+}
+
+/* Links within dashboard content */
+.employer-main-content a:hover {
+    transform: none !important;
+}
+
+/* Any element with hover transform - catch-all rule */
+.employer-main-content *:hover {
+    transform: none !important;
+}
+
+/* Override any remaining transform animations in the dashboard */
+.container-fluid *:hover,
+.row *:hover,
+.col *:hover,
+.col-* *:hover {
+    transform: none !important;
+}
+
+/* Preserve only non-movement transitions */
+.employer-main-content * {
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease !important;
+}

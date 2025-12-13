@@ -1,93 +1,66 @@
 <!-- Modern Sidebar Navigation -->
 <div class="modern-sidebar">
-    <div class="sidebar-user mb-4">
+    <!-- User Profile Section -->
+    <div class="user-profile mb-4">
         <div class="d-flex align-items-center">
-            @if(Auth::user()->profile_photo)
-                <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile" class="sidebar-avatar me-3">
-            @else
-                <div class="sidebar-avatar-placeholder me-3">
-                    {{ substr(Auth::user()->name, 0, 2) }}
-                </div>
-            @endif
-            <div>
+            <div class="profile-initial rounded-circle bg-indigo-600 text-white">
+                {{ substr(Auth::user()->name, 0, 1) }}
+            </div>
+            <div class="ms-3">
                 <h6 class="mb-1">{{ Auth::user()->name }}</h6>
                 <p class="text-muted mb-0 small">{{ Auth::user()->email }}</p>
             </div>
         </div>
     </div>
 
-    <div class="sidebar-menu">
-        <div class="menu-section">
-            <h6 class="menu-title">MAIN MENU</h6>
-            
-            <a href="{{ route('account.dashboard') }}" class="menu-item {{ request()->routeIs('account.dashboard') ? 'active' : '' }}">
+    <!-- Platform Section -->
+    <div class="menu-section mb-4">
+        <h6 class="menu-title">PLATFORM</h6>
+        <div class="nav flex-column">
+            <a href="{{ route('account.dashboard') }}" class="nav-link {{ request()->routeIs('account.dashboard') ? 'active' : '' }}">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-
-            <a href="{{ route('jobs') }}" class="menu-item {{ request()->routeIs('jobs') ? 'active' : '' }}">
-                <i class="fas fa-search"></i>
-                <span>Find Jobs</span>
+            <a href="{{ route('jobs') }}" class="nav-link {{ request()->routeIs('jobs') ? 'active' : '' }}">
+                <i class="fas fa-briefcase"></i>
+                <span>Jobs</span>
             </a>
-
-            <a href="{{ route('account.savedJobs') }}" class="menu-item {{ request()->routeIs('account.savedJobs') ? 'active' : '' }}">
-                <i class="fas fa-bookmark"></i>
-                <span>Saved Jobs</span>
-                @if(isset($saved_jobs_count) && $saved_jobs_count > 0)
-                    <span class="badge bg-primary rounded-pill ms-auto">{{ $saved_jobs_count }}</span>
-                @endif
-            </a>
-        </div>
-
-        <div class="menu-section">
-            <h6 class="menu-title">APPLICATIONS</h6>
-            
-            <a href="{{ route('account.myJobApplications') }}" class="menu-item {{ request()->routeIs('account.myJobApplications') ? 'active' : '' }}">
+            <a href="{{ route('account.applications') }}" class="nav-link {{ request()->routeIs('account.applications') ? 'active' : '' }}">
                 <i class="fas fa-file-alt"></i>
-                <span>My Applications</span>
-                @if(isset($pending_applications) && $pending_applications > 0)
-                    <span class="badge bg-warning rounded-pill ms-auto">{{ $pending_applications }}</span>
-                @endif
+                <span>Applications</span>
             </a>
+            <a href="{{ route('account.analytics') }}" class="nav-link {{ request()->routeIs('account.analytics') ? 'active' : '' }}">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="{{ route('account.company') }}" class="nav-link {{ request()->routeIs('account.company') ? 'active' : '' }}">
+                <i class="fas fa-building"></i>
+                <span>Company Profile</span>
+            </a>
+        </div>
+    </div>
 
-            <a href="{{ route('account.jobAlerts') }}" class="menu-item {{ request()->routeIs('account.jobAlerts') ? 'active' : '' }}">
+    <!-- Settings Section -->
+    <div class="menu-section">
+        <h6 class="menu-title">SETTINGS</h6>
+        <div class="nav flex-column">
+            <a href="{{ route('account.settings') }}" class="nav-link {{ request()->routeIs('account.settings') ? 'active' : '' }}">
+                <i class="fas fa-cog"></i>
+                <span>General</span>
+            </a>
+            <a href="{{ route('account.notifications') }}" class="nav-link {{ request()->routeIs('account.notifications') ? 'active' : '' }}">
                 <i class="fas fa-bell"></i>
-                <span>Job Alerts</span>
+                <span>Notifications</span>
             </a>
-        </div>
-
-        <div class="menu-section">
-            <h6 class="menu-title">PROFILE</h6>
-            
-            <a href="{{ route('account.myProfile') }}" class="menu-item {{ request()->routeIs('account.myProfile') ? 'active' : '' }}">
-                <i class="fas fa-user"></i>
-                <span>My Profile</span>
+            <a href="{{ route('account.security') }}" class="nav-link {{ request()->routeIs('account.security') ? 'active' : '' }}">
+                <i class="fas fa-shield-alt"></i>
+                <span>Security</span>
             </a>
-
-            <a href="{{ route('account.resumes') }}" class="menu-item {{ request()->routeIs('account.resumes') ? 'active' : '' }}">
-                <i class="fas fa-file"></i>
-                <span>Resumes</span>
-            </a>
-        </div>
-
-        <div class="menu-section">
-            <h6 class="menu-title">SETTINGS</h6>
-            
-            <a href="{{ route('account.changePassword') }}" class="menu-item {{ request()->routeIs('account.changePassword') ? 'active' : '' }}">
-                <i class="fas fa-lock"></i>
-                <span>Change Password</span>
-            </a>
-
-            <a href="{{ route('account.deleteProfile') }}" class="menu-item {{ request()->routeIs('account.deleteProfile') ? 'active' : '' }}">
-                <i class="fas fa-trash"></i>
-                <span>Delete Profile</span>
-            </a>
-
-            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+            <form action="{{ route('logout') }}" method="POST" class="nav-link-form">
                 @csrf
-                <button type="submit" class="menu-item text-danger w-100 bg-transparent border-0">
+                <button type="submit" class="nav-link text-danger border-0 bg-transparent w-100 text-start">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span>Log out</span>
+                    <span>Logout</span>
                 </button>
             </form>
         </div>
@@ -96,91 +69,102 @@
 
 <style>
 .modern-sidebar {
-    background: #fff;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    width: 280px;
+    min-height: 100vh;
+    background: #ffffff;
     padding: 1.5rem;
-    height: 100%;
+    border-right: 1px solid #e5e7eb;
 }
 
-.sidebar-user {
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.sidebar-avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.sidebar-avatar-placeholder {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: white;
+.profile-initial {
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.2rem;
     font-weight: 600;
-    font-size: 16px;
-}
-
-.menu-section {
-    margin-bottom: 1.5rem;
 }
 
 .menu-title {
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text-light);
-    margin-bottom: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
     padding-left: 0.5rem;
 }
 
-.menu-item {
+.nav-link {
     display: flex;
     align-items: center;
     padding: 0.75rem 1rem;
-    color: var(--text-dark);
+    color: #374151;
     text-decoration: none;
-    border-radius: var(--radius-sm);
+    border-radius: 0.75rem;
     margin-bottom: 0.25rem;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
-.menu-item:hover {
-    background-color: var(--bg-light);
-    color: var(--primary-color);
+.nav-link:hover {
+    background-color: #4f46e5;
+    color: #ffffff;
 }
 
-.menu-item.active {
-    background-color: var(--primary-color);
-    color: white;
+.nav-link.active {
+    background-color: #4f46e5;
+    color: #ffffff;
 }
 
-.menu-item i {
+.nav-link i {
     width: 20px;
     margin-right: 0.75rem;
-    font-size: 16px;
+    font-size: 1rem;
 }
 
-.menu-item span {
-    flex: 1;
-    font-size: 14px;
+.nav-link span {
+    font-size: 0.875rem;
     font-weight: 500;
 }
 
-.badge {
-    font-size: 11px;
-    padding: 0.35em 0.65em;
+.nav-link-form {
+    margin-bottom: 0.25rem;
 }
 
-@media (max-width: 991.98px) {
+.nav-link-form .nav-link {
+    margin-bottom: 0;
+}
+
+/* Prevent hover scaling or movement */
+.nav-link, .nav-link:hover, .nav-link:active {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Ensure consistent height for all nav items */
+.nav-link, .nav-link-form .nav-link {
+    height: 45px;
+}
+
+/* Ensure text and icons stay white on hover */
+.nav-link:hover i,
+.nav-link.active i,
+.nav-link:hover span,
+.nav-link.active span {
+    color: #ffffff;
+}
+
+/* Special styling for logout button */
+.nav-link.text-danger:hover {
+    background-color: #4f46e5;
+    color: #ffffff !important;
+}
+
+@media (max-width: 768px) {
     .modern-sidebar {
-        margin-bottom: 2rem;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
     }
 }
 </style>

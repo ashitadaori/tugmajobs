@@ -11,6 +11,12 @@
                 </div>
 
                 <div class="card-body p-4">
+                    @if(Session::has('success'))
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>{{ Session::get('success') }}
+                    </div>
+                    @endif
+
                     @if(Session::has('error'))
                     <div class="alert alert-danger">
                         {{ Session::get('error') }}

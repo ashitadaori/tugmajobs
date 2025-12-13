@@ -4,11 +4,11 @@
     $user = $user ?? Auth::user();
     $statusConfig = [
         'pending' => [
-            'icon' => 'fas fa-clock',
-            'color' => 'secondary',
-            'bg' => 'light',
+            'icon' => 'fas fa-exclamation-triangle',
+            'color' => 'warning',
+            'bg' => 'warning-subtle',
             'title' => 'Identity Verification Required',
-            'message' => 'Verify your identity to build trust and unlock all features.',
+            'message' => '⚠️ You must complete KYC verification before you can apply for jobs. Verify your identity now to start applying.',
             'action' => 'Start Verification'
         ],
         'in_progress' => [
@@ -32,7 +32,7 @@
             'color' => 'danger',
             'bg' => 'danger-subtle',
             'title' => 'Verification Failed',
-            'message' => 'We were unable to verify your identity. Please try again with clear documents.',
+            'message' => '❌ We were unable to verify your identity. You cannot apply for jobs until verification is complete. Please try again with clear documents.',
             'action' => 'Try Again'
         ],
         'expired' => [
@@ -86,13 +86,16 @@
                 @if($showActions && $config['action'])
                     <div class="mt-3">
                         @if($user->kyc_status === 'in_progress')
-                            <button class="btn btn-{{ $config['color'] }} btn-sm" onclick="checkKycStatus('{{ $user->kyc_session_id }}')">
+                            <button class="btn btn-{{ $config['color'] }} btn-sm me-2" onclick="checkKycStatus('{{ $user->kyc_session_id }}')">
                                 <i class="fas fa-sync me-1"></i>{{ $config['action'] }}
                             </button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="window.resetKycVerification ? window.resetKycVerification() : alert('Reset function not available')">
+                                <i class="fas fa-redo me-1"></i>Start Over
+                            </button>
                         @else
-                            <a href="{{ route('kyc.start.form') }}" class="btn btn-{{ $config['color'] }} btn-sm">
+                            <button type="button" class="btn btn-{{ $config['color'] }} btn-sm" onclick="startInlineVerification()">
                                 <i class="{{ $config['icon'] }} me-1"></i>{{ $config['action'] }}
-                            </a>
+                            </button>
                         @endif
                     </div>
                 @endif
@@ -102,7 +105,13 @@
 </div>
 
 @if($showActions)
+<!-- Include KYC inline verification script -->
+<script src="{{ asset('assets/js/kyc-inline-verification.js') }}"></script>
+
 <script>
+// Set current user ID for verification polling
+window.currentUserId = {{ Auth::id() }};
+
 function checkKycStatus(sessionId) {
     if (!sessionId) {
         alert('No session ID available');
@@ -145,5 +154,37 @@ function checkKycStatus(sessionId) {
         btn.disabled = false;
     });
 }
+
+// Enhanced check status function that uses the global function if available
+function enhancedCheckStatus() {
+    if (typeof window.checkVerificationComplete === 'function') {
+        window.checkVerificationComplete();
+    } else if (typeof window.checkVerificationStatus === 'function') {
+        window.checkVerificationStatus();
+    } else {
+        // Fallback to the original function
+        const sessionId = '{{ $user->kyc_session_id }}';
+        if (sessionId) {
+            checkKycStatus(sessionId);
+        } else {
+            alert('No session available for status check');
+        }
+    }
+}
+
+// Debug function availability on load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('KYC Status Card loaded');
+    
+    // Check if KYC functions are available
+    const functions = ['startInlineVerification', 'checkVerificationComplete', 'resetKycVerification'];
+    functions.forEach(funcName => {
+        if (typeof window[funcName] === 'function') {
+            console.log(`✓ ${funcName} is available in status card`);
+        } else {
+            console.log(`✗ ${funcName} is NOT available in status card`);
+        }
+    });
+});
 </script>
 @endif

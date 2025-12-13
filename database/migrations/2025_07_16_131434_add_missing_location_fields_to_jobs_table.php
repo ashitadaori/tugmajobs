@@ -22,7 +22,7 @@ return new class extends Migration
                 $table->string('barangay')->nullable()->after('location_address');
             }
             if (!Schema::hasColumn('jobs', 'city')) {
-                $table->string('city')->default('Digos City')->after('barangay');
+                $table->string('city')->default('Sta. Cruz')->after('barangay');
             }
             if (!Schema::hasColumn('jobs', 'province')) {
                 $table->string('province')->default('Davao del Sur')->after('city');

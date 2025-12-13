@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\KycServiceInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class DiditService
+class DiditService implements KycServiceInterface
 {
     protected string $authUrl;
     protected string $baseUrl;
@@ -110,6 +111,61 @@ class DiditService
         return $response->json();
     }
 
+    public function getSessionDetails(string $sessionId): array
+    {
+        // This method is an alias for getSessionStatus but with better naming
+        // It can also include additional processing if needed
+        return $this->getSessionStatus($sessionId);
+    }
+
+    public function getDetailedVerificationData(string $sessionId): array
+    {
+        Log::info('Getting detailed Didit verification data', ['session_id' => $sessionId]);
+
+        try {
+            // Try different endpoints that might contain detailed data
+            $endpoints = [
+                '/v2/session/' . $sessionId,
+                '/v2/session/' . $sessionId . '/details',
+                '/v2/session/' . $sessionId . '/documents',
+                '/v2/session/' . $sessionId . '/result'
+            ];
+
+            $allData = [];
+
+            foreach ($endpoints as $endpoint) {
+                try {
+                    $response = Http::withHeaders([
+                        'X-Api-Key' => $this->apiKey,
+                    ])->get($this->baseUrl . $endpoint);
+
+                    if ($response->successful()) {
+                        $data = $response->json();
+                        $allData[str_replace(['/', $sessionId], ['_', 'SESSION'], $endpoint)] = $data;
+                        Log::info('Successfully fetched data from endpoint', [
+                            'endpoint' => $endpoint,
+                            'data_keys' => array_keys($data)
+                        ]);
+                    }
+                } catch (Exception $e) {
+                    Log::debug('Endpoint not available', [
+                        'endpoint' => $endpoint,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            return $allData;
+
+        } catch (Exception $e) {
+            Log::error('Failed to get detailed verification data', [
+                'session_id' => $sessionId,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
     public function verifySignature(string $payload, string $signature): bool
     {
         if (empty($this->webhookSecret)) {
@@ -154,15 +210,83 @@ class DiditService
         if ($sessionId && $vendorData) {
             $user = $this->getUserFromVendorData($vendorData);
             if ($user) {
+                // Store the complete webhook event data
+                $kycData = [
+                    'webhook_event' => $event,
+                    'session_id' => $sessionId,
+                    'status' => 'completed',
+                    'completed_at' => now()->toIso8601String(),
+                    'webhook_received' => true,
+                    'data_source' => 'didit_webhook'
+                ];
+
+                // Try to fetch additional detailed data
+                try {
+                    $detailedData = $this->getDetailedVerificationData($sessionId);
+                    if (!empty($detailedData)) {
+                        $kycData['detailed_verification_data'] = $detailedData;
+                        Log::info('Enhanced webhook data with detailed verification info', [
+                            'user_id' => $user->id,
+                            'endpoints_fetched' => count($detailedData)
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Could not fetch detailed verification data in webhook', [
+                        'user_id' => $user->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+
+                // Process verification data using KycVerificationService
+                try {
+                    $kycVerificationService = app(\App\Services\KycVerificationService::class);
+                    
+                    // Prepare data for the verification service
+                    $verificationData = array_merge($event, [
+                        'raw_data' => $event,
+                        'verification_data' => $detailedData ?? [],
+                        'status' => 'verified'
+                    ]);
+                    
+                    $verification = $kycVerificationService->processVerificationData($verificationData);
+                    
+                    if ($verification) {
+                        Log::info('KYC verification record created/updated', [
+                            'verification_id' => $verification->id,
+                            'user_id' => $user->id,
+                            'session_id' => $sessionId
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to process verification data with KycVerificationService', [
+                        'user_id' => $user->id,
+                        'session_id' => $sessionId,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+
                 $user->update([
                     'kyc_status' => 'verified',
                     'kyc_verified_at' => now(),
-                    'kyc_data' => $event
+                    'kyc_data' => $kycData
                 ]);
                 
-                Log::info('User KYC status updated to verified', [
+                // Create notification for successful verification
+                $user->notifications()->create([
+                    'title' => 'Identity Verification Completed',
+                    'message' => 'Your identity has been successfully verified! You now have access to all platform features.',
+                    'type' => 'kyc_verified',
+                    'data' => [
+                        'session_id' => $sessionId,
+                        'verified_at' => now()->toIso8601String()
+                    ],
+                    'action_url' => $user->role === 'employer' ? route('employer.dashboard') : route('account.dashboard')
+                ]);
+                
+                Log::info('User KYC status updated to verified with enhanced data', [
                     'user_id' => $user->id,
-                    'session_id' => $sessionId
+                    'session_id' => $sessionId,
+                    'has_detailed_data' => isset($kycData['detailed_verification_data'])
                 ]);
             }
         }

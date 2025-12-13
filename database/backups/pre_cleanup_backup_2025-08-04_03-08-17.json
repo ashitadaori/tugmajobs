@@ -1,0 +1,293 @@
+{
+    "job_seeker_profiles": {
+        "count": 2,
+        "data": [
+            {
+                "id": 1,
+                "user_id": 2,
+                "skills": null,
+                "experience": null,
+                "education": null,
+                "current_salary": null,
+                "expected_salary": null,
+                "preferred_location": null,
+                "resume_file": null,
+                "social_links": null,
+                "is_kyc_verified": 0,
+                "created_at": "2025-07-15 06:50:17",
+                "updated_at": "2025-07-15 06:50:17",
+                "deleted_at": null
+            },
+            {
+                "id": 2,
+                "user_id": 3,
+                "skills": null,
+                "experience": null,
+                "education": null,
+                "current_salary": null,
+                "expected_salary": null,
+                "preferred_location": null,
+                "resume_file": null,
+                "social_links": null,
+                "is_kyc_verified": 0,
+                "created_at": "2025-07-16 04:55:47",
+                "updated_at": "2025-07-16 04:55:47",
+                "deleted_at": null
+            }
+        ]
+    },
+    "application_status_histories": {
+        "count": 2,
+        "data": [
+            {
+                "id": 1,
+                "job_application_id": 1,
+                "status": "pending",
+                "notes": "Application submitted",
+                "created_at": "2025-07-17 02:32:50",
+                "updated_at": "2025-07-17 02:32:50"
+            },
+            {
+                "id": 2,
+                "job_application_id": 1,
+                "status": "approved",
+                "notes": "Status updated to Approved",
+                "created_at": "2025-07-23 04:51:57",
+                "updated_at": "2025-07-23 04:51:57"
+            }
+        ]
+    },
+    "application_status_history": {
+        "count": 0,
+        "data": []
+    },
+    "job_alerts": {
+        "count": 0,
+        "data": []
+    },
+    "job_alert_categories": {
+        "count": 0,
+        "data": []
+    },
+    "job_alert_job_types": {
+        "count": 0,
+        "data": []
+    },
+    "kyc_documents": {
+        "count": 0,
+        "data": []
+    },
+    "kyc_verifications": {
+        "count": 0,
+        "data": []
+    },
+    "team_members": {
+        "count": 0,
+        "data": []
+    },
+    "categories": {
+        "count": 20,
+        "data": [
+            {
+                "id": 61,
+                "name": "Information Technology (IT) \/ Software Development",
+                "slug": "information-technology-it-software-development",
+                "status": 1,
+                "icon": "\ud83d\udcbb",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 62,
+                "name": "BPO \/ Call Center \/ Customer Service",
+                "slug": "bpo-call-center-customer-service",
+                "status": 1,
+                "icon": "\ud83d\udcde",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 63,
+                "name": "Sales \/ Marketing",
+                "slug": "sales-marketing",
+                "status": 1,
+                "icon": "\ud83d\udcc8",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 64,
+                "name": "Accounting \/ Finance",
+                "slug": "accounting-finance",
+                "status": 1,
+                "icon": "\ud83d\udcb0",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 65,
+                "name": "Human Resources \/ Admin",
+                "slug": "human-resources-admin",
+                "status": 1,
+                "icon": "\ud83d\udc65",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 66,
+                "name": "Engineering \/ Technical",
+                "slug": "engineering-technical",
+                "status": 1,
+                "icon": "\ud83d\udd27",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 67,
+                "name": "Healthcare \/ Medical",
+                "slug": "healthcare-medical",
+                "status": 1,
+                "icon": "\u2695\ufe0f",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 68,
+                "name": "Education \/ Teaching",
+                "slug": "education-teaching",
+                "status": 1,
+                "icon": "\ud83d\udcda",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 69,
+                "name": "Manufacturing \/ Production",
+                "slug": "manufacturing-production",
+                "status": 1,
+                "icon": "\ud83c\udfed",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 70,
+                "name": "Retail \/ Hospitality",
+                "slug": "retail-hospitality",
+                "status": 1,
+                "icon": "\ud83d\udecd\ufe0f",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 71,
+                "name": "Media \/ Design \/ Creative",
+                "slug": "media-design-creative",
+                "status": 1,
+                "icon": "\ud83c\udfa8",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 72,
+                "name": "Construction \/ Architecture",
+                "slug": "construction-architecture",
+                "status": 1,
+                "icon": "\ud83c\udfd7\ufe0f",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 73,
+                "name": "Transportation \/ Logistics",
+                "slug": "transportation-logistics",
+                "status": 1,
+                "icon": "\ud83d\ude9b",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 74,
+                "name": "Legal \/ Compliance",
+                "slug": "legal-compliance",
+                "status": 1,
+                "icon": "\u2696\ufe0f",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 75,
+                "name": "Agriculture \/ Farming",
+                "slug": "agriculture-farming",
+                "status": 1,
+                "icon": "\ud83c\udf3e",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 76,
+                "name": "Government \/ Public Service",
+                "slug": "government-public-service",
+                "status": 1,
+                "icon": "\ud83c\udfdb\ufe0f",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 77,
+                "name": "Real Estate \/ Property",
+                "slug": "real-estate-property",
+                "status": 1,
+                "icon": "\ud83c\udfe0",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 78,
+                "name": "Tourism \/ Travel",
+                "slug": "tourism-travel",
+                "status": 1,
+                "icon": "\u2708\ufe0f",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 79,
+                "name": "Research \/ Development",
+                "slug": "research-development",
+                "status": 1,
+                "icon": "\ud83d\udd2c",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            },
+            {
+                "id": 80,
+                "name": "Others",
+                "slug": "others",
+                "status": 1,
+                "icon": "\ud83d\udccb",
+                "created_at": "2025-07-15 11:32:54",
+                "updated_at": "2025-07-15 11:32:54",
+                "deleted_at": null
+            }
+        ]
+    }
+}

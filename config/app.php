@@ -32,6 +32,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Employer Verification Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configure how employer verification works:
+    |
+    | employer_kyc_only (EMPLOYER_KYC_ONLY):
+    |   - true: Only KYC verification required (like jobseekers)
+    |   - false: Requires both KYC and document approval (default)
+    |
+    | disable_kyc_for_employers (DISABLE_KYC_FOR_EMPLOYERS):
+    |   - true: Completely disable all verification (TESTING ONLY)
+    |   - false: Enable verification checks (default)
+    |
+    */
+
+    'employer_kyc_only' => env('EMPLOYER_KYC_ONLY', false),
+    'disable_kyc_for_employers' => env('DISABLE_KYC_FOR_EMPLOYERS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Debug Mode
     |--------------------------------------------------------------------------
     |
@@ -96,6 +116,18 @@ return [
     */
 
     'fallback_locale' => 'en',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Asset Version (Cache Busting)
+    |--------------------------------------------------------------------------
+    |
+    | This value is used for cache busting assets. Change this value whenever
+    | you want to force browsers to reload cached files.
+    |
+    */
+
+    'asset_version' => env('ASSET_VERSION', 'v1'),
 
     /*
     |--------------------------------------------------------------------------

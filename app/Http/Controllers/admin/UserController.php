@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\admin;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Job;
@@ -40,6 +40,13 @@ class UserController extends Controller
             }
         }
 
+        // Filter by KYC status
+        if ($request->filled('kyc_status')) {
+            if ($request->kyc_status !== 'all') {
+                $query->where('kyc_status', $request->kyc_status);
+            }
+        }
+
         // Filter by registration date
         if ($request->filled('date_range')) {
             $dates = explode(' - ', $request->date_range);
@@ -55,18 +62,22 @@ class UserController extends Controller
         $sortDirection = $request->input('direction', 'desc');
         $query->orderBy($sortField, $sortDirection);
 
-        $users = $query->with(['employerProfile', 'jobSeekerProfile'])
+        $users = $query->with(['employer', 'jobseeker'])
                       ->paginate(10)
                       ->withQueryString();
 
         // Get counts for filters
         $counts = [
             'total' => User::count(),
-            'verified' => User::whereNotNull('email_verified_at')->count(),
-            'unverified' => User::whereNull('email_verified_at')->count(),
+            'verified' => User::where('kyc_status', 'verified')->count(),
+            'unverified' => User::where('kyc_status', '!=', 'verified')->count(),
             'employers' => User::where('role', 'employer')->count(),
             'jobseekers' => User::where('role', 'jobseeker')->count(),
             'admins' => User::whereIn('role', ['admin', 'superadmin'])->count(),
+            'kyc_verified' => User::where('kyc_status', 'verified')->count(),
+            'kyc_pending' => User::where('kyc_status', 'in_progress')->count(),
+            'kyc_rejected' => User::where('kyc_status', 'rejected')->count(),
+            'kyc_not_started' => User::where('kyc_status', 'not_started')->count(),
         ];
 
         return view('admin.users.list',[
@@ -76,8 +87,37 @@ class UserController extends Controller
         ]);
     }
 
+    public function show($id){
+        $user = User::with(['employer', 'jobseeker'])->findOrFail($id);
+        
+        // Get user's jobs if employer
+        $jobs = [];
+        if ($user->role === 'employer') {
+            $jobs = Job::where('user_id', $user->id)
+                ->with(['jobType', 'category'])
+                ->withCount('applications')
+                ->orderBy('created_at', 'DESC')
+                ->get();
+        }
+        
+        // Get user's applications if jobseeker
+        $applications = [];
+        if ($user->role === 'jobseeker') {
+            $applications = JobApplication::where('user_id', $user->id)
+                ->with(['job.employer', 'job.jobType'])
+                ->orderBy('created_at', 'DESC')
+                ->get();
+        }
+        
+        return view('admin.users.show', [
+            'user' => $user,
+            'jobs' => $jobs,
+            'applications' => $applications,
+        ]);
+    }
+
     public function edit($id){
-        $user = User::with(['employerProfile', 'jobSeekerProfile'])->findOrFail($id);
+        $user = User::with(['employer', 'jobseeker'])->findOrFail($id);
         return view('admin.users.edit',[
             'user' => $user,
         ]);
@@ -146,10 +186,12 @@ class UserController extends Controller
     }
 
     public function forceKycReverification(Request $request, User $user) {
-        if ($user->jobSeekerProfile) {
-            $user->jobSeekerProfile->is_verified = false;
-            $user->jobSeekerProfile->save();
-        }
+        // Reset KYC status to require reverification
+        $user->kyc_status = 'not_started';
+        $user->kyc_session_id = null;
+        $user->kyc_completed_at = null;
+        $user->kyc_verified_at = null;
+        $user->save();
 
         Session()->flash('success', 'User KYC reverification requested');
         return response()->json(['status' => true]);
@@ -197,7 +239,7 @@ class UserController extends Controller
                 $user->created_at->format('Y-m-d H:i:s'),
                 $user->mobile ?? 'N/A',
                 $user->designation ?? 'N/A',
-                $user->employerProfile ? 'Employer' : ($user->jobSeekerProfile ? 'Job Seeker' : 'N/A'),
+                $user->employer ? 'Employer' : ($user->jobseeker ? 'Job Seeker' : 'N/A'),
                 $user->last_login_at ?? 'Never'
             ];
         }
@@ -244,10 +286,12 @@ class UserController extends Controller
                     $user->save();
                     break;
                 case 'force-kyc':
-                    if ($user->jobSeekerProfile) {
-                        $user->jobSeekerProfile->is_verified = false;
-                        $user->jobSeekerProfile->save();
-                    }
+                    // Reset KYC status to require reverification
+                    $user->kyc_status = 'not_started';
+                    $user->kyc_session_id = null;
+                    $user->kyc_completed_at = null;
+                    $user->kyc_verified_at = null;
+                    $user->save();
                     break;
             }
             $count++;

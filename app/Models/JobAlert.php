@@ -11,6 +11,8 @@ class JobAlert extends Model
 
     protected $fillable = [
         'user_id',
+        'categories',
+        'job_types',
         'location',
         'salary_range',
         'frequency',

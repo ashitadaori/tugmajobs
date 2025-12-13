@@ -1,0 +1,109 @@
+name: Security Scanning
+
+on:
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  dependency-scan:
+    runs-on: ubuntu-latest
+    name: Dependency Security Scan
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.2
+
+    - name: Install Composer dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction
+
+    - name: Run Composer Audit
+      run: composer audit --format=json || true
+
+    - name: Check for known security vulnerabilities
+      run: |
+        composer require --dev enlightn/security-checker --no-interaction
+        ./vendor/bin/security-checker security:check composer.lock
+
+  code-scan:
+    runs-on: ubuntu-latest
+    name: Static Code Analysis
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.2
+
+    - name: Install Composer dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction
+
+    - name: Run PHPStan (Static Analysis)
+      run: |
+        composer require --dev phpstan/phpstan --no-interaction
+        ./vendor/bin/phpstan analyze app --level=5 || true
+
+  env-check:
+    runs-on: ubuntu-latest
+    name: Environment Security Check
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for exposed secrets
+      run: |
+        echo "Checking for common security issues..."
+        # Check if .env is in git
+        if git ls-files --error-unmatch .env 2>/dev/null; then
+          echo "::error::.env file should not be committed!"
+          exit 1
+        fi
+
+        # Check for hardcoded credentials
+        if grep -r "password.*=.*['\"].*['\"]" app/ --include="*.php" | grep -v "factory" | grep -v "test"; then
+          echo "::warning::Potential hardcoded passwords found"
+        fi
+
+        # Check for API keys in code
+        if grep -rE "(api_key|apikey|api-key).*=.*['\"][A-Za-z0-9]{20,}['\"]" app/ --include="*.php"; then
+          echo "::warning::Potential hardcoded API keys found"
+        fi
+
+        echo "Security check completed"
+
+  sql-injection-scan:
+    runs-on: ubuntu-latest
+    name: SQL Injection Scan
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for raw SQL queries
+      run: |
+        echo "Scanning for potentially unsafe SQL queries..."
+        # Look for DB::raw without proper escaping
+        if grep -r "DB::raw" app/ --include="*.php" | grep -v "DB::raw.*\?" ; then
+          echo "::warning::Found DB::raw calls that may need review"
+        fi
+
+        # Look for raw where clauses
+        if grep -rE "whereRaw\(['\"].*\$" app/ --include="*.php"; then
+          echo "::warning::Found whereRaw with potential string interpolation"
+        fi
+
+        echo "SQL injection scan completed"

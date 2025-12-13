@@ -44,6 +44,66 @@
                                     <label for="" class="mb-2">Mobile</label>
                                     <input type="text" value="{{ $user->mobile }}" name="mobile" id="mobile" placeholder="Mobile" class="form-control">
                                 </div>
+
+                                {{-- Job Seeker Resume Section --}}
+                                @if($user->role === 'jobseeker' && $user->jobSeekerProfile && $user->jobSeekerProfile->resume_file)
+                                    <div class="mb-4">
+                                        <label class="mb-2">Resume</label>
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <div>
+                                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                                        <strong>{{ $user->jobSeekerProfile->resume_file }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            Uploaded: {{ $user->jobSeekerProfile->updated_at->format('M d, Y h:i A') }}
+                                                        </small>
+                                                    </div>
+                                                    <a href="{{ asset('storage/resumes/' . $user->jobSeekerProfile->resume_file) }}" 
+                                                       class="btn btn-primary" target="_blank">
+                                                        <i class="fas fa-download me-2"></i>Download Resume
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @elseif($user->role === 'jobseeker')
+                                    <div class="mb-4">
+                                        <label class="mb-2">Resume</label>
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            No resume uploaded yet
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Employer Company Info Section --}}
+                                @if($user->role === 'employer' && $user->employerProfile)
+                                    <div class="mb-4">
+                                        <label class="mb-2">Company Information</label>
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p class="mb-2"><strong>Company Name:</strong><br>{{ $user->employerProfile->company_name ?? 'N/A' }}</p>
+                                                        <p class="mb-2"><strong>Website:</strong><br>{{ $user->employerProfile->website ?? 'N/A' }}</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="mb-2"><strong>Location:</strong><br>{{ $user->employerProfile->location ?? 'N/A' }}</p>
+                                                        <p class="mb-2"><strong>Company Size:</strong><br>{{ $user->employerProfile->company_size ?? 'N/A' }}</p>
+                                                    </div>
+                                                </div>
+                                                @if($user->employerProfile->company_logo)
+                                                    <div class="mt-3">
+                                                        <strong>Company Logo:</strong><br>
+                                                        <img src="{{ $user->employerProfile->logo_url }}" alt="Company Logo" style="max-width: 200px; max-height: 100px;" class="mt-2">
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                             <div class="card-footer  p-4">
                                 <button type="submit" class="btn btn-primary">Update</button>

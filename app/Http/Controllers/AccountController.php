@@ -16,8 +16,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -39,37 +37,60 @@ class AccountController extends Controller
             'password' => 'required|min:5|same:confirm_password',
             'confirm_password' => 'required',
             'role' => 'required|in:jobseeker,employer'
+        ], [
+            'email.unique' => 'The email is already in use.'
         ]);
 
         if($validator->passes()){
-            $user = new User();
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->password = Hash::make($request->password);
-            $user->role = $request->role;
-            $user->save();
+            try {
+                // Use database transaction to ensure both user and profile are created
+                DB::beginTransaction();
 
-            // Create corresponding profile based on role
-            if ($request->role === 'employer') {
-                $user->employerProfile()->create([]);
-            } else {
-                $user->jobSeekerProfile()->create([]);
+                $user = new User();
+                $user->name = $request->name;
+                $user->email = $request->email;
+                $user->password = Hash::make($request->password);
+                $user->role = $request->role;
+                $user->save();
+
+                // Create corresponding profile based on role
+                if ($request->role === 'employer') {
+                    $user->employerProfile()->create([]);
+                } else {
+                    $user->jobSeekerProfile()->create([]);
+                }
+
+                DB::commit();
+
+                $message = "You have registered successfully. Please login to continue.";
+                Session()->flash('success', $message);
+
+                \Log::info('User registered successfully', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'role' => $user->role
+                ]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => $message,
+                    'redirect' => route('account.login')
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                \Log::error('Registration failed', [
+                    'email' => $request->email,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                return response()->json([
+                    'status' => false,
+                    'errors' => ['general' => ['Registration failed. Please try again later.']],
+                ]);
             }
-
-            // Log the user in
-            Auth::login($user);
-
-            $message = "You have registered successfully.";
-            Session()->flash('success',$message);
-
-            // Return JSON response with appropriate redirect based on role
-            return response()->json([
-                'status' => true,
-                'message' => $message,
-                'redirect' => $request->role === 'employer' 
-                    ? route('employer.dashboard')
-                    : route('account.login')
-            ]);
         }else{
             return response()->json([
                 'status' => false,
@@ -90,7 +111,17 @@ class AccountController extends Controller
         ]);
         if($validator->passes()){
             if(Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->has('remember'))){
-                return redirect()->route('account.myProfile');
+                $user = Auth::user();
+
+                // Admin can login from any login page
+                // Redirect based on user role
+                if ($user->role === 'admin') {
+                    return redirect()->route('admin.dashboard');
+                } elseif ($user->role === 'employer') {
+                    return redirect()->route('employer.dashboard');
+                } else {
+                    return redirect()->route('account.profile');
+                }
             }else{
                 return redirect()->route('account.login')
                     ->withInput($request->only('email'))
@@ -107,43 +138,8 @@ class AccountController extends Controller
         $id = Auth::user()->id;
         $user = User::where('id', $id)->with('jobSeekerProfile')->first();
 
-        // Calculate profile completion percentage for job seekers
-        $completionPercentage = 0;
-        if ($user->isJobSeeker()) {
-            $fields = [
-                'name' => 5,
-                'email' => 5,
-                'mobile' => 10,
-                'designation' => 10,
-                'image' => 10,
-                'skills' => 15,
-                'education' => 15,
-                'experience_years' => 10,
-                'bio' => 10,
-                'jobSeekerProfile.is_kyc_verified' => 10
-            ];
-
-            foreach ($fields as $field => $weight) {
-                if (str_contains($field, '.')) {
-                    // Handle nested relationship fields
-                    [$relation, $relationField] = explode('.', $field);
-                    if ($user->$relation && $user->$relation->$relationField) {
-                        $completionPercentage += $weight;
-                    }
-                } else {
-                    // Handle direct user fields
-                    if ($field === 'skills' || $field === 'education') {
-                        if (!empty($user->$field) && is_array($user->$field)) {
-                            $completionPercentage += $weight;
-                        }
-                    } else {
-                        if (!empty($user->$field)) {
-                            $completionPercentage += $weight;
-                        }
-                    }
-                }
-            }
-        }
+        // Calculate profile completion percentage using the same method as dashboard
+        $completionPercentage = $this->calculateProfileCompletion($user);
 
         return view('front.account.profile', [
             'user' => $user,
@@ -176,10 +172,11 @@ class AccountController extends Controller
             }
 
             $rules = [
-                'name' => 'required|min:5|max:20',
+                'name' => 'required|min:2|max:100',
                 'email' => 'required|email|unique:users,email,'.$id.',id',
-                'mobile' => 'nullable|string|max:15',
-                'designation' => 'nullable|string|max:50'
+                'mobile' => 'nullable|string|max:20',
+                'phone' => 'nullable|string|max:20',
+                'designation' => 'nullable|string|max:100'
             ];
 
             // Add validation rules for job seeker fields
@@ -195,7 +192,15 @@ class AccountController extends Controller
                     'salary_type' => 'nullable|string|in:Month,Year,Week,Hour',
                     'qualification' => 'nullable|string|max:100',
                     'language' => 'nullable|string|max:50',
-                    'categories' => 'nullable|string'
+                    'categories' => 'nullable|string',
+                    // Job Preferences
+                    'preferred_categories' => 'nullable|array',
+                    'preferred_categories.*' => 'integer|exists:categories,id',
+                    'preferred_job_types' => 'nullable|array',
+                    'preferred_job_types.*' => 'integer|exists:job_types,id',
+                    'experience_level' => 'nullable|string|in:entry,mid,senior,lead',
+                    'salary_expectation_min' => 'nullable|numeric|min:0',
+                    'salary_expectation_max' => 'nullable|numeric|min:0|gte:salary_expectation_min'
                 ]);
             }
 
@@ -207,10 +212,16 @@ class AccountController extends Controller
                     'data' => $request->all()
                 ]);
 
-                return response()->json([
-                    'status' => false,
-                    'errors' => $validator->errors()
-                ]);
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => false,
+                        'errors' => $validator->errors()
+                    ]);
+                }
+
+                return redirect()->back()
+                    ->withErrors($validator)
+                    ->withInput();
             }
 
             // Log the validated data
@@ -219,13 +230,123 @@ class AccountController extends Controller
             ]);
 
             // Update user data
-            $user->fill($validator->validated());
+            $validatedData = $validator->validated();
+
+            // Separate user fields from jobseeker profile fields
+            $userFields = [];
+            $jobseekerFields = [];
+
+            // User table fields (only basic authentication and contact fields)
+            $userOnlyFields = ['name', 'email', 'phone'];
+
+            foreach ($validatedData as $key => $value) {
+                if (in_array($key, $userOnlyFields)) {
+                    $userFields[$key] = $value;
+                } else {
+                    // All other fields go to jobseeker profile
+                    $jobseekerFields[$key] = $value;
+                }
+            }
+
+            // Update user basic fields
+            $user->fill($userFields);
 
             try {
                 $user->save();
+                
+                // Also update jobseeker profile if user is a job seeker
+                $jobseekerProfile = $user->jobSeekerProfile ?? $user->jobseeker;
+
+                if ($user->isJobSeeker() && $jobseekerProfile) {
+                    $jobseekerData = [];
+
+                    // Map user form fields to jobseeker profile database fields
+                    $fieldMapping = [
+                        'phone' => 'phone',
+                        'mobile' => 'alternate_phone',
+                        'bio' => 'professional_summary',
+                        'designation' => 'current_job_title',
+                        'experience_years' => 'total_experience_years',
+                        'location' => 'city',
+                        'salary_expectation_min' => 'expected_salary_min',
+                        'salary_expectation_max' => 'expected_salary_max',
+                    ];
+
+                    // Direct mappings
+                    foreach ($fieldMapping as $requestField => $dbField) {
+                        if (isset($jobseekerFields[$requestField])) {
+                            $jobseekerData[$dbField] = $jobseekerFields[$requestField];
+                        }
+                    }
+
+                    // Handle skills (convert comma-separated string to array)
+                    if (isset($jobseekerFields['skills'])) {
+                        $skills = $jobseekerFields['skills'];
+                        if (is_string($skills)) {
+                            $skills = array_filter(array_map('trim', explode(',', $skills)));
+                        }
+                        $jobseekerData['skills'] = $skills;
+                    } elseif ($request->has('skills') && empty($request->skills)) {
+                        // Explicitly set to empty array if field is present but empty
+                        $jobseekerData['skills'] = [];
+                    }
+
+                    // Handle preferred_categories and preferred_job_types
+                    if (isset($jobseekerFields['preferred_categories'])) {
+                        $jobseekerData['preferred_categories'] = $jobseekerFields['preferred_categories'];
+                    } elseif ($request->has('preferred_categories')) {
+                        // Explicitly set to empty array if present but empty
+                        $jobseekerData['preferred_categories'] = [];
+                    }
+
+                    if (isset($jobseekerFields['preferred_job_types'])) {
+                        $jobseekerData['preferred_job_types'] = $jobseekerFields['preferred_job_types'];
+                    } elseif ($request->has('preferred_job_types')) {
+                        // Explicitly set to empty array if present but empty
+                        $jobseekerData['preferred_job_types'] = [];
+                    }
+
+                    // Handle experience_level
+                    if (isset($jobseekerFields['experience_level'])) {
+                        $jobseekerData['experience_level'] = $jobseekerFields['experience_level'];
+                    }
+
+                    // Update name fields if provided
+                    if (isset($userFields['name'])) {
+                        $nameParts = explode(' ', $userFields['name'], 2);
+                        $jobseekerData['first_name'] = $nameParts[0] ?? '';
+                        $jobseekerData['last_name'] = $nameParts[1] ?? '';
+                    }
+
+                    if (!empty($jobseekerData)) {
+                        try {
+                            $jobseekerProfile->update($jobseekerData);
+                            \Log::info('Jobseeker profile updated successfully', [
+                                'user_id' => $user->id,
+                                'fields_updated' => array_keys($jobseekerData)
+                            ]);
+                        } catch (\Exception $e) {
+                            \Log::error('Jobseeker profile update failed', [
+                                'error' => $e->getMessage(),
+                                'data' => $jobseekerData,
+                                'trace' => $e->getTraceAsString()
+                            ]);
+                            // Don't throw error, just log it and continue
+                        }
+                    } else {
+                        \Log::info('No jobseeker data to update', ['user_id' => $user->id]);
+                    }
+                } else {
+                    \Log::info('Skipping jobseeker profile update', [
+                        'user_id' => $user->id,
+                        'is_jobseeker' => $user->isJobSeeker(),
+                        'has_profile' => !is_null($jobseekerProfile)
+                    ]);
+                }
+                
                 \Log::info('Profile Update Successful', ['user_id' => $user->id]);
 
-                if ($request->wantsJson()) {
+                if ($request->wantsJson() || $request->ajax()) {
                     return response()->json([
                         'status' => true,
                         'message' => 'Profile updated successfully'
@@ -264,7 +385,7 @@ class AccountController extends Controller
         $id = Auth::user()->id;
 
         $validator = Validator::make($request->all(),[
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120' // 5MB max
         ]);
 
         if($validator->passes()){
@@ -292,15 +413,16 @@ class AccountController extends Controller
                     'thumb_path_writable' => is_writable($thumbPath)
                 ]);
 
-                try {
-                    // Move original image
-                    $image->move($profilePath, $imageName);
-                    \Log::info('Original image moved successfully', ['path' => $profilePath.'/'.$imageName]);
+                // Move original image
+                $image->move($profilePath, $imageName);
+                \Log::info('Original image moved successfully', ['path' => $profilePath.'/'.$imageName]);
 
-                // Create thumbnail using Intervention Image
-                $manager = new ImageManager(new Driver());
-                $img = $manager->read($profilePath.'/'.$imageName);
-                $img->scale(width: 150);
+                // Create thumbnail using Intervention Image v2
+                $sourcePath = $profilePath.'/'.$imageName;
+                $img = Image::make($sourcePath);
+                $img->fit(150, 150, function ($constraint) {
+                    $constraint->upsize();
+                });
                 $img->save($thumbPath.'/'.$imageName);
 
                 // Delete old images if they exist
@@ -338,27 +460,58 @@ class AccountController extends Controller
                 
                 return response()->json([
                     'status' => false,
-                    'errors' => ['image' => 'Error processing image: ' . $e->getMessage()]
-                ]);
-            }
-
-            } catch (\Exception $e) {
-                \Log::error('Image processing error: ' . $e->getMessage(), [
-                    'userId' => $id,
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-                
-                return response()->json([
-                    'status' => false,
-                    'errors' => ['image' => 'Error processing image: ' . $e->getMessage()]
+                    'errors' => ['image' => ['Error processing image: ' . $e->getMessage()]]
                 ]);
             }
         } else {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors()
+            ]);
+        }
+    }
+
+    // Remove profile image
+    public function removeProfileImage(Request $request) {
+        try {
+            $user = Auth::user();
+            $oldImage = $user->image;
+
+            if ($oldImage) {
+                // Define paths
+                $profilePath = public_path('profile_img');
+                $thumbPath = public_path('profile_img/thumb');
+                $oldImagePath = $profilePath.'/'.$oldImage;
+                $oldThumbPath = $thumbPath.'/'.$oldImage;
+
+                // Delete old images if they exist
+                if (File::exists($oldImagePath)) {
+                    File::delete($oldImagePath);
+                }
+                if (File::exists($oldThumbPath)) {
+                    File::delete($oldThumbPath);
+                }
+
+                // Update user record
+                $user->image = null;
+                $user->save();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Profile image removed successfully'
+                ]);
+            }
+
+            return response()->json([
+                'status' => false,
+                'message' => 'No profile image to remove'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Remove profile image error: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to remove profile image. Please try again.'
             ]);
         }
     }
@@ -596,6 +749,31 @@ class AccountController extends Controller
         ]);
     }
 
+    /**
+     * Show detailed application view for jobseeker
+     * This includes all employer messages, status history, and interview details
+     */
+    public function showJobApplication($id)
+    {
+        $application = JobApplication::where('id', $id)
+            ->where('user_id', Auth::user()->id)
+            ->with([
+                'job',
+                'job.jobType',
+                'job.company',
+                'job.employer.employerProfile',
+                'job.jobRequirements',
+                'statusHistory' => function($query) {
+                    $query->orderBy('created_at', 'desc');
+                },
+                'statusHistory.updatedByUser'
+            ])
+            ->firstOrFail();
+
+        return view('front.account.job.application-detail', [
+            'application' => $application,
+        ]);
+    }
 
     // remove applied jobs
     public function removeJobs(Request $request){
@@ -622,14 +800,8 @@ class AccountController extends Controller
      */
     public function savedJobs()
     {
-        $user = auth()->user();
-        $savedJobs = $user->savedJobs()
-            ->with(['jobType'])
-            ->paginate(10);
-
-        return view('front.account.job.saved-jobs', [
-            'savedJobs' => $savedJobs
-        ]);
+        // Redirect to new saved jobs route
+        return redirect()->route('account.saved-jobs.index');
     }
 
     /**
@@ -688,6 +860,50 @@ class AccountController extends Controller
             $application->resume = $resumeName;
             $application->status = 'pending';
             $application->save();
+
+            // Send notification to employer
+            $job = Job::with('employer')->find($request->job_id);
+            
+            \Log::info('Job application notification debug', [
+                'job_id' => $request->job_id,
+                'job_found' => $job ? 'yes' : 'no',
+                'job_employer_id' => $job ? $job->employer_id : 'N/A',
+                'employer_loaded' => ($job && $job->employer) ? 'yes' : 'no',
+                'employer_id' => ($job && $job->employer) ? $job->employer->id : 'N/A',
+            ]);
+            
+            if ($job && $job->employer_id) {
+                $notification = \App\Models\Notification::create([
+                    'user_id' => $job->employer_id,
+                    'title' => 'New Application Received',
+                    'message' => Auth::user()->name . ' has applied for "' . $job->title . '"',
+                    'type' => 'new_application',
+                    'data' => [
+                        'message' => Auth::user()->name . ' has applied for "' . $job->title . '"',
+                        'type' => 'new_application',
+                        'job_application_id' => $application->id,
+                        'job_id' => $job->id,
+                        'job_title' => $job->title,
+                        'applicant_name' => Auth::user()->name,
+                        'applicant_id' => Auth::user()->id,
+                    ],
+                    'action_url' => route('employer.applications.show', $application->id),
+                    'read_at' => null
+                ]);
+                
+                \Log::info('Notification created successfully', [
+                    'notification_id' => $notification->id,
+                    'employer_id' => $job->employer_id,
+                    'applicant_name' => Auth::user()->name,
+                    'job_title' => $job->title
+                ]);
+            } else {
+                \Log::warning('Could not create notification - job or employer not found', [
+                    'job_id' => $request->job_id,
+                    'job_exists' => $job ? 'yes' : 'no',
+                    'employer_id' => $job ? $job->employer_id : 'N/A'
+                ]);
+            }
 
             Session::flash('success', 'Your job application has been submitted successfully.');
 
@@ -796,12 +1012,6 @@ class AccountController extends Controller
         $id = Auth::user()->id;
         $user = User::where('id', $id)->with('jobSeekerProfile')->first();
 
-        // Create JobSeekerProfile if it doesn't exist for job seekers
-        if ($user->isJobSeeker() && !$user->jobSeekerProfile) {
-            $user->jobSeekerProfile()->create([]);
-            $user->load('jobSeekerProfile'); // Reload the relationship
-        }
-
         // Calculate profile completion percentage
         $completionPercentage = $this->calculateProfileCompletion($user);
 
@@ -863,8 +1073,19 @@ class AccountController extends Controller
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
         
-        $experiences = json_decode($profile->work_experience ?? '[]', true);
-        $experiences[] = $request->all();
+        // Get existing experiences (already cast as array)
+        $experiences = $profile->work_experience ?? [];
+        
+        // Add new experience entry
+        $experiences[] = [
+            'title' => $request->title,
+            'company' => $request->company,
+            'location' => $request->location,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'currently_working' => $request->currently_working ?? 0,
+            'description' => $request->description
+        ];
         
         $profile->work_experience = $experiences;
         $profile->save();
@@ -895,9 +1116,20 @@ class AccountController extends Controller
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
         
-        $experiences = json_decode($profile->work_experience ?? '[]', true);
+        // Get existing experiences (already cast as array)
+        $experiences = $profile->work_experience ?? [];
+        
         if (isset($experiences[$request->index])) {
-            $experiences[$request->index] = $request->except('index');
+            // Update the experience at the specified index
+            $experiences[$request->index] = [
+                'title' => $request->title,
+                'company' => $request->company,
+                'location' => $request->location,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'currently_working' => $request->currently_working ?? 0,
+                'description' => $request->description
+            ];
             
             $profile->work_experience = $experiences;
             $profile->save();
@@ -910,7 +1142,7 @@ class AccountController extends Controller
 
         return response()->json([
             'status' => false,
-            'errors' => ['index' => 'Invalid experience index']
+            'errors' => ['index' => ['Invalid experience index']]
         ]);
     }
 
@@ -929,7 +1161,9 @@ class AccountController extends Controller
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
         
-        $experiences = json_decode($profile->work_experience ?? '[]', true);
+        // Get existing experiences (already cast as array)
+        $experiences = $profile->work_experience ?? [];
+        
         if (isset($experiences[$request->index])) {
             array_splice($experiences, $request->index, 1);
             
@@ -944,7 +1178,7 @@ class AccountController extends Controller
 
         return response()->json([
             'status' => false,
-            'errors' => ['index' => 'Invalid experience index']
+            'errors' => ['index' => ['Invalid experience index']]
         ]);
     }
 
@@ -968,8 +1202,18 @@ class AccountController extends Controller
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
         
-        $education = json_decode($profile->education ?? '[]', true);
-        $education[] = $request->all();
+        // Get existing education (already cast as array)
+        $education = $profile->education ?? [];
+        
+        // Add new education entry
+        $education[] = [
+            'school' => $request->school,
+            'degree' => $request->degree,
+            'field_of_study' => $request->field_of_study,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'currently_studying' => $request->currently_studying ?? 0
+        ];
         
         $profile->education = $education;
         $profile->save();
@@ -1000,9 +1244,18 @@ class AccountController extends Controller
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
         
-        $education = json_decode($profile->education ?? '[]', true);
+        // Get existing education (already cast as array)
+        $education = $profile->education ?? [];
+        
         if (isset($education[$request->index])) {
-            $education[$request->index] = $request->except('index');
+            $education[$request->index] = [
+                'school' => $request->school,
+                'degree' => $request->degree,
+                'field_of_study' => $request->field_of_study,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'currently_studying' => $request->currently_studying ?? 0
+            ];
             
             $profile->education = $education;
             $profile->save();
@@ -1034,7 +1287,9 @@ class AccountController extends Controller
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
         
-        $education = json_decode($profile->education ?? '[]', true);
+        // Get existing education (already cast as array)
+        $education = $profile->education ?? [];
+        
         if (isset($education[$request->index])) {
             array_splice($education, $request->index, 1);
             
@@ -1060,40 +1315,38 @@ class AccountController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ]);
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
         try {
             $user = Auth::user();
             $profile = $user->jobSeekerProfile;
-
+            
+            if (!$profile) {
+                return redirect()->back()->with('error', 'Profile not found. Please complete your profile first.');
+            }
+            
             // Delete old resume if exists
             if ($profile->resume_file) {
-                Storage::delete('public/resumes/' . $profile->resume_file);
+                Storage::disk('public')->delete($profile->resume_file);
             }
 
             // Store new resume
             $resume = $request->file('resume');
-            $resumeName = time() . '_' . $user->id . '_' . $resume->getClientOriginalName();
-            $resume->storeAs('public/resumes', $resumeName);
+            $resumeName = 'resumes/' . time() . '_' . $user->id . '_' . $resume->getClientOriginalName();
+            $resume->storeAs('public', $resumeName);
 
+            // Update jobseeker profile's resume_file field
             $profile->resume_file = $resumeName;
             $profile->save();
 
-            Session::flash('success', 'Resume uploaded successfully.');
-            return response()->json([
-                'status' => true
-            ]);
+            return redirect()->back()->with('success', 'Resume uploaded successfully!');
 
         } catch (\Exception $e) {
             \Log::error('Resume upload error: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'errors' => ['resume' => 'Failed to upload resume. Please try again.']
-            ]);
+            return redirect()->back()->with('error', 'Failed to upload resume. Please try again.');
         }
     }
 
@@ -1103,26 +1356,72 @@ class AccountController extends Controller
             'social_links.linkedin' => 'nullable|url',
             'social_links.github' => 'nullable|url',
             'social_links.portfolio' => 'nullable|url',
-            'social_links.other' => 'nullable|url'
+            'social_links.facebook' => 'nullable|url',
+            'social_links.twitter' => 'nullable|url',
+            'social_links.instagram' => 'nullable|url'
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ]);
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        $user = Auth::user();
-        $profile = $user->jobSeekerProfile;
-        
-        $profile->social_links = $request->social_links;
-        $profile->save();
+        try {
+            $user = Auth::user();
+            $profile = $user->jobSeekerProfile;
 
-        Session::flash('success', 'Social links updated successfully.');
-        return response()->json([
-            'status' => true
-        ]);
+            if (!$profile) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => false,
+                        'errors' => ['general' => ['Profile not found']]
+                    ]);
+                }
+                return redirect()->back()->with('error', 'Profile not found.');
+            }
+
+            // Map social_links array to individual database fields
+            $socialLinks = $request->social_links ?? [];
+
+            $profile->linkedin_url = $socialLinks['linkedin'] ?? null;
+            $profile->github_url = $socialLinks['github'] ?? null;
+            $profile->portfolio_url = $socialLinks['portfolio'] ?? null;
+            $profile->facebook_url = $socialLinks['facebook'] ?? null;
+            $profile->twitter_url = $socialLinks['twitter'] ?? null;
+            $profile->instagram_url = $socialLinks['instagram'] ?? null;
+
+            $profile->save();
+
+            Session::flash('success', 'Social links updated successfully.');
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Social links updated successfully.'
+                ]);
+            }
+
+            return redirect()->route('account.myProfile')->with('success', 'Social links updated successfully.');
+
+        } catch (\Exception $e) {
+            \Log::error('Social links update error: ' . $e->getMessage());
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => ['general' => ['Failed to update social links. Please try again.']]
+                ]);
+            }
+
+            return redirect()->back()->with('error', 'Failed to update social links. Please try again.');
+        }
     }
 
     // Delete account
@@ -1152,6 +1451,27 @@ class AccountController extends Controller
         ]);
     }
 
+    // Deactivate account
+    public function deactivateAccount(Request $request) {
+        $user = Auth::user();
+
+        try {
+            // Deactivate the account
+            $user->status = 0;
+            $user->deactivated_at = now();
+            $user->save();
+
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('home')->with('success', 'Your account has been deactivated. You can reactivate it by logging in again.');
+        } catch (\Exception $e) {
+            \Log::error('Error deactivating account: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'There was an error deactivating your account. Please try again.');
+        }
+    }
+
     // Helper method to calculate profile completion
     private function calculateProfileCompletion($user) {
         if (!$user->isJobSeeker()) {
@@ -1159,33 +1479,94 @@ class AccountController extends Controller
         }
 
         $profile = $user->jobSeekerProfile;
-        $totalFields = 8; // Total number of important profile fields
-        $completedFields = 0;
 
-        // Basic info (30%)
-        if (!empty($user->name)) $completedFields++;
-        if (!empty($user->email)) $completedFields++;
-        if (!empty($user->phone)) $completedFields++;
+        // Define fields with their weights - total should be 100
+        $checks = [
+            // Basic Information (25 points)
+            ['field' => 'name', 'model' => 'user', 'weight' => 5],
+            ['field' => 'email', 'model' => 'user', 'weight' => 5],
+            ['field' => 'phone', 'model' => 'user', 'weight' => 5],
+            ['field' => 'image', 'model' => 'user', 'weight' => 5],
+            ['field' => 'current_job_title', 'model' => 'profile', 'weight' => 5],
 
-        // Professional info (70%)
-        if (!empty($user->designation)) $completedFields++;
-        if (!empty($user->bio)) $completedFields++;
-        if (!empty($profile->work_experience)) $completedFields++;
-        if (!empty($profile->education)) $completedFields++;
-        if (!empty($profile->resume_file)) $completedFields++;
+            // Professional Information (35 points)
+            ['field' => 'professional_summary', 'model' => 'profile', 'weight' => 10, 'min_length' => 100],
+            ['field' => 'skills', 'model' => 'profile', 'weight' => 10, 'type' => 'array', 'min_count' => 3],
+            ['field' => 'work_experience', 'model' => 'profile', 'weight' => 8, 'type' => 'array', 'min_count' => 1],
+            ['field' => 'education', 'model' => 'profile', 'weight' => 7, 'type' => 'array', 'min_count' => 1],
 
-        return round(($completedFields / $totalFields) * 100);
+            // Resume (10 points)
+            ['field' => 'resume_file', 'model' => 'profile', 'weight' => 10],
+
+            // Job Preferences (15 points)
+            ['field' => 'preferred_categories', 'model' => 'profile', 'weight' => 5, 'type' => 'array', 'min_count' => 1],
+            ['field' => 'preferred_job_types', 'model' => 'profile', 'weight' => 5, 'type' => 'array', 'min_count' => 1],
+            ['field' => 'experience_level', 'model' => 'profile', 'weight' => 5],
+
+            // KYC Verification (15 points)
+            ['field' => 'kyc_status', 'model' => 'user', 'weight' => 15, 'value' => 'verified'],
+        ];
+
+        $completedWeight = 0;
+
+        foreach ($checks as $check) {
+            $model = $check['model'] === 'user' ? $user : $profile;
+
+            if (!$model) {
+                continue;
+            }
+
+            $field = $check['field'];
+            $value = $model->$field ?? null;
+
+            // Check specific value match
+            if (isset($check['value'])) {
+                if ($value === $check['value']) {
+                    $completedWeight += $check['weight'];
+                }
+                continue;
+            }
+
+            // Check array type with minimum count
+            if (isset($check['type']) && $check['type'] === 'array') {
+                if (is_array($value) && count($value) >= ($check['min_count'] ?? 1)) {
+                    $completedWeight += $check['weight'];
+                }
+                continue;
+            }
+
+            // Check minimum length for strings
+            if (isset($check['min_length'])) {
+                if (!empty($value) && strlen($value) >= $check['min_length']) {
+                    $completedWeight += $check['weight'];
+                }
+                continue;
+            }
+
+            // Default: check if value exists
+            if (!empty($value)) {
+                $completedWeight += $check['weight'];
+            }
+        }
+
+        return min(100, $completedWeight); // Cap at 100%
     }
 
     public function dashboard()
     {
+        \Log::info('Dashboard accessed', [
+            'auth_check' => Auth::check(),
+            'session_id' => session()->getId(),
+            'user_id' => Auth::id()
+        ]);
+
         $user = auth()->user();
-        
+
         // Get statistics
         $stats = [
             'applications' => $user->jobApplications()->count(),
             'saved_jobs' => $user->savedJobs()->count(),
-            'profile_views' => $user->jobSeekerProfile->profile_views ?? 0
+            'profile_views' => ($user->jobSeekerProfile && isset($user->jobSeekerProfile->profile_views)) ? $user->jobSeekerProfile->profile_views : 0
         ];
 
         // Get recent applications (last 5)
@@ -1209,10 +1590,16 @@ class AccountController extends Controller
 
     protected function getRecommendedJobs(User $user)
     {
-        // Get user's skills and preferences
-        $userSkills = $user->jobSeekerProfile->skills ?? [];
-        $userCategory = $user->jobSeekerProfile->preferred_category_id;
-        $userJobType = $user->jobSeekerProfile->preferred_job_type_id;
+        // Get user's skills and preferences with null safety
+        $userSkills = ($user->jobSeekerProfile && isset($user->jobSeekerProfile->skills)) ? $user->jobSeekerProfile->skills : [];
+
+        // Ensure skills is an array
+        if (is_string($userSkills)) {
+            $userSkills = !empty($userSkills) ? array_map('trim', explode(',', $userSkills)) : [];
+        }
+
+        $userCategory = ($user->jobSeekerProfile && isset($user->jobSeekerProfile->preferred_category_id)) ? $user->jobSeekerProfile->preferred_category_id : null;
+        $userJobType = ($user->jobSeekerProfile && isset($user->jobSeekerProfile->preferred_job_type_id)) ? $user->jobSeekerProfile->preferred_job_type_id : null;
 
         // Query jobs based on user preferences
         $query = Job::where('status', 1)
@@ -1232,14 +1619,9 @@ class AccountController extends Controller
         }
 
         // Get jobs that match user's skills
-        if (!empty($userSkills)) {
-            $query->where(function($q) use ($userSkills) {
-                foreach ($userSkills as $skill) {
-                    $q->orWhere('required_skills', 'like', '%' . $skill . '%');
-                }
-            });
-        }
-
+        // Note: Skills matching disabled - required_skills column doesn't exist
+        // TODO: Implement skills matching using meta_data or requirements column
+        
         return $query->with('jobType')
             ->orderBy('created_at', 'desc')
             ->take(4)
@@ -1403,7 +1785,7 @@ class AccountController extends Controller
         if (!Hash::check($request->old_password, $user->password)) {
             return response()->json([
                 'status' => false,
-                'errors' => ['old_password' => 'Old password is incorrect']
+                'errors' => ['old_password' => ['Current password is incorrect']]
             ]);
         }
 
@@ -1418,12 +1800,26 @@ class AccountController extends Controller
 
     public function updatePassword(Request $request)
     {
+        // Accept both old_password and current_password for compatibility
+        $oldPasswordField = $request->has('current_password') ? 'current_password' : 'old_password';
+        
         $validator = Validator::make($request->all(), [
-            'old_password' => 'required',
-            'new_password' => 'required|min:6|confirmed',
+            $oldPasswordField => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ], [
+            $oldPasswordField . '.required' => 'Current password is required',
+            'new_password.required' => 'New password is required',
+            'new_password.min' => 'New password must be at least 8 characters',
+            'new_password.confirmed' => 'Password confirmation does not match',
         ]);
 
         if ($validator->fails()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -1431,7 +1827,13 @@ class AccountController extends Controller
 
         $user = Auth::user();
 
-        if (!Hash::check($request->old_password, $user->password)) {
+        if (!Hash::check($request->$oldPasswordField, $user->password)) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => ['current_password' => ['Current password is incorrect']]
+                ]);
+            }
             return redirect()->back()
                 ->with('error', 'Current password is incorrect');
         }
@@ -1439,8 +1841,90 @@ class AccountController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Password updated successfully'
+            ]);
+        }
+
         return redirect()->back()
             ->with('success', 'Password updated successfully');
+    }
+
+    // Notification methods
+    public function notifications()
+    {
+        $notifications = Auth::user()->notifications()->paginate(20);
+        
+        return view('front.account.jobseeker.notifications', [
+            'notifications' => $notifications
+        ]);
+    }
+
+    public function markNotificationAsRead($id)
+    {
+        try {
+            $notification = Auth::user()->notifications()->findOrFail($id);
+            $notification->markAsRead();
+            
+            \Log::info('Notification marked as read', [
+                'notification_id' => $id,
+                'user_id' => Auth::id(),
+                'read_at' => $notification->read_at
+            ]);
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'Notification marked as read',
+                'unread_count' => Auth::user()->unreadNotifications->count()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to mark notification as read', [
+                'notification_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to mark notification as read'
+            ], 500);
+        }
+    }
+
+    public function markAllNotificationsAsRead()
+    {
+        try {
+            $user = Auth::user();
+            $count = $user->unreadNotifications->count();
+            
+            // Mark each unread notification as read
+            foreach ($user->unreadNotifications as $notification) {
+                $notification->markAsRead();
+            }
+            
+            \Log::info('All notifications marked as read', [
+                'user_id' => Auth::id(),
+                'count' => $count
+            ]);
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'All notifications marked as read',
+                'marked_count' => $count
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to mark all notifications as read', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to mark all notifications as read'
+            ], 500);
+        }
     }
 
 }

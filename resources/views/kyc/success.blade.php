@@ -26,6 +26,11 @@
                     </div>
                     @endif
                     
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-info-circle me-2"></i>Important Note:</h6>
+                        <p class="mb-0">If you started verification on a different device (desktop/laptop), that page should automatically update and redirect you to the dashboard within a few seconds.</p>
+                    </div>
+                    
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                         @auth
                             @if(Auth::user()->isEmployer())

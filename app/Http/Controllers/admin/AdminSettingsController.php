@@ -49,6 +49,105 @@ class AdminSettingsController extends Controller
             ->with('success', 'Settings updated successfully.');
     }
 
+    public function securityLog(Request $request)
+    {
+        $query = \App\Models\SecurityLog::with('user')->orderBy('created_at', 'desc');
+
+        // Filter by event type
+        if ($request->filled('event_type')) {
+            $query->where('event_type', $request->event_type);
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $logs = $query->paginate(20);
+
+        // Get statistics
+        $stats = [
+            'total' => \App\Models\SecurityLog::count(),
+            'today' => \App\Models\SecurityLog::whereDate('created_at', today())->count(),
+            'failed' => \App\Models\SecurityLog::where('status', 'failed')->whereDate('created_at', today())->count(),
+            'blocked' => \App\Models\SecurityLog::where('status', 'blocked')->whereDate('created_at', today())->count(),
+        ];
+
+        return view('admin.settings.security-log', compact('logs', 'stats'));
+    }
+
+    public function auditLog(Request $request)
+    {
+        $query = \App\Models\AuditLog::with('user')->orderBy('created_at', 'desc');
+
+        // Filter by action
+        if ($request->filled('action')) {
+            $query->where('action', $request->action);
+        }
+
+        // Filter by model type
+        if ($request->filled('model_type')) {
+            $query->where('model_type', $request->model_type);
+        }
+
+        // Filter by user
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $logs = $query->paginate(20);
+
+        // Get statistics
+        $stats = [
+            'total' => \App\Models\AuditLog::count(),
+            'today' => \App\Models\AuditLog::whereDate('created_at', today())->count(),
+            'created' => \App\Models\AuditLog::where('action', 'created')->whereDate('created_at', today())->count(),
+            'updated' => \App\Models\AuditLog::where('action', 'updated')->whereDate('created_at', today())->count(),
+            'deleted' => \App\Models\AuditLog::where('action', 'deleted')->whereDate('created_at', today())->count(),
+        ];
+
+        // Get admin users for filter
+        $admins = \App\Models\User::where('role', 'admin')->get();
+
+        return view('admin.settings.audit-log', compact('logs', 'stats', 'admins'));
+    }
+
+    public function clearCache()
+    {
+        try {
+            \Artisan::call('cache:clear');
+            \Artisan::call('config:clear');
+            \Artisan::call('view:clear');
+            \Artisan::call('route:clear');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cache cleared successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to clear cache: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     private function updateEnvironmentFile($data)
     {
         $path = base_path('.env');

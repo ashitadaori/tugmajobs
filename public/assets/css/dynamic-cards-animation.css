@@ -1,0 +1,640 @@
+/**
+ * Dynamic Cards Animation CSS
+ * Vibrant colors, smooth animations, and interactive effects for dashboard cards
+ */
+
+/* ===== DYNAMIC COLOR PALETTE ===== */
+:root {
+    /* Primary Gradients */
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --gradient-danger: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    
+    /* Secondary Gradients */
+    --gradient-purple: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    --gradient-orange: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    --gradient-blue: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+    --gradient-green: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%);
+    
+    /* Dark Gradients */
+    --gradient-dark-primary: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    --gradient-dark-success: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+    --gradient-dark-warning: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
+    --gradient-dark-info: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    
+    /* Animation Variables */
+    --card-hover-scale: 1.05;
+    --card-hover-rotate: 2deg;
+    --card-transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
+    --card-shadow-active: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== BASE CARD STYLING ===== */
+.card,
+.stats-card,
+.welcome-card,
+.quick-action-card {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    border-radius: 20px;
+    transition: var(--card-transition);
+    cursor: pointer;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* ===== WELCOME CARD ENHANCEMENTS ===== */
+.welcome-card {
+    background: var(--gradient-primary);
+    position: relative;
+    min-height: 250px;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.welcome-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
+    pointer-events: none;
+}
+
+.welcome-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: welcome-pulse 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes welcome-pulse {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.5;
+    }
+    50% { 
+        transform: scale(1.1) rotate(180deg);
+        opacity: 0.8;
+    }
+}
+
+.welcome-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== STATS CARDS DYNAMIC STYLING ===== */
+.stats-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    transition: height 0.3s ease;
+}
+
+.stats-card:hover::before {
+    height: 8px;
+}
+
+.stats-card:hover {
+    transform: translateY(-12px) rotate(1deg);
+    box-shadow: var(--card-shadow-hover);
+}
+
+/* Primary Stats Card */
+.stats-card.gradient-border-primary {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                var(--gradient-primary) border-box;
+}
+
+.stats-card.gradient-border-primary::before {
+    background: var(--gradient-primary);
+}
+
+.stats-card.gradient-border-primary:hover {
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+}
+
+/* Success Stats Card */
+.stats-card.gradient-border-success {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                var(--gradient-success) border-box;
+}
+
+.stats-card.gradient-border-success::before {
+    background: var(--gradient-success);
+}
+
+.stats-card.gradient-border-success:hover {
+    box-shadow: 0 20px 40px rgba(17, 153, 142, 0.2);
+}
+
+/* Warning Stats Card */
+.stats-card.gradient-border-warning {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                var(--gradient-warning) border-box;
+}
+
+.stats-card.gradient-border-warning::before {
+    background: var(--gradient-warning);
+}
+
+.stats-card.gradient-border-warning:hover {
+    box-shadow: 0 20px 40px rgba(240, 147, 251, 0.2);
+    animation: warning-shake 0.5s ease-in-out;
+}
+
+@keyframes warning-shake {
+    0%, 100% { transform: translateY(-12px) rotate(1deg); }
+    25% { transform: translateY(-12px) rotate(-1deg); }
+    75% { transform: translateY(-12px) rotate(1deg); }
+}
+
+/* Info Stats Card */
+.stats-card.gradient-border-info {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                var(--gradient-info) border-box;
+}
+
+.stats-card.gradient-border-info::before {
+    background: var(--gradient-info);
+}
+
+.stats-card.gradient-border-info:hover {
+    box-shadow: 0 20px 40px rgba(79, 172, 254, 0.2);
+}
+
+/* ===== STATS CARD ICONS WITH DYNAMIC COLORS ===== */
+.stats-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: var(--card-transition);
+}
+
+.stats-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    opacity: 0.1;
+    transform: scale(0);
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.stats-card:hover .stats-icon::before {
+    transform: scale(2);
+}
+
+.stats-icon.bg-primary {
+    background: var(--gradient-primary);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.stats-icon.bg-success {
+    background: var(--gradient-success);
+    box-shadow: 0 8px 20px rgba(17, 153, 142, 0.3);
+}
+
+.stats-icon.bg-warning {
+    background: var(--gradient-warning);
+    box-shadow: 0 8px 20px rgba(240, 147, 251, 0.3);
+}
+
+.stats-icon.bg-info {
+    background: var(--gradient-info);
+    box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+}
+
+.stats-card:hover .stats-icon {
+    transform: scale(1.1) rotate(10deg);
+}
+
+/* ===== STATS VALUES ANIMATION ===== */
+.stats-value {
+    font-size: 3rem;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    display: inline-block;
+}
+
+.stats-card.gradient-border-success .stats-value {
+    background: var(--gradient-success);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stats-card.gradient-border-warning .stats-value {
+    background: var(--gradient-warning);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stats-card.gradient-border-info .stats-value {
+    background: var(--gradient-info);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Counter Animation */
+.stats-value[data-counter] {
+    animation: countUp 2s ease-out;
+}
+
+@keyframes countUp {
+    from {
+        transform: scale(0.5) rotate(-10deg);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* ===== TREND INDICATORS ===== */
+.stats-trend {
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    position: relative;
+    overflow: hidden;
+    transition: var(--card-transition);
+}
+
+.stats-trend::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.stats-trend:hover::before {
+    left: 100%;
+}
+
+.trend-up {
+    background: var(--gradient-success);
+    color: white;
+    animation: trend-bounce 2s ease-in-out infinite;
+}
+
+.trend-down {
+    background: var(--gradient-warning);
+    color: white;
+    animation: trend-pulse 2s ease-in-out infinite;
+}
+
+@keyframes trend-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+@keyframes trend-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* ===== PROGRESS BARS ===== */
+.stats-progress .progress {
+    height: 8px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    position: relative;
+}
+
+.stats-progress .progress-bar {
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stats-progress .progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: progress-shine 2s ease-in-out infinite;
+}
+
+@keyframes progress-shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.progress-bar.bg-primary {
+    background: var(--gradient-primary);
+}
+
+.progress-bar.bg-success {
+    background: var(--gradient-success);
+}
+
+.progress-bar.bg-warning {
+    background: var(--gradient-warning);
+}
+
+.progress-bar.bg-info {
+    background: var(--gradient-info);
+}
+
+/* ===== QUICK ACTION CARDS ===== */
+.quick-action-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: var(--card-transition);
+    border: 2px solid transparent;
+}
+
+.quick-action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.quick-action-card:hover::before {
+    opacity: 0.05;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: var(--card-shadow-hover);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.quick-action-card .icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 25px;
+    margin: 0 auto 1.5rem;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    transition: var(--card-transition);
+}
+
+.quick-action-card .icon-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
+
+.quick-action-card:hover .icon-wrapper::before {
+    width: 100%;
+    height: 100%;
+}
+
+.quick-action-card:hover .icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* ===== CARD VARIATIONS ===== */
+.card-primary {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.card-success {
+    background: var(--gradient-success);
+    color: white;
+}
+
+.card-warning {
+    background: var(--gradient-warning);
+    color: white;
+}
+
+.card-info {
+    background: var(--gradient-info);
+    color: white;
+}
+
+.card-danger {
+    background: var(--gradient-danger);
+    color: white;
+}
+
+/* ===== FLOATING ANIMATION ===== */
+.card-floating {
+    animation: float 6s ease-in-out infinite;
+}
+
+.card-floating:nth-child(2n) {
+    animation-delay: -2s;
+}
+
+.card-floating:nth-child(3n) {
+    animation-delay: -4s;
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg);
+    }
+    33% { 
+        transform: translateY(-10px) rotate(1deg);
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg);
+    }
+}
+
+/* ===== PARTICLE EFFECTS ===== */
+.card-particles {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-particles::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px, 30px 30px, 70px 70px;
+    animation: particles 20s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes particles {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-50px, -50px); }
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+    .stats-card {
+        padding: 1.5rem;
+    }
+    
+    .stats-value {
+        font-size: 2.5rem;
+    }
+    
+    .stats-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 1.25rem;
+    }
+    
+    .quick-action-card .icon-wrapper {
+        width: 70px;
+        height: 70px;
+        font-size: 1.75rem;
+    }
+    
+    .welcome-card {
+        min-height: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-card {
+        padding: 1rem;
+    }
+    
+    .stats-value {
+        font-size: 2rem;
+    }
+    
+    .stats-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+    .stats-card,
+    .quick-action-card,
+    .welcome-card,
+    .stats-icon,
+    .stats-trend,
+    .progress-bar {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .card-floating {
+        animation: none !important;
+    }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+    .stats-card,
+    .quick-action-card {
+        background: #1a1a1a;
+        color: #ffffff;
+    }
+    
+    .stats-card::before {
+        background: var(--gradient-dark-primary);
+    }
+    
+    .stats-progress .progress {
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .stats-card,
+    .quick-action-card,
+    .welcome-card {
+        box-shadow: none !important;
+        transform: none !important;
+        animation: none !important;
+        background: white !important;
+        color: black !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    .stats-icon {
+        background: #f0f0f0 !important;
+        color: #333 !important;
+    }
+}

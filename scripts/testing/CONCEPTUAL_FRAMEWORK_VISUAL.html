@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Portal System - Conceptual Framework Visual</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .flowchart {
+            position: relative;
+            width: 100%;
+            height: 800px;
+            margin: 0 auto;
+        }
+        
+        .node {
+            position: absolute;
+            border-radius: 25px;
+            padding: 15px 25px;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 120px;
+            word-wrap: break-word;
+        }
+        
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .start-end {
+            background: linear-gradient(135deg, #a8e6cf, #88d8a3);
+            color: #2d5016;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .process {
+            background: linear-gradient(135deg, #ffd3a5, #fd9853);
+            color: #8b4513;
+            font-size: 14px;
+        }
+        
+        .decision {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #2c3e50;
+            font-size: 14px;
+            border-radius: 15px;
+        }
+        
+        .module {
+            background: linear-gradient(135deg, #d299c2, #fef9d7);
+            color: #5d4037;
+            font-size: 13px;
+        }
+        
+        .detail-list {
+            font-size: 11px;
+            text-align: left;
+            line-height: 1.4;
+            margin-top: 8px;
+        }
+        
+        .detail-list li {
+            margin: 2px 0;
+        }
+        
+        .arrow {
+            position: absolute;
+            z-index: 1;
+        }
+        
+        .arrow::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #34495e;
+        }
+        
+        .arrow-line {
+            height: 2px;
+            background: #34495e;
+            position: absolute;
+        }
+        
+        .arrow-vertical {
+            width: 2px;
+            background: #34495e;
+            position: absolute;
+        }
+        
+        .dotted {
+            border-style: dotted !important;
+            background: repeating-linear-gradient(
+                to right,
+                #34495e,
+                #34495e 5px,
+                transparent 5px,
+                transparent 10px
+            );
+            height: 2px !important;
+        }
+        
+        /* Node Positions */
+        .start { top: 50px; left: 50%; transform: translateX(-50%); }
+        .user-register { top: 150px; left: 50%; transform: translateX(-50%); width: 150px; }
+        
+        .job-seeker { top: 280px; left: 15%; width: 200px; }
+        .employer { top: 280px; right: 15%; width: 200px; }
+        
+        .ai-matching { top: 480px; left: 50%; transform: translateX(-50%); width: 160px; }
+        
+        .kyc-verification { top: 580px; left: 15%; width: 180px; }
+        .admin-panel { top: 580px; right: 15%; width: 180px; }
+        
+        .database { top: 680px; left: 30%; width: 160px; }
+        .analytics { top: 680px; right: 30%; width: 160px; }
+        
+        .end { top: 750px; left: 50%; transform: translateX(-50%); }
+        
+        /* Arrow positions */
+        .arrow1 { top: 200px; left: 50%; transform: translateX(-50%); }
+        .arrow1::after { top: -12px; left: 50%; transform: translateX(-50%); }
+        
+        .line1 { top: 220px; left: 50%; width: 2px; height: 40px; }
+        
+        .line2 { top: 260px; left: 25%; width: 50%; height: 2px; }
+        
+        .line3 { top: 420px; left: 25%; width: 50%; height: 2px; }
+        
+        .line4 { top: 440px; left: 50%; width: 2px; height: 20px; }
+        
+        .line5 { top: 620px; left: 25%; width: 50%; height: 2px; }
+        
+        .line6 { top: 720px; left: 35%; width: 30%; height: 2px; }
+        
+        .line7 { top: 740px; left: 50%; width: 2px; height: 20px; }
+        
+        .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .tech-stack {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 200px;
+        }
+        
+        .tech-stack h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .tech-stack ul {
+            margin: 0;
+            padding: 0 0 0 15px;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #555;
+        }
+        
+        .stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 180px;
+        }
+        
+        .stats h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .stats .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        .integration-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .integration-box h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .integration-icons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .integration-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Job Portal System - Conceptual Framework</h1>
+        
+        <!-- Statistics Box -->
+        <div class="stats">
+            <h4>System Statistics</h4>
+            <div class="stat-item">
+                <span>Tables:</span>
+                <span>24</span>
+            </div>
+            <div class="stat-item">
+                <span>Records:</span>
+                <span>286+</span>
+            </div>
+            <div class="stat-item">
+                <span>Categories:</span>
+                <span>20</span>
+            </div>
+            <div class="stat-item">
+                <span>Users:</span>
+                <span>11</span>
+            </div>
+            <div class="stat-item">
+                <span>Applications:</span>
+                <span>2</span>
+            </div>
+        </div>
+        
+        <!-- Technology Stack -->
+        <div class="tech-stack">
+            <h4>Technology Stack</h4>
+            <ul>
+                <li>Laravel 9+ / PHP 8.2+</li>
+                <li>MySQL Database</li>
+                <li>Blade Templates</li>
+                <li>Vite.js Build System</li>
+                <li>Bootstrap Framework</li>
+                <li>Laravel Sanctum</li>
+            </ul>
+        </div>
+        
+        <div class="flowchart">
+            <!-- Start Node -->
+            <div class="node start-end start">
+                System Start
+            </div>
+            
+            <!-- User Registration -->
+            <div class="node process user-register">
+                User Registration
+                <div class="badge">3</div>
+            </div>
+            
+            <!-- Job Seeker Path -->
+            <div class="node process job-seeker">
+                Job Seeker Module
+                <div class="detail-list">
+                    <li>• Profile Creation</li>
+                    <li>• Skill Management</li>
+                    <li>• Job Search</li>
+                    <li>• Apply for Jobs</li>
+                    <li>• Track Applications</li>
+                    <li>• KYC Verification</li>
+                </div>
+            </div>
+            
+            <!-- Employer Path -->
+            <div class="node process employer">
+                Employer Module
+                <div class="detail-list">
+                    <li>• Company Profile</li>
+                    <li>• Job Posting</li>
+                    <li>• Application Review</li>
+                    <li>• Candidate Management</li>
+                    <li>• KYC Verification</li>
+                    <li>• Analytics Dashboard</li>
+                </div>
+            </div>
+            
+            <!-- AI Matching System -->
+            <div class="node decision ai-matching">
+                AI-Powered Matching
+                <div class="detail-list">
+                    <li>• OpenAI Integration</li>
+                    <li>• K-Means Clustering</li>
+                    <li>• Smart Recommendations</li>
+                    <li>• Resume Analysis</li>
+                </div>
+            </div>
+            
+            <!-- KYC Verification -->
+            <div class="node module kyc-verification">
+                KYC Verification
+                <div class="detail-list">
+                    <li>• Didit Integration</li>
+                    <li>• Document Upload</li>
+                    <li>• Identity Verification</li>
+                    <li>• Status Tracking</li>
+                    <li>• Webhook Handling</li>
+                </div>
+            </div>
+            
+            <!-- Admin Panel -->
+            <div class="node module admin-panel">
+                Admin Panel
+                <div class="detail-list">
+                    <li>• User Management</li>
+                    <li>• Job Approval</li>
+                    <li>• KYC Management</li>
+                    <li>• System Settings</li>
+                    <li>• Analytics</li>
+                </div>
+            </div>
+            
+            <!-- Database Layer -->
+            <div class="node decision database">
+                Database Layer
+                <div class="detail-list">
+                    <li>• MySQL Storage</li>
+                    <li>• Eloquent ORM</li>
+                    <li>• Migration System</li>
+                    <li>• Data Relationships</li>
+                </div>
+            </div>
+            
+            <!-- Analytics & Reporting -->
+            <div class="node decision analytics">
+                Analytics & Reporting
+                <div class="detail-list">
+                    <li>• Job View Tracking</li>
+                    <li>• User Activity</li>
+                    <li>• Performance Metrics</li>
+                    <li>• System Monitoring</li>
+                </div>
+            </div>
+            
+            <!-- End Node -->
+            <div class="node start-end end">
+                System End
+            </div>
+            
+            <!-- Arrows and Lines -->
+            <div class="arrow-line line1"></div>
+            <div class="arrow-line line2"></div>
+            <div class="arrow-line line3"></div>
+            <div class="arrow-line line4"></div>
+            <div class="arrow-line line5"></div>
+            <div class="arrow-line line6"></div>
+            <div class="arrow-line line7"></div>
+        </div>
+        
+        <!-- External Integrations -->
+        <div class="integration-box">
+            <h4>External Integrations</h4>
+            <div class="integration-icons">
+                <div class="integration-icon">OpenAI API</div>
+                <div class="integration-icon">Didit KYC</div>
+                <div class="integration-icon">Mapbox</div>
+                <div class="integration-icon">Laravel Sanctum</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const nodes = document.querySelectorAll('.node');
+            
+            nodes.forEach(node => {
+                node.addEventListener('click', function() {
+                    // Add a pulse animation when clicked
+                    this.style.animation = 'pulse 0.6s ease-in-out';
+                    setTimeout(() => {
+                        this.style.animation = '';
+                    }, 600);
+                });
+            });
+        });
+        
+        // Add CSS animation for pulse effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Add tooltips for detailed information
+        const tooltips = {
+            'Job Seeker Module': 'Comprehensive profile management, job search with AI recommendations, application tracking, and KYC verification for job seekers.',
+            'Employer Module': 'Complete hiring solution with job posting, candidate management, company profile setup, and analytics dashboard.',
+            'AI-Powered Matching': 'Advanced AI algorithms using OpenAI and K-Means clustering for intelligent job-candidate matching.',
+            'KYC Verification': 'Secure identity verification system integrated with Didit KYC service for user authentication.',
+            'Admin Panel': 'Administrative control center for system management, user oversight, and analytics.',
+            'Database Layer': 'Robust MySQL database with 24 tables managing all system data and relationships.',
+            'Analytics & Reporting': 'Comprehensive tracking and reporting system for system performance and user activity.'
+        };
+        
+        Object.keys(tooltips).forEach(key => {
+            const elements = Array.from(nodes).filter(node => node.textContent.includes(key));
+            elements.forEach(element => {
+                element.title = tooltips[key];
+            });
+        });
+    </script>
+</body>
+</html>
