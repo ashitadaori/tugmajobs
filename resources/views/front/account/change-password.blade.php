@@ -4,71 +4,49 @@
 
 @section('jobseeker-content')
 <style>
-/* Change Password Professional Styles */
+/* Change Password - Using Modern Design System */
 .change-password-pro {
-    padding: 0;
-    max-width: 600px;
+    padding: 0 1rem;
+    max-width: 700px;
 }
 
-/* Page Header */
-.page-header-password {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.page-header-password h1 {
-    font-size: 1.375rem;
-    font-weight: 700;
-    color: #111827;
-    margin: 0 0 0.375rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-}
-
-.page-header-password h1 i {
-    color: #4f46e5;
-    font-size: 1.25rem;
-}
-
-.page-header-password p {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0;
-}
-
-/* Password Card */
+/* Password Card - Using modern-card design system */
 .password-card {
     background: white;
-    border-radius: 0.875rem;
-    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-lg, 16px);
+    border: 1px solid var(--modern-gray-100, #f1f5f9);
     overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.25s ease;
+}
+
+.password-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .password-card-body {
-    padding: 1.75rem;
+    padding: 2rem;
 }
 
-/* Form Styling */
+/* Form Styling - Using modern-form design system */
 .password-form .form-group {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
 .password-form .form-group:last-of-type {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
 }
 
 .password-form label {
     display: block;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--modern-gray-700, #334155);
     margin-bottom: 0.5rem;
 }
 
 .password-form label .required {
-    color: #ef4444;
+    color: var(--modern-danger, #ef4444);
     margin-left: 0.125rem;
 }
 
@@ -76,20 +54,21 @@
     width: 100%;
     padding: 0.75rem 1rem;
     font-size: 0.9375rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
+    border: 1px solid var(--modern-gray-300, #cbd5e1);
+    border-radius: var(--radius-md, 12px);
+    transition: all 0.25s ease;
     background: white;
+    color: var(--modern-gray-800, #1e293b);
 }
 
 .password-form .form-control:focus {
     outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    border-color: var(--modern-primary, #6366f1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .password-form .form-control.is-invalid {
-    border-color: #ef4444;
+    border-color: var(--modern-danger, #ef4444);
 }
 
 .password-form .form-control.is-invalid:focus {
@@ -98,7 +77,7 @@
 
 .password-form .form-hint {
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--modern-gray-500, #64748b);
     margin-top: 0.375rem;
     display: flex;
     align-items: center;
@@ -106,13 +85,13 @@
 }
 
 .password-form .form-hint i {
-    color: #9ca3af;
+    color: var(--modern-gray-400, #94a3b8);
     font-size: 0.75rem;
 }
 
 .password-form .invalid-feedback {
     font-size: 0.8125rem;
-    color: #ef4444;
+    color: var(--modern-danger, #ef4444);
     margin-top: 0.375rem;
     display: none;
 }
@@ -121,7 +100,7 @@
     display: block;
 }
 
-/* Password Input with Toggle */
+/* Password Input with Toggle - Using design system */
 .password-input-wrapper {
     position: relative;
 }
@@ -137,17 +116,17 @@
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #9ca3af;
+    color: var(--modern-gray-400, #94a3b8);
     cursor: pointer;
     padding: 0.25rem;
-    transition: color 0.2s ease;
+    transition: color 0.25s ease;
 }
 
 .password-toggle:hover {
-    color: #4f46e5;
+    color: var(--modern-primary, #6366f1);
 }
 
-/* Action Buttons */
+/* Action Buttons - Using btn-modern design system */
 .password-actions {
     display: flex;
     gap: 0.75rem;
@@ -160,25 +139,27 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    background: #4f46e5;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md, 12px);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
 }
 
 .btn-save:hover {
-    background: #4338ca;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
 }
 
 .btn-save:disabled {
-    background: #9ca3af;
+    background: var(--modern-gray-300, #cbd5e1);
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 /* Spinner Animation */
@@ -198,39 +179,39 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     background: white;
-    color: #374151;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
+    color: var(--modern-gray-700, #334155);
+    border: 1px solid var(--modern-gray-300, #cbd5e1);
+    border-radius: var(--radius-md, 12px);
     font-size: 0.875rem;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .btn-back:hover {
-    background: #f3f4f6;
-    color: #374151;
-    border-color: #9ca3af;
+    background: var(--modern-gray-50, #f8fafc);
+    color: var(--modern-gray-800, #1e293b);
+    border-color: var(--modern-gray-400, #94a3b8);
 }
 
-/* Alert Styles */
+/* Alert Styles - Using modern-alert design system */
 .alert-pro {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    border-radius: 0.75rem;
+    border-radius: var(--radius-md, 12px);
     margin-bottom: 1.5rem;
     border: none;
 }
 
 .alert-pro.success {
-    background: #d1fae5;
+    background: var(--modern-success-light, #d1fae5);
     color: #047857;
 }
 
 .alert-pro.danger {
-    background: #fee2e2;
+    background: var(--modern-danger-light, #fee2e2);
     color: #b91c1c;
 }
 
@@ -247,17 +228,18 @@
     cursor: pointer;
     padding: 0;
     color: inherit;
+    transition: opacity 0.25s ease;
 }
 
 .alert-pro .btn-close:hover {
     opacity: 1;
 }
 
-/* Security Tips */
+/* Security Tips - Using security-tips-box design system */
 .security-tips {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
+    background: var(--modern-gray-50, #f8fafc);
+    border: 1px solid var(--modern-gray-200, #e2e8f0);
+    border-radius: var(--radius-md, 12px);
     padding: 1.25rem;
     margin-top: 1.5rem;
 }
@@ -265,7 +247,7 @@
 .security-tips h4 {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--modern-gray-700, #334155);
     margin: 0 0 0.75rem 0;
     display: flex;
     align-items: center;
@@ -273,7 +255,7 @@
 }
 
 .security-tips h4 i {
-    color: #4f46e5;
+    color: var(--modern-primary, #6366f1);
 }
 
 .security-tips ul {
@@ -284,7 +266,7 @@
 
 .security-tips li {
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--modern-gray-600, #475569);
     padding: 0.375rem 0;
     display: flex;
     align-items: flex-start;
@@ -292,7 +274,7 @@
 }
 
 .security-tips li i {
-    color: #10b981;
+    color: var(--modern-success, #10b981);
     margin-top: 0.125rem;
     font-size: 0.75rem;
 }
@@ -311,8 +293,8 @@
 </style>
 
 <div class="change-password-pro">
-    <!-- Page Header -->
-    <div class="page-header-password">
+    <!-- Page Header - Using modern design system -->
+    <div class="simple-page-header">
         <h1><i class="fas fa-key"></i> Change Password</h1>
         <p>Update your password to keep your account secure</p>
     </div>

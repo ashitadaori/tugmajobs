@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             JobTypeSeeder::class,
             NotificationSeeder::class,
+            JobSeekersSeeder::class,  // 50 job seekers
+            EmployersSeeder::class,   // 50 employers with jobs
+            JobApplicationsSeeder::class, // Sample applications for analytics
+            ResumeTemplateSeeder::class, // Resume builder templates
         ]);
 
         // Create default job types

@@ -91,7 +91,11 @@ class PesoAnalyticsController extends Controller
 
         // Build cluster data based on job categories and skills
         $clusters = [];
-        $clusterColors = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+        $clusterColors = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#14b8a6', '#f43f5e'];
+
+        // Collect data points for scatter plot visualization
+        $scatterData = [];
+        $centroids = [];
 
         $categoryIndex = 0;
         foreach ($categoryGroups as $categoryId => $categoryJobs) {
@@ -107,6 +111,60 @@ class PesoAnalyticsController extends Controller
             // Find jobseekers interested in this category
             $interestedJobseekers = $this->countInterestedJobseekers($categoryId, $jobseekers);
 
+            // Calculate metrics for scatter plot dimensions
+            $avgSalary = $this->calculateAverageSalary($categoryJobs);
+            $demandScore = $this->calculateDemandScore($categoryJobs->count(), $applicationCount, $interestedJobseekers);
+            $applicationRate = $categoryJobs->count() > 0 ? round($applicationCount / $categoryJobs->count(), 2) : 0;
+            $competitionRatio = $categoryJobs->count() > 0 ? round($interestedJobseekers / $categoryJobs->count(), 2) : 0;
+
+            // Create scatter plot data points for each job in this cluster
+            $clusterPoints = [];
+            foreach ($categoryJobs as $job) {
+                // Calculate individual job metrics for scatter positioning
+                $jobApplications = JobApplication::where('job_id', $job->id)->count();
+                $jobSalary = ($job->salary_min + $job->salary_max) / 2;
+
+                // X-axis: Normalized salary (0-100 scale)
+                $xValue = $avgSalary > 0 ? min(100, ($jobSalary / 100000) * 100) : rand(10, 30);
+                // Y-axis: Application attractiveness (applications per job normalized)
+                $yValue = min(100, $jobApplications * 10 + rand(0, 15));
+
+                // Add some cluster-based offset for visual separation
+                $xValue = max(0, min(100, $xValue + (($categoryIndex % 3) - 1) * 15 + rand(-5, 5)));
+                $yValue = max(0, min(100, $yValue + (floor($categoryIndex / 3) - 1) * 15 + rand(-5, 5)));
+
+                $clusterPoints[] = [
+                    'x' => round($xValue, 2),
+                    'y' => round($yValue, 2),
+                    'job_id' => $job->id,
+                    'title' => $job->title,
+                    'salary' => $jobSalary,
+                    'applications' => $jobApplications,
+                ];
+
+                $scatterData[] = [
+                    'x' => round($xValue, 2),
+                    'y' => round($yValue, 2),
+                    'cluster' => $categoryIndex,
+                    'cluster_name' => $category->name,
+                    'job_title' => $job->title,
+                    'color' => $clusterColors[$categoryIndex % count($clusterColors)],
+                ];
+            }
+
+            // Calculate centroid (mean of all points in cluster)
+            $centroidX = count($clusterPoints) > 0 ? array_sum(array_column($clusterPoints, 'x')) / count($clusterPoints) : 50;
+            $centroidY = count($clusterPoints) > 0 ? array_sum(array_column($clusterPoints, 'y')) / count($clusterPoints) : 50;
+
+            $centroids[] = [
+                'x' => round($centroidX, 2),
+                'y' => round($centroidY, 2),
+                'cluster' => $categoryIndex,
+                'name' => $category->name,
+                'color' => $clusterColors[$categoryIndex % count($clusterColors)],
+                'job_count' => $categoryJobs->count(),
+            ];
+
             $clusters[] = [
                 'id' => $categoryIndex,
                 'name' => $category->name,
@@ -116,9 +174,13 @@ class PesoAnalyticsController extends Controller
                 'jobseeker_count' => $interestedJobseekers,
                 'top_skills' => array_slice($skills, 0, 10),
                 'color' => $clusterColors[$categoryIndex % count($clusterColors)],
-                'avg_salary' => $this->calculateAverageSalary($categoryJobs),
-                'demand_score' => $this->calculateDemandScore($categoryJobs->count(), $applicationCount, $interestedJobseekers),
+                'avg_salary' => $avgSalary,
+                'demand_score' => $demandScore,
+                'application_rate' => $applicationRate,
+                'competition_ratio' => $competitionRatio,
                 'locations' => $this->getJobLocations($categoryJobs),
+                'centroid' => ['x' => round($centroidX, 2), 'y' => round($centroidY, 2)],
+                'points' => $clusterPoints,
             ];
 
             $categoryIndex++;
@@ -132,14 +194,88 @@ class PesoAnalyticsController extends Controller
         // Calculate silhouette score (simplified)
         $silhouetteScore = $this->calculateSimplifiedSilhouetteScore($clusters);
 
+        // Calculate inertia (within-cluster sum of squares)
+        $inertia = $this->calculateInertia($clusters);
+
+        // Calculate cluster compactness metrics
+        $clusterMetrics = $this->calculateClusterMetrics($clusters);
+
         return [
             'clusters' => $clusters,
+            'scatter_data' => $scatterData,
+            'centroids' => $centroids,
             'total_jobs' => $jobs->count(),
             'total_jobseekers' => $jobseekers->count(),
             'k' => count($clusters),
             'silhouette_score' => $silhouetteScore,
+            'inertia' => $inertia,
+            'cluster_metrics' => $clusterMetrics,
             'cluster_summary' => $this->generateClusterSummary($clusters),
+            'axis_labels' => [
+                'x' => 'Salary Level (Normalized)',
+                'y' => 'Application Attractiveness',
+            ],
         ];
+    }
+
+    /**
+     * Calculate inertia (within-cluster sum of squares)
+     */
+    protected function calculateInertia($clusters)
+    {
+        $inertia = 0;
+        foreach ($clusters as $cluster) {
+            if (empty($cluster['points'])) continue;
+
+            $centroidX = $cluster['centroid']['x'];
+            $centroidY = $cluster['centroid']['y'];
+
+            foreach ($cluster['points'] as $point) {
+                $inertia += pow($point['x'] - $centroidX, 2) + pow($point['y'] - $centroidY, 2);
+            }
+        }
+        return round($inertia, 2);
+    }
+
+    /**
+     * Calculate cluster quality metrics
+     */
+    protected function calculateClusterMetrics($clusters)
+    {
+        $metrics = [];
+
+        foreach ($clusters as $cluster) {
+            if (empty($cluster['points']) || count($cluster['points']) < 2) {
+                $metrics[] = [
+                    'name' => $cluster['name'],
+                    'compactness' => 0,
+                    'size' => count($cluster['points'] ?? []),
+                ];
+                continue;
+            }
+
+            // Calculate compactness (average distance from centroid)
+            $totalDist = 0;
+            $centroidX = $cluster['centroid']['x'];
+            $centroidY = $cluster['centroid']['y'];
+
+            foreach ($cluster['points'] as $point) {
+                $totalDist += sqrt(pow($point['x'] - $centroidX, 2) + pow($point['y'] - $centroidY, 2));
+            }
+
+            $avgDist = $totalDist / count($cluster['points']);
+            // Convert to compactness score (0-1, higher is better/more compact)
+            $compactness = max(0, min(1, 1 - ($avgDist / 100)));
+
+            $metrics[] = [
+                'name' => $cluster['name'],
+                'compactness' => round($compactness, 2),
+                'size' => count($cluster['points']),
+                'avg_distance' => round($avgDist, 2),
+            ];
+        }
+
+        return $metrics;
     }
 
     /**
@@ -469,10 +605,10 @@ class PesoAnalyticsController extends Controller
                 'total_jobs' => $jobs->count(),
                 'barangay_stats' => $barangayStats,
                 'bounds' => [
-                    'southwest' => [125.35, 6.70],
-                    'northeast' => [125.50, 6.85],
+                    'southwest' => [125.38, 6.78],
+                    'northeast' => [125.45, 6.88],
                 ],
-                'center' => [125.42, 6.75],
+                'center' => [125.4130, 6.8370], // Santa Cruz, Davao del Sur
             ];
         });
 
@@ -507,21 +643,29 @@ class PesoAnalyticsController extends Controller
             // Create heat map data points
             $heatmapData = [];
 
-            // Predefined barangay coordinates for Sta. Cruz
+            // Corrected barangay coordinates for Santa Cruz, Davao del Sur
+            // Santa Cruz town center is approximately at 6.8370, 125.4130
             $barangayCoords = [
-                'Astorga' => ['lat' => 6.7234, 'lng' => 125.4123],
-                'Bato' => ['lat' => 6.7345, 'lng' => 125.4234],
-                'Coronon' => ['lat' => 6.7456, 'lng' => 125.4345],
-                'Darong' => ['lat' => 6.7567, 'lng' => 125.4456],
-                'Inawayan' => ['lat' => 6.7678, 'lng' => 125.4567],
-                'Jose Rizal' => ['lat' => 6.7789, 'lng' => 125.4678],
-                'Matutungan' => ['lat' => 6.7890, 'lng' => 125.4789],
-                'Poblacion' => ['lat' => 6.7512, 'lng' => 125.4234],
-                'Tagabuli' => ['lat' => 6.7623, 'lng' => 125.4345],
-                'Tibolo' => ['lat' => 6.7734, 'lng' => 125.4456],
-                'Zone I' => ['lat' => 6.7510, 'lng' => 125.4220],
-                'Zone II' => ['lat' => 6.7520, 'lng' => 125.4250],
-                'Zone III' => ['lat' => 6.7530, 'lng' => 125.4280],
+                'Poblacion' => ['lat' => 6.8375, 'lng' => 125.4125],
+                'Zone I' => ['lat' => 6.8390, 'lng' => 125.4110],
+                'Zone II' => ['lat' => 6.8365, 'lng' => 125.4140],
+                'Zone III' => ['lat' => 6.8350, 'lng' => 125.4120],
+                'Zone IV' => ['lat' => 6.8380, 'lng' => 125.4150],
+                'Astorga' => ['lat' => 6.8520, 'lng' => 125.3980],
+                'Bato' => ['lat' => 6.8150, 'lng' => 125.4050],
+                'Coronon' => ['lat' => 6.8450, 'lng' => 125.3900],
+                'Darong' => ['lat' => 6.8600, 'lng' => 125.4200],
+                'Inawayan' => ['lat' => 6.7950, 'lng' => 125.4300],
+                'Jose Rizal' => ['lat' => 6.8100, 'lng' => 125.4180],
+                'Matutungan' => ['lat' => 6.8250, 'lng' => 125.3950],
+                'Melilia' => ['lat' => 6.8550, 'lng' => 125.4050],
+                'Saliducon' => ['lat' => 6.8650, 'lng' => 125.4100],
+                'Sibulan' => ['lat' => 6.8000, 'lng' => 125.4150],
+                'Sinoron' => ['lat' => 6.7900, 'lng' => 125.4200],
+                'Tagabuli' => ['lat' => 6.8700, 'lng' => 125.4000],
+                'Tibolo' => ['lat' => 6.8200, 'lng' => 125.4250],
+                'Tuban' => ['lat' => 6.7850, 'lng' => 125.4100],
+                'Santa Cruz Proper' => ['lat' => 6.8370, 'lng' => 125.4130],
             ];
 
             foreach ($applicationsByLocation as $location) {

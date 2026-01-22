@@ -92,14 +92,24 @@
 
                                 <!-- Password Input (Hidden by default) -->
                                 <div class="mb-3" id="employerPasswordField" style="display: none;">
-                                    <label for="employerLoginPassword" class="form-label fw-semibold text-dark">Password</label>
-                                    <input type="password"
-                                           class="form-control form-control-lg @error('password') is-invalid @enderror"
-                                           id="employerLoginPassword"
-                                           name="password"
-                                           placeholder="Enter your password">
+                                    <label for="employerLoginPassword" class="form-label fw-semibold text-dark d-flex justify-content-between align-items-center">
+                                        <span>Password</span>
+                                        <a href="{{ route('account.forgotPassword') }}" class="text-primary text-decoration-none small">
+                                            Forgot password?
+                                        </a>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password"
+                                               class="form-control form-control-lg @error('password') is-invalid @enderror"
+                                               id="employerLoginPassword"
+                                               name="password"
+                                               placeholder="Enter your password">
+                                        <button type="button" class="btn btn-outline-secondary password-toggle-btn" onclick="togglePasswordVisibility('employerLoginPassword', 'employerLoginPasswordIcon')">
+                                            <i class="fas fa-eye-slash" id="employerLoginPasswordIcon"></i>
+                                        </button>
+                                    </div>
                                     @error('password')
-                                        <div class="invalid-feedback">
+                                        <div class="text-danger small mt-1">
                                             {{ $message }}
                                         </div>
                                     @else
@@ -202,11 +212,16 @@
                                 <!-- Password Input (Hidden by default) -->
                                 <div class="mb-3" id="employerRegisterPasswordField" style="display: none;">
                                     <label for="employerRegisterPassword" class="form-label fw-semibold text-dark">Password</label>
-                                    <input type="password"
-                                           class="form-control form-control-lg"
-                                           id="employerRegisterPassword"
-                                           name="password"
-                                           placeholder="Create a password (min 5 characters)">
+                                    <div class="input-group">
+                                        <input type="password"
+                                               class="form-control form-control-lg"
+                                               id="employerRegisterPassword"
+                                               name="password"
+                                               placeholder="Create a password (min 5 characters)">
+                                        <button type="button" class="btn btn-outline-secondary password-toggle-btn" onclick="togglePasswordVisibility('employerRegisterPassword', 'employerRegisterPasswordIcon')">
+                                            <i class="fas fa-eye-slash" id="employerRegisterPasswordIcon"></i>
+                                        </button>
+                                    </div>
                                     <div class="invalid-feedback">
                                         Please provide a password (minimum 5 characters).
                                     </div>
@@ -215,11 +230,16 @@
                                 <!-- Confirm Password Input (Hidden by default) -->
                                 <div class="mb-3" id="employerConfirmPasswordField" style="display: none;">
                                     <label for="employerConfirmPassword" class="form-label fw-semibold text-dark">Confirm Password</label>
-                                    <input type="password"
-                                           class="form-control form-control-lg"
-                                           id="employerConfirmPassword"
-                                           name="confirm_password"
-                                           placeholder="Confirm your password">
+                                    <div class="input-group">
+                                        <input type="password"
+                                               class="form-control form-control-lg"
+                                               id="employerConfirmPassword"
+                                               name="confirm_password"
+                                               placeholder="Confirm your password">
+                                        <button type="button" class="btn btn-outline-secondary password-toggle-btn" onclick="togglePasswordVisibility('employerConfirmPassword', 'employerConfirmPasswordIcon')">
+                                            <i class="fas fa-eye-slash" id="employerConfirmPasswordIcon"></i>
+                                        </button>
+                                    </div>
                                     <div class="invalid-feedback">
                                         Passwords must match.
                                     </div>
@@ -490,9 +510,63 @@ a.text-primary:hover {
 .btn-close:hover {
     opacity: 1;
 }
+
+/* Password toggle button styling */
+.password-toggle-btn {
+    border-left: 0;
+    border-color: #d1d5db;
+    background: #f9fafb;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.password-toggle-btn:focus {
+    box-shadow: none;
+    border-color: #2563eb;
+}
+
+.password-toggle-btn i {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.input-group .form-control-lg {
+    border-right: 0;
+}
+
+.input-group .form-control-lg:focus {
+    border-right: 0;
+}
+
+.input-group .form-control-lg:focus + .password-toggle-btn {
+    border-color: #2563eb;
+}
 </style>
 
 <script>
+// Password visibility toggle function
+function togglePasswordVisibility(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    }
+}
+
 function switchToEmployerRegister() {
     event.preventDefault();
     document.getElementById('employerLoginForm').style.display = 'none';

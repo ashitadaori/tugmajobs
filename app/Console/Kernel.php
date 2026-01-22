@@ -15,7 +15,20 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Re-analyze jobs that haven't been analyzed in 24 hours
+        // This ensures job content analysis stays up-to-date
+        $schedule->command('jobs:analyze-content --mode=stale --hours=24')
+            ->dailyAt('02:00')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/job-analysis.log'));
+
+        // Analyze any unanalyzed jobs every 6 hours
+        // Catches any jobs that might have been missed
+        $schedule->command('jobs:analyze-content --mode=unanalyzed')
+            ->everySixHours()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**

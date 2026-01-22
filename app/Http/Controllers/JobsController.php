@@ -7,7 +7,7 @@ use App\Models\Category;
 use App\Models\Job;
 use App\Models\JobApplication;
 use App\Models\JobType;
-use App\Models\SavedJob;
+use App\Models\BookmarkedJob;
 use App\Models\User;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
@@ -15,60 +15,63 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Services\LocationService;
 use App\Notifications\JobSavedNotification;
+use App\Notifications\AdminNewApplicationNotification;
+use App\Notifications\NewApplicationReceived;
 use App\Models\JobView;
 
 class JobsController extends Controller
 {
     //This method will show jobs page
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         // Only show active jobs to jobseekers (status=1 means active/approved)
         $query = Job::where('status', 1);
 
         // Keyword search
-        if(!empty($request->keyword)) {
-            $query->where(function($q) use ($request) {
-                $q->where('title', 'like', '%'.$request->keyword.'%')
-                  ->orWhere('description', 'like', '%'.$request->keyword.'%')
-                  ->orWhere('requirements', 'like', '%'.$request->keyword.'%');
+        if (!empty($request->keyword)) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('description', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('requirements', 'like', '%' . $request->keyword . '%');
             });
         }
 
         // Location-based search with Mapbox integration
-        if(!empty($request->location)) {
+        if (!empty($request->location)) {
             // Check if we have coordinates for distance-based search
-            if(!empty($request->location_filter_latitude) && !empty($request->location_filter_longitude)) {
+            if (!empty($request->location_filter_latitude) && !empty($request->location_filter_longitude)) {
                 $latitude = $request->location_filter_latitude;
                 $longitude = $request->location_filter_longitude;
                 $radius = $request->radius ?? 10; // Default 10km radius
-                
+
                 $query->withinDistance($latitude, $longitude, $radius);
             } else {
                 // Fallback to text-based location search
-                $query->where(function($q) use ($request) {
-                    $q->where('location', 'like', '%'.$request->location.'%')
-                      ->orWhere('address', 'like', '%'.$request->location.'%')
-                      ->orWhere('barangay', 'like', '%'.$request->location.'%');
+                $query->where(function ($q) use ($request) {
+                    $q->where('location', 'like', '%' . $request->location . '%')
+                        ->orWhere('address', 'like', '%' . $request->location . '%')
+                        ->orWhere('barangay', 'like', '%' . $request->location . '%');
                 });
             }
         }
 
         // Job type filter
-        if(!empty($request->jobType)) {
-            $query->whereHas('jobType', function($q) use ($request) {
+        if (!empty($request->jobType)) {
+            $query->whereHas('jobType', function ($q) use ($request) {
                 $q->where('name', $request->jobType);
             });
         }
 
         // Category filter
-        if(!empty($request->category)) {
-            $query->whereHas('category', function($q) use ($request) {
+        if (!empty($request->category)) {
+            $query->whereHas('category', function ($q) use ($request) {
                 $q->where('name', $request->category);
             });
         }
 
         $jobs = $query->with(['jobType', 'category', 'employer.employerProfile'])
-                     ->orderBy('created_at', 'DESC')
-                     ->paginate(10);
+            ->orderBy('created_at', 'DESC')
+            ->paginate(10);
 
         $jobTypes = JobType::where('status', 1)->get();
 
@@ -79,10 +82,11 @@ class JobsController extends Controller
     }
 
     // This method will show job detail page
-    public function jobDetail($id){
+    public function jobDetail($id)
+    {
         $job = Job::with([
-            'jobType', 
-            'employer' => function($query) {
+            'jobType',
+            'employer' => function ($query) {
                 $query->with('employerProfile');
             },
             'applications'
@@ -92,8 +96,8 @@ class JobsController extends Controller
         JobView::recordView($job, request());
 
         $count = 0;
-        if(Auth::check()) {
-            $count = SavedJob::where([
+        if (Auth::check()) {
+            $count = BookmarkedJob::where([
                 'user_id' => Auth::user()->id,
                 'job_id' => $id
             ])->count();
@@ -101,14 +105,14 @@ class JobsController extends Controller
 
         // Get related jobs (status=1 means active)
         $relatedJobs = Job::where('status', 1)
-                         ->where('id', '!=', $id)
-                         ->where(function($query) use ($job) {
-                             $query->where('location', 'like', '%'.explode(',', $job->location)[0].'%')
-                                  ->orWhere('job_type_id', $job->job_type_id);
-                         })
-                         ->with(['jobType', 'employer.employerProfile'])
-                         ->take(3)
-                         ->get();
+            ->where('id', '!=', $id)
+            ->where(function ($query) use ($job) {
+                $query->where('location', 'like', '%' . explode(',', $job->location)[0] . '%')
+                    ->orWhere('job_type_id', $job->job_type_id);
+            })
+            ->with(['jobType', 'employer.employerProfile'])
+            ->take(3)
+            ->get();
 
         return view('front.modern-job-detail', [
             'job' => $job,
@@ -238,7 +242,7 @@ class JobsController extends Controller
                 $application = JobApplication::where('user_id', $user->id)
                     ->where('job_id', $job->id)
                     ->first();
-                
+
                 if (!$application) {
                     $application = JobApplication::create([
                         'job_id' => $job->id,
@@ -286,7 +290,7 @@ class JobsController extends Controller
     private function getStepNumber($stepName, $job)
     {
         $steps = ['basic_info' => 1];
-        
+
         if ($job->requires_screening && !empty($job->preliminary_questions)) {
             $steps['screening'] = 2;
             $steps['documents'] = 3;
@@ -295,7 +299,7 @@ class JobsController extends Controller
             $steps['documents'] = 2;
             $steps['review'] = 3;
         }
-        
+
         return $steps[$stepName] ?? 1;
     }
 
@@ -311,7 +315,7 @@ class JobsController extends Controller
         ]);
 
         $nextStep = $job->requires_screening ? 2 : 2; // Always 2 for next step
-        
+
         return view('front.job-application-wizard', [
             'job' => $job,
             'application' => $application,
@@ -322,7 +326,7 @@ class JobsController extends Controller
     private function processScreeningStep($application, $request, $job)
     {
         $preliminaryAnswers = $request->input('preliminary_answers', []);
-        
+
         // Validate required questions
         if ($job->preliminary_questions) {
             foreach ($job->preliminary_questions as $index => $question) {
@@ -348,14 +352,14 @@ class JobsController extends Controller
     {
         $resumeOption = $request->input('resume_option', 'new');
         $existingResume = $request->input('existing_resume');
-        
+
         // Validate based on resume option
         if ($resumeOption === 'new' || !$existingResume) {
             $request->validate([
                 'resume' => 'required|file|mimes:pdf,doc,docx|max:5120', // 5MB
                 'cover_letter' => 'nullable|string|max:2000'
             ]);
-            
+
             // Handle new resume upload
             if ($request->hasFile('resume')) {
                 $resumePath = $request->file('resume')->store('resumes', 'public');
@@ -367,7 +371,7 @@ class JobsController extends Controller
                 'cover_letter' => 'nullable|string|max:2000',
                 'existing_resume' => 'required|string'
             ]);
-            
+
             // Copy existing resume path to application
             $application->resume = $existingResume;
         }
@@ -382,7 +386,7 @@ class JobsController extends Controller
         $application->update($updateData);
 
         $nextStep = $job->requires_screening ? 4 : 3;
-        
+
         return view('front.job-application-wizard', [
             'job' => $job,
             'application' => $application,
@@ -428,8 +432,9 @@ class JobsController extends Controller
             'notes' => 'Application submitted via step-by-step wizard'
         ]);
 
-        // Create in-app notification for employer
+        // Send notifications to employer (in-app + email)
         try {
+            // Create in-app notification in custom notifications table
             \App\Models\Notification::create([
                 'user_id' => $job->employer_id,
                 'title' => 'New Application Received',
@@ -447,24 +452,63 @@ class JobsController extends Controller
                 'action_url' => route('employer.applications.show', $application->id),
                 'read_at' => null
             ]);
-            \Log::info('=== NOTIFICATION CREATED (WIZARD) ===', [
+
+            // Send email notification
+            $job->employer->notify(new NewApplicationReceived($application));
+
+            \Log::info('=== EMPLOYER NOTIFICATION SENT (WIZARD) ===', [
                 'employer_id' => $job->employer_id,
+                'employer_email' => $job->employer->email,
                 'application_id' => $application->id
             ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to create in-app notification (wizard): ' . $e->getMessage());
+            \Log::error('Failed to send employer notification (wizard): ' . $e->getMessage());
         }
 
-        // Send notification email to employer
+        // Send notifications to all admins (in-app + email)
         try {
-            Mail::to($job->employer->email)->send(new JobNotificationEmail([
-                'employer_name' => $job->employer->name,
-                'job_title' => $job->title,
-                'applicant_name' => $application->user->name,
-                'applicant_email' => $application->user->email
-            ]));
+            $admins = User::where('role', 'admin')
+                ->orWhere('role', 'superadmin')
+                ->get();
+
+            // Get company name for notification
+            $companyName = 'Unknown Company';
+            if ($job->employer) {
+                $employerProfile = \App\Models\Employer::where('user_id', $job->employer->id)->first();
+                $companyName = $employerProfile->company_name ?? $job->employer->name;
+            }
+
+            foreach ($admins as $admin) {
+                // Create in-app notification in custom notifications table
+                \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => 'New Job Application Received',
+                    'message' => $application->user->name . ' has applied for "' . $job->title . '" at ' . $companyName,
+                    'type' => 'admin_new_application',
+                    'data' => [
+                        'job_application_id' => $application->id,
+                        'job_id' => $job->id,
+                        'job_title' => $job->title,
+                        'applicant_name' => $application->user->name,
+                        'applicant_id' => $application->user_id,
+                        'company_name' => $companyName,
+                        'icon' => 'user-plus',
+                        'color' => 'info'
+                    ],
+                    'action_url' => route('admin.jobs.applicants', $job->id),
+                    'read_at' => null
+                ]);
+
+                // Send email notification
+                $admin->notify(new AdminNewApplicationNotification($application));
+            }
+
+            \Log::info('=== ADMIN NOTIFICATIONS SENT (WIZARD) ===', [
+                'admins_notified' => $admins->count(),
+                'application_id' => $application->id
+            ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to send job application notification email: ' . $e->getMessage());
+            \Log::error('Failed to send admin notifications (wizard): ' . $e->getMessage());
         }
 
         return redirect()->route('jobDetail', $job->id)
@@ -481,7 +525,7 @@ class JobsController extends Controller
             'method' => $request->method(),
             'url' => $request->url()
         ]);
-        
+
         try {
             \Log::info('Job application attempt', [
                 'job_id' => $id,
@@ -508,7 +552,7 @@ class JobsController extends Controller
                 'role' => $user->role,
                 'is_jobseeker' => $user->role === 'jobseeker'
             ]);
-            
+
             // Check if user is a job seeker
             if ($user->role !== 'jobseeker') {
                 \Log::info('User is not a job seeker');
@@ -592,7 +636,7 @@ class JobsController extends Controller
             }
 
             $resume = $request->file('resume');
-            
+
             // Validate file type
             $allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             if (!in_array($resume->getMimeType(), $allowedTypes)) {
@@ -660,15 +704,16 @@ class JobsController extends Controller
                 'notes' => 'Application submitted'
             ]);
 
-            // Create in-app notification for employer
-            \Log::info('=== ABOUT TO CREATE NOTIFICATION ===', [
+            // Send notifications to employer (in-app + email)
+            \Log::info('=== ABOUT TO SEND NOTIFICATIONS ===', [
                 'employer_id' => $job->employer_id,
                 'job_id' => $job->id,
                 'application_id' => $application->id
             ]);
-            
+
             try {
-                $notification = \App\Models\Notification::create([
+                // Create in-app notification in custom notifications table
+                \App\Models\Notification::create([
                     'user_id' => $job->employer_id,
                     'title' => 'New Application Received',
                     'message' => $user->name . ' has applied for "' . $job->title . '"',
@@ -685,31 +730,66 @@ class JobsController extends Controller
                     'action_url' => route('employer.applications.show', $application->id),
                     'read_at' => null
                 ]);
-                \Log::info('=== NOTIFICATION CREATED SUCCESSFULLY ===', [
-                    'notification_id' => $notification->id,
+
+                // Send email notification
+                $job->employer->notify(new NewApplicationReceived($application));
+
+                \Log::info('=== EMPLOYER NOTIFICATION SENT ===', [
                     'employer_id' => $job->employer_id,
-                    'application_id' => $application->id,
-                    'message' => $notification->message
+                    'employer_email' => $job->employer->email,
+                    'application_id' => $application->id
                 ]);
             } catch (\Exception $e) {
-                \Log::error('=== FAILED TO CREATE NOTIFICATION ===', [
+                \Log::error('=== FAILED TO SEND EMPLOYER NOTIFICATION ===', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
             }
 
-            // Send notification email to employer
+            // Send notifications to all admins (in-app + email)
             try {
-                Mail::to($job->employer->email)->send(new JobNotificationEmail([
-                    'employer_name' => $job->employer->name,
-                    'job_title' => $job->title,
-                    'applicant_name' => $user->name,
-                    'applicant_email' => $user->email
-                ]));
-                \Log::info('Notification email sent to employer');
+                $admins = User::where('role', 'admin')
+                    ->orWhere('role', 'superadmin')
+                    ->get();
+
+                // Get company name for notification
+                $companyName = 'Unknown Company';
+                if ($job->employer) {
+                    $employerProfile = \App\Models\Employer::where('user_id', $job->employer->id)->first();
+                    $companyName = $employerProfile->company_name ?? $job->employer->name;
+                }
+
+                foreach ($admins as $admin) {
+                    // Create in-app notification in custom notifications table
+                    \App\Models\Notification::create([
+                        'user_id' => $admin->id,
+                        'title' => 'New Job Application Received',
+                        'message' => $user->name . ' has applied for "' . $job->title . '" at ' . $companyName,
+                        'type' => 'admin_new_application',
+                        'data' => [
+                            'job_application_id' => $application->id,
+                            'job_id' => $job->id,
+                            'job_title' => $job->title,
+                            'applicant_name' => $user->name,
+                            'applicant_id' => $user->id,
+                            'company_name' => $companyName,
+                            'icon' => 'user-plus',
+                            'color' => 'info'
+                        ],
+                        'action_url' => route('admin.jobs.applicants', $job->id),
+                        'read_at' => null
+                    ]);
+
+                    // Send email notification
+                    $admin->notify(new AdminNewApplicationNotification($application));
+                }
+
+                \Log::info('=== ADMIN NOTIFICATIONS SENT ===', [
+                    'admins_notified' => $admins->count(),
+                    'application_id' => $application->id
+                ]);
             } catch (\Exception $e) {
-                // Log email error but don't stop the process
-                \Log::error('Failed to send job application notification email: ' . $e->getMessage());
+                \Log::error('Failed to send admin notifications: ' . $e->getMessage());
             }
 
             if ($request->ajax()) {
@@ -720,7 +800,7 @@ class JobsController extends Controller
             }
 
             return redirect()->route('jobDetail', $job->id)
-                           ->with('success', 'Application submitted successfully! We will notify you of any updates.');
+                ->with('success', 'Application submitted successfully! We will notify you of any updates.');
 
         } catch (\Exception $e) {
             \Log::error('Job application error', [
@@ -738,12 +818,12 @@ class JobsController extends Controller
     }
 
     /**
-     * Save a job
+     * Bookmark a job
      */
-    public function saveJob($id)
+    public function bookmarkJob($id)
     {
         try {
-            \Log::info('Save job attempt', [
+            \Log::info('Bookmark job attempt', [
                 'job_id' => $id,
                 'user_id' => Auth::id()
             ]);
@@ -752,7 +832,7 @@ class JobsController extends Controller
                 \Log::info('User not authenticated');
                 return response()->json([
                     'status' => false,
-                    'message' => 'Please login to save jobs',
+                    'message' => 'Please login to bookmark jobs',
                     'redirect' => route('login')
                 ]);
             }
@@ -762,34 +842,34 @@ class JobsController extends Controller
                 \Log::info('User is not a job seeker');
                 return response()->json([
                     'status' => false,
-                    'message' => 'Only job seekers can save jobs'
+                    'message' => 'Only job seekers can bookmark jobs'
                 ]);
             }
 
             // Check if job exists
             $job = Job::findOrFail($id);
 
-            // Check if job is already saved
-            $existingSave = SavedJob::where('user_id', $user->id)
-                                  ->where('job_id', $id)
-                                  ->first();
+            // Check if job is already bookmarked
+            $existingBookmark = BookmarkedJob::where('user_id', $user->id)
+                ->where('job_id', $id)
+                ->first();
 
-            if ($existingSave) {
-                \Log::info('Job already saved');
+            if ($existingBookmark) {
+                \Log::info('Job already bookmarked');
                 return response()->json([
                     'status' => false,
-                    'message' => 'Job is already saved'
+                    'message' => 'Job is already bookmarked'
                 ]);
             }
 
-            // Save the job
-            $savedJob = new SavedJob();
-            $savedJob->user_id = $user->id;
-            $savedJob->job_id = $id;
-            $savedJob->save();
+            // Bookmark the job
+            $bookmarkedJob = new BookmarkedJob();
+            $bookmarkedJob->user_id = $user->id;
+            $bookmarkedJob->job_id = $id;
+            $bookmarkedJob->save();
 
-            \Log::info('Job saved successfully', [
-                'saved_job_id' => $savedJob->id,
+            \Log::info('Job bookmarked successfully', [
+                'bookmarked_job_id' => $bookmarkedJob->id,
                 'user_id' => $user->id,
                 'job_id' => $id
             ]);
@@ -799,17 +879,17 @@ class JobsController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Job saved successfully'
+                'message' => 'Job bookmarked successfully'
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Save job error', [
+            \Log::error('Bookmark job error', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json([
                 'status' => false,
-                'message' => 'Error saving job. Please try again.'
+                'message' => 'Error: ' . $e->getMessage()
             ]);
         }
     }
@@ -822,7 +902,7 @@ class JobsController extends Controller
         try {
             // Get employer
             $employer = $job->employer;
-            
+
             // Create notification data
             $notificationData = [
                 'title' => 'Job Saved',
@@ -874,12 +954,12 @@ class JobsController extends Controller
     }
 
     /**
-     * Unsave a job
+     * Remove bookmark from a job
      */
-    public function unsaveJob($id)
+    public function unbookmarkJob($id)
     {
         try {
-            \Log::info('Unsave job attempt', [
+            \Log::info('Unbookmark job attempt', [
                 'job_id' => $id,
                 'user_id' => Auth::id()
             ]);
@@ -888,7 +968,7 @@ class JobsController extends Controller
                 \Log::info('User not authenticated');
                 return response()->json([
                     'status' => false,
-                    'message' => 'Please login to manage saved jobs',
+                    'message' => 'Please login to manage bookmarked jobs',
                     'redirect' => route('login')
                 ]);
             }
@@ -898,43 +978,43 @@ class JobsController extends Controller
                 \Log::info('User is not a job seeker');
                 return response()->json([
                     'status' => false,
-                    'message' => 'Only job seekers can manage saved jobs'
+                    'message' => 'Only job seekers can manage bookmarked jobs'
                 ]);
             }
 
-            // Find and delete the saved job
-            $savedJob = SavedJob::where('user_id', $user->id)
-                              ->where('job_id', $id)
-                              ->first();
+            // Find and delete the bookmarked job
+            $bookmarkedJob = BookmarkedJob::where('user_id', $user->id)
+                ->where('job_id', $id)
+                ->first();
 
-            if (!$savedJob) {
-                \Log::info('Job not found in saved jobs');
+            if (!$bookmarkedJob) {
+                \Log::info('Job not found in bookmarked jobs');
                 return response()->json([
                     'status' => false,
-                    'message' => 'Job is not in your saved jobs'
+                    'message' => 'Job is not in your bookmarks'
                 ]);
             }
 
-            $savedJob->delete();
+            $bookmarkedJob->delete();
 
-            \Log::info('Job unsaved successfully', [
+            \Log::info('Job unbookmarked successfully', [
                 'user_id' => $user->id,
                 'job_id' => $id
             ]);
 
             return response()->json([
                 'status' => true,
-                'message' => 'Job removed from saved jobs'
+                'message' => 'Job removed from bookmarks'
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Unsave job error', [
+            \Log::error('Unbookmark job error', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json([
                 'status' => false,
-                'message' => 'Error removing job from saved jobs. Please try again.'
+                'message' => 'Error removing job from bookmarks. Please try again.'
             ]);
         }
     }
@@ -1030,12 +1110,12 @@ class JobsController extends Controller
             session()->forget('job_form_autosave');
 
             return redirect()->route('employer.jobs.index')
-                           ->with('success', 'Job posted successfully! It will be reviewed and published soon.');
+                ->with('success', 'Job posted successfully! It will be reviewed and published soon.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
-                           ->withErrors($e->errors())
-                           ->withInput();
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
             \Log::error('Job creation failed', [
                 'error' => $e->getMessage(),
@@ -1044,8 +1124,8 @@ class JobsController extends Controller
             ]);
 
             return redirect()->back()
-                           ->with('error', 'Failed to create job posting. Please try again.')
-                           ->withInput();
+                ->with('error', 'Failed to create job posting. Please try again.')
+                ->withInput();
         }
     }
 
@@ -1062,13 +1142,13 @@ class JobsController extends Controller
         // Check if the application is in the requirements stage
         if ($application->stage !== JobApplication::STAGE_REQUIREMENTS) {
             return redirect()->route('account.myJobApplications')
-                           ->with('error', 'This application is not in the document submission stage.');
+                ->with('error', 'This application is not in the document submission stage.');
         }
 
         // Check if stage status is pending (waiting for documents)
         if ($application->stage_status !== JobApplication::STAGE_STATUS_PENDING) {
             return redirect()->route('account.myJobApplications')
-                           ->with('info', 'Your documents have already been submitted and are being reviewed.');
+                ->with('info', 'Your documents have already been submitted and are being reviewed.');
         }
 
         $application->load(['job.jobRequirements', 'job.employer.employerProfile']);
@@ -1089,13 +1169,13 @@ class JobsController extends Controller
         // Check if the application is in the requirements stage
         if ($application->stage !== JobApplication::STAGE_REQUIREMENTS) {
             return redirect()->route('account.myJobApplications')
-                           ->with('error', 'This application is not in the document submission stage.');
+                ->with('error', 'This application is not in the document submission stage.');
         }
 
         // Check if stage status is pending
         if ($application->stage_status !== JobApplication::STAGE_STATUS_PENDING) {
             return redirect()->route('account.myJobApplications')
-                           ->with('info', 'Your documents have already been submitted.');
+                ->with('info', 'Your documents have already been submitted.');
         }
 
         $application->load(['job.jobRequirements']);
@@ -1146,7 +1226,7 @@ class JobsController extends Controller
             ]);
 
             return redirect()->route('account.myJobApplications')
-                           ->with('success', 'Documents submitted successfully! The employer will review them shortly.');
+                ->with('success', 'Documents submitted successfully! The employer will review them shortly.');
         }
 
         $request->validate($rules, $messages);
@@ -1211,7 +1291,7 @@ class JobsController extends Controller
             ]);
 
             return redirect()->route('account.myJobApplications')
-                           ->with('success', 'Documents submitted successfully! The employer will review them shortly.');
+                ->with('success', 'Documents submitted successfully! The employer will review them shortly.');
 
         } catch (\Exception $e) {
             \Log::error('Error submitting requirements', [
@@ -1221,8 +1301,8 @@ class JobsController extends Controller
             ]);
 
             return redirect()->back()
-                           ->with('error', 'Failed to submit documents. Please try again.')
-                           ->withInput();
+                ->with('error', 'Failed to submit documents. Please try again.')
+                ->withInput();
         }
     }
 }

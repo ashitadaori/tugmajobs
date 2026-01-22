@@ -17,6 +17,66 @@ class JobController extends Controller
 {
     public function index(Request $request)
     {
+        // Show ALL jobs in the system for admin management
+        $jobs = Job::with(['employer', 'category', 'jobType', 'company'])
+            ->withCount('applications')
+            ->orderBy('created_at', 'DESC')
+            ->paginate(15);
+
+        return view('admin.jobs.index', compact('jobs'));
+    }
+
+    /**
+     * Search jobs in real-time (AJAX endpoint)
+     */
+    public function search(Request $request)
+    {
+        $query = $request->get('q', '');
+        $status = $request->get('status', '');
+
+        $jobs = Job::with(['employer', 'category', 'jobType', 'company'])
+            ->withCount('applications')
+            ->when($query, function ($q) use ($query) {
+                $q->where(function ($subQuery) use ($query) {
+                    $subQuery->where('title', 'LIKE', "%{$query}%")
+                        ->orWhere('company_name', 'LIKE', "%{$query}%")
+                        ->orWhere('location', 'LIKE', "%{$query}%")
+                        ->orWhereHas('employer', function ($empQuery) use ($query) {
+                            $empQuery->where('name', 'LIKE', "%{$query}%");
+                        })
+                        ->orWhereHas('category', function ($catQuery) use ($query) {
+                            $catQuery->where('name', 'LIKE', "%{$query}%");
+                        })
+                        ->orWhereHas('jobType', function ($typeQuery) use ($query) {
+                            $typeQuery->where('name', 'LIKE', "%{$query}%");
+                        });
+                });
+            })
+            ->when($status !== '', function ($q) use ($status) {
+                $q->where('status', $status);
+            })
+            ->orderBy('created_at', 'DESC')
+            ->paginate(15);
+
+        // If it's an AJAX request, return JSON
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.jobs.partials.jobs-table-rows', compact('jobs'))->render(),
+                'total' => $jobs->total(),
+                'from' => $jobs->firstItem() ?? 0,
+                'to' => $jobs->lastItem() ?? 0,
+                'pagination' => $jobs->hasPages() ? $jobs->links('vendor.pagination.simple-admin')->render() : ''
+            ]);
+        }
+
+        return view('admin.jobs.index', compact('jobs'));
+    }
+
+    /**
+     * Show jobs posted by the current admin
+     */
+    public function myPostedJobs(Request $request)
+    {
         // Show admin's posted jobs (including soft-deleted ones)
         $jobs = Job::withTrashed()
             ->where('employer_id', auth()->id())
@@ -35,7 +95,7 @@ class JobController extends Controller
         $categories = Category::where('status', 1)
             ->orderBy('name', 'ASC')
             ->get();
-            
+
         $job_types = JobType::where('status', 1)
             ->orderBy('name', 'ASC')
             ->get();
@@ -64,7 +124,7 @@ class JobController extends Controller
             ['name' => 'Soong', 'lat' => 6.7667, 'lng' => 125.3789],
             ['name' => 'Tres De Mayo', 'lat' => 6.7689, 'lng' => 125.3856]
         ];
-            
+
         return view('admin.jobs.create', [
             'categories' => $categories,
             'job_types' => $job_types,
@@ -109,7 +169,7 @@ class JobController extends Controller
             Log::warning('Admin job validation failed', [
                 'errors' => $validator->errors()->toArray()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
@@ -119,12 +179,12 @@ class JobController extends Controller
         try {
             $admin = Auth::user();
             $isDraft = $request->input('is_draft', 0) == 1;
-            
+
             Log::info('Creating admin job', [
                 'admin_id' => $admin->id,
                 'is_draft' => $isDraft
             ]);
-            
+
             // Create new job posted by admin
             $job = new Job();
             $job->title = $request->title;
@@ -152,13 +212,13 @@ class JobController extends Controller
                 $job->company_name = $request->company_name ?: 'Confidential';
             }
             $job->company_website = $request->company_website;
-            
+
             // Admin-posted jobs are auto-approved unless saved as draft
             $job->status = $isDraft ? Job::STATUS_PENDING : Job::STATUS_APPROVED;
             $job->employer_id = $admin->id; // Admin is the employer for this job
             $job->posted_by_admin = true; // Mark as admin-posted
             $job->approved_at = $isDraft ? null : now();
-            
+
             $job->save();
 
             // Save job requirements (documents that applicants must submit)
@@ -202,7 +262,7 @@ class JobController extends Controller
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while saving the job: ' . $e->getMessage()
@@ -268,8 +328,8 @@ class JobController extends Controller
             'company_name' => 'required|min:3|max:75',
         ];
 
-        $validator = Validator::make($request->all(),$data);
-        if($validator->passes()){
+        $validator = Validator::make($request->all(), $data);
+        if ($validator->passes()) {
             $job->title = $request->title;
             $job->category_id = $request->category;
             $job->job_type_id = $request->jobType;
@@ -331,12 +391,12 @@ class JobController extends Controller
                 $job->jobRequirements()->delete();
             }
 
-            session()->flash('success','Job updated successfully.');
+            session()->flash('success', 'Job updated successfully.');
             return response()->json([
                 'status' => true,
                 'errors' => [],
             ]);
-        }else{
+        } else {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors(),
@@ -348,7 +408,7 @@ class JobController extends Controller
     {
         try {
             $oldStatus = $job->status;
-            
+
             $job->update([
                 'status' => Job::STATUS_APPROVED,
                 'approved_at' => now()
@@ -381,6 +441,9 @@ class JobController extends Controller
 
             // Log audit action
             \App\Models\AuditLog::logAction('approved', 'Job', $job->id, ['status' => $oldStatus], ['status' => Job::STATUS_APPROVED]);
+
+            // Clear dashboard cache to update pending jobs count immediately
+            \Cache::forget('admin_dashboard_stats');
 
             return redirect()->back()->with('success', 'Job has been approved successfully. Jobseekers with matching preferences have been notified.');
         } catch (\Exception $e) {
@@ -425,6 +488,9 @@ class JobController extends Controller
 
             // Log audit action
             \App\Models\AuditLog::logAction('rejected', 'Job', $job->id, ['status' => $job->getOriginal('status')], ['status' => Job::STATUS_REJECTED, 'rejection_reason' => $request->rejection_reason]);
+
+            // Clear dashboard cache to update pending jobs count immediately
+            \Cache::forget('admin_dashboard_stats');
 
             return redirect()->back()->with('success', 'Job has been rejected successfully. Employer has been notified.');
         } catch (\Exception $e) {
@@ -486,9 +552,9 @@ class JobController extends Controller
     public function pending()
     {
         $jobs = Job::where('status', Job::STATUS_PENDING)
-                   ->orderBy('created_at', 'DESC')
-                   ->with('employer', 'applications')
-                   ->paginate(10);
+            ->orderBy('created_at', 'DESC')
+            ->with('employer', 'applications')
+            ->paginate(10);
 
         return view('admin.jobs.pending', [
             'jobs' => $jobs,
@@ -512,13 +578,10 @@ class JobController extends Controller
                     $query->where(function ($q) use ($jobCategoryId, $jobTypeId) {
                         // Match by preferred categories
                         $q->whereJsonContains('preferred_categories', $jobCategoryId)
-                          ->orWhereJsonContains('preferred_categories', (string) $jobCategoryId);
+                            ->orWhereJsonContains('preferred_categories', (string) $jobCategoryId);
 
-                        // Or match by preferred job types
-                        if ($jobTypeId) {
-                            $q->orWhereJsonContains('preferred_job_types', $jobTypeId)
-                              ->orWhereJsonContains('preferred_job_types', (string) $jobTypeId);
-                        }
+                        // REMOVED: Match by preferred job types (This caused unrelated job notifications)
+                        // Notifications should strictly follow the user's preferred categories.
                     });
                 })
                 ->get();
@@ -529,8 +592,8 @@ class JobController extends Controller
                 ->whereHas('jobSeekerProfile', function ($query) {
                     $query->where(function ($q) {
                         $q->whereNull('preferred_categories')
-                          ->orWhere('preferred_categories', '[]')
-                          ->orWhere('preferred_categories', '');
+                            ->orWhere('preferred_categories', '[]')
+                            ->orWhere('preferred_categories', '');
                     });
                 })
                 ->get();
@@ -609,9 +672,11 @@ class JobController extends Controller
      */
     public function viewApplicants($jobId)
     {
-        $job = Job::with(['applications' => function($query) {
-            $query->with('user')->orderBy('created_at', 'desc');
-        }])->findOrFail($jobId);
+        $job = Job::with([
+            'applications' => function ($query) {
+                $query->with('user')->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($jobId);
 
         return view('admin.jobs.applicants', compact('job'));
     }
@@ -630,7 +695,7 @@ class JobController extends Controller
             'job.company',
             'user',
             'user.jobSeekerProfile',
-            'statusHistory' => function($query) {
+            'statusHistory' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             }
         ])->findOrFail($applicationId);
@@ -1034,9 +1099,9 @@ class JobController extends Controller
             case \App\Models\JobApplication::STAGE_INTERVIEW:
                 \App\Models\Notification::create([
                     'user_id' => $application->user->id,
-                    'title' => 'Congratulations - You\'re Hired!',
-                    'message' => 'Congratulations! You have been hired for "' . $jobTitle . '"!' . ($notes ? ' Note: ' . $notes : ''),
-                    'type' => 'hired',
+                    'title' => 'Interview Successfully Completed',
+                    'message' => 'Your interview for "' . $jobTitle . '" at ' . $companyName . ' has been marked as successful! Please wait for the final hiring decision.' . ($notes ? ' Note: ' . $notes : ''),
+                    'type' => 'interview_passed',
                     'data' => $notificationData,
                     'action_url' => route('account.showJobApplication', $application->id),
                     'read_at' => null

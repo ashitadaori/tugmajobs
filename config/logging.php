@@ -134,13 +134,14 @@ return [
             'days' => 14,
         ],
 
-        'slack' => [
-            'driver' => 'slack',
-            'url' => env('LOG_SLACK_WEBHOOK_URL'),
-            'username' => 'Laravel Log',
-            'emoji' => ':boom:',
-            'level' => env('LOG_LEVEL', 'critical'),
-        ],
+        // Temporarily disabled slack logging to fix 500 error
+        // 'slack' => [
+        //     'driver' => 'slack',
+        //     'url' => env('LOG_SLACK_WEBHOOK_URL'),
+        //     'username' => 'Laravel Log',
+        //     'emoji' => ':boom:',
+        //     'level' => env('LOG_LEVEL', 'critical'),
+        // ],
 
         'papertrail' => [
             'driver' => 'monolog',

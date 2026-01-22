@@ -5,7 +5,7 @@
                 <i class="bi bi-house-door me-1"></i>Home
             </a>
         </li>
-        
+
         @if(request()->routeIs('account.dashboard'))
             <li class="breadcrumb-item active">Dashboard</li>
         @elseif(request()->routeIs('account.myJobApplications'))
@@ -13,7 +13,7 @@
                 <a href="{{ route('account.dashboard') }}" class="text-decoration-none">Dashboard</a>
             </li>
             <li class="breadcrumb-item active">Applications</li>
-        @elseif(request()->routeIs('account.saved-jobs.index'))
+        @elseif(request()->routeIs('account.bookmarked-jobs.index'))
             <li class="breadcrumb-item">
                 <a href="{{ route('account.dashboard') }}" class="text-decoration-none">Dashboard</a>
             </li>
@@ -47,40 +47,41 @@
             <li class="breadcrumb-item">
                 <a href="{{ route('account.dashboard') }}" class="text-decoration-none">Dashboard</a>
             </li>
-            <li class="breadcrumb-item active">{{ ucfirst(str_replace(['-', '_'], ' ', last(explode('.', request()->route()->getName())))) }}</li>
+            <li class="breadcrumb-item active">
+                {{ ucfirst(str_replace(['-', '_'], ' ', last(explode('.', request()->route()->getName())))) }}</li>
         @endif
     </ol>
 </nav>
 
 <style>
-.breadcrumb {
-    background: transparent;
-    padding: 0;
-    margin: 0;
-    font-size: 0.875rem;
-}
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        font-size: 0.875rem;
+    }
 
-.breadcrumb-item {
-    color: rgba(255, 255, 255, 0.7);
-}
+    .breadcrumb-item {
+        color: rgba(255, 255, 255, 0.7);
+    }
 
-.breadcrumb-item.active {
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-}
+    .breadcrumb-item.active {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+    }
 
-.breadcrumb-item + .breadcrumb-item::before {
-    content: "›";
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: bold;
-}
+    .breadcrumb-item+.breadcrumb-item::before {
+        content: "›";
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: bold;
+    }
 
-.breadcrumb-item a {
-    color: rgba(255, 255, 255, 0.8);
-    transition: color 0.2s ease;
-}
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.8);
+        transition: color 0.2s ease;
+    }
 
-.breadcrumb-item a:hover {
-    color: #ffffff;
-}
+    .breadcrumb-item a:hover {
+        color: #ffffff;
+    }
 </style>

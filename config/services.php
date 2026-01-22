@@ -56,4 +56,12 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    // PosterMyWall API Configuration
+    'postermywall' => [
+        'api_key' => env('POSTERMYWALL_API_KEY'),
+        'client_id' => env('POSTERMYWALL_CLIENT_ID'),
+        'client_secret' => env('POSTERMYWALL_CLIENT_SECRET'),
+        'base_url' => env('POSTERMYWALL_BASE_URL', 'https://api.postermywall.com'),
+    ],
+
 ];

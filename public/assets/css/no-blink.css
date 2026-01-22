@@ -1,120 +1,180 @@
 /**
- * No Blink CSS - Prevents all page load animations and transitions
- * This file disables animations that cause the dashboard to blink/flash on load
+ * No Blink CSS - Prevents page load animations and ensures smooth transitions
+ * This file prevents the dashboard from blinking/flashing on load
  * Apply this as the LAST stylesheet to override any other animations
  */
 
-/* Disable all fade-in animations on page load */
-.content-fade-in,
-.fade-in,
-.animate-fade-in,
-[class*="fade"] {
+/* ===== INITIAL STATE: Show content immediately to prevent black screen ===== */
+/* Removed the opacity: 0 rule that was causing black screen on page load */
+body:not(.page-loaded) .main-content,
+body:not(.page-loaded) .dashboard-content,
+body:not(.page-loaded) .content-wrapper,
+body:not(.page-loaded) .js-main,
+body:not(.page-loaded) .js-content {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ===== LOADED STATE: Fade in content smoothly ===== */
+body.page-loaded .main-content,
+body.page-loaded .dashboard-content,
+body.page-loaded .content-wrapper,
+body.page-loaded .js-main,
+body.page-loaded .js-content {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease-out;
+}
+
+/* ===== DISABLE INITIAL LOAD ANIMATIONS ===== */
+/* Prevent all fade-in animations on page load */
+body:not(.page-loaded) .content-fade-in,
+body:not(.page-loaded) .fade-in,
+body:not(.page-loaded) .animate-fade-in,
+body:not(.page-loaded) [class*="fade"] {
     animation: none !important;
     opacity: 1 !important;
     visibility: visible !important;
 }
 
-/* Ensure all dashboard elements are visible immediately */
-.modern-dashboard,
-.modern-dashboard * {
+/* Disable all dashboard element animations until loaded */
+body:not(.page-loaded) .modern-dashboard,
+body:not(.page-loaded) .modern-dashboard * {
     animation: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
 }
 
-/* Disable initial hide states */
-.dashboard-header,
-.dashboard-content,
-.welcome-section,
-.statistics-section,
-.action-cards-section,
-.recent-applications-section,
-.recommended-jobs-section,
-.modern-action-card,
-.stat-card,
-.job-card-compact,
-.application-item {
+/* ===== PREVENT LAYOUT SHIFT ON LOAD ===== */
+/* These elements should be visible immediately with NO transform */
+body:not(.page-loaded) .dashboard-header,
+body:not(.page-loaded) .dashboard-content,
+body:not(.page-loaded) .welcome-section,
+body:not(.page-loaded) .statistics-section,
+body:not(.page-loaded) .action-cards-section,
+body:not(.page-loaded) .recent-applications-section,
+body:not(.page-loaded) .recommended-jobs-section,
+body:not(.page-loaded) .modern-action-card,
+body:not(.page-loaded) .stat-card,
+body:not(.page-loaded) .stats-card,
+body:not(.page-loaded) .welcome-card,
+body:not(.page-loaded) .quick-action-card,
+body:not(.page-loaded) .job-card-compact,
+body:not(.page-loaded) .application-item,
+body:not(.page-loaded) .card {
     opacity: 1 !important;
     visibility: visible !important;
     transform: none !important;
     animation: none !important;
+    transition: none !important;
 }
 
-/* Allow only hover transitions (not initial load animations) */
-.modern-action-card,
-.stat-card,
-.application-item {
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+/* ===== AFTER PAGE LOAD: Enable smooth hover transitions ===== */
+body.page-loaded .modern-action-card,
+body.page-loaded .stat-card,
+body.page-loaded .stats-card,
+body.page-loaded .welcome-card,
+body.page-loaded .quick-action-card,
+body.page-loaded .application-item,
+body.page-loaded .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-/* Disable skeleton loaders on page load */
-.skeleton-loader,
-.loading-shimmer,
-[class*="skeleton"] {
+/* ===== REDUCED HOVER TRANSFORMS TO PREVENT DISORIENTATION ===== */
+/* Override aggressive hover transforms with subtle ones */
+body.page-loaded .stats-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+body.page-loaded .welcome-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 16px 32px rgba(102, 126, 234, 0.25) !important;
+}
+
+body.page-loaded .quick-action-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+body.page-loaded .modern-action-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ===== DISABLE SKELETON LOADERS ON PAGE LOAD ===== */
+body:not(.page-loaded) .skeleton-loader,
+body:not(.page-loaded) .loading-shimmer,
+body:not(.page-loaded) [class*="skeleton"] {
     animation: none !important;
     background: transparent !important;
 }
 
-/* Disable pulse animations */
-.loading-pulse,
-[class*="pulse"] {
+/* ===== DISABLE PULSE ANIMATIONS ===== */
+body:not(.page-loaded) .loading-pulse,
+body:not(.page-loaded) [class*="pulse"]:not(.progress-ring-progress) {
     animation: none !important;
 }
 
-/* Ensure loading overlay doesn't block content */
+/* ===== ENSURE LOADING OVERLAY DOESN'T BLOCK CONTENT ===== */
 .dashboard-loading-overlay {
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
 }
 
-/* Prevent content from being hidden during "loading" */
-body,
+/* ===== PREVENT BODY FROM BEING HIDDEN AND SET LIGHT BACKGROUND ===== */
 html {
+    background: #f8fafc !important;
     opacity: 1 !important;
     visibility: visible !important;
 }
 
-/* CRITICAL: Allow SVG stroke animations (profile completion circle) */
+body {
+    background: #f8fafc !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+body.modern-jobseeker-body {
+    background: #f8fafc !important;
+}
+
+/* Force the main layout wrapper to have proper background */
+.modern-jobseeker-layout {
+    background: #f8fafc !important;
+    min-height: 100vh;
+}
+
+/* ===== SVG ANIMATIONS: Always allow (profile completion circle) ===== */
 .progress-ring-progress,
 svg circle,
 .profile-completion svg circle {
     transition: stroke-dashoffset 1s ease !important;
-    animation-duration: revert !important;
 }
 
-/* Circle loader animation is handled by JavaScript (requestAnimationFrame) */
-
-/* Disable all keyframe animations on initial page load EXCEPT SVG strokes */
-@media (prefers-reduced-motion: no-preference) {
-    *:not(svg):not(svg *):not(.progress-ring-progress),
-    *:not(svg):not(svg *):not(.progress-ring-progress)::before,
-    *:not(svg):not(svg *):not(.progress-ring-progress)::after {
-        animation-duration: 0s !important;
-        animation-delay: 0s !important;
-        transition-duration: 0s !important;
-    }
-
-    /* Re-enable transitions after page load */
-    body.loaded *:not(svg):not(svg *),
-    body.loaded *:not(svg):not(svg *)::before,
-    body.loaded *:not(svg):not(svg *)::after {
-        animation-duration: revert !important;
-        animation-delay: revert !important;
-        transition-duration: revert !important;
-    }
-
-    /* Keep hover transitions and SVG transitions always enabled */
-    *:hover,
-    *:focus,
-    svg,
-    svg *,
-    .progress-ring-progress {
-        transition-duration: revert !important;
-    }
+/* ===== DISABLE DECORATIVE PSEUDO-ELEMENT ANIMATIONS ===== */
+body:not(.page-loaded) .welcome-card::after,
+body:not(.page-loaded) .stats-card::before,
+body:not(.page-loaded) .quick-action-card::before {
+    animation: none !important;
 }
 
-/* Respect user's reduced motion preference */
+/* Always disable the rotating gradient that causes disorientation */
+.welcome-card::after {
+    animation: none !important;
+    transform: none !important;
+    opacity: 0.3 !important;
+}
+
+/* ===== PAGE TRANSITION: Smooth navigation between pages ===== */
+body.page-transitioning .main-content,
+body.page-transitioning .dashboard-content,
+body.page-transitioning .content-wrapper {
+    opacity: 0.6;
+    transition: opacity 0.15s ease-out;
+    pointer-events: none;
+}
+
+/* ===== RESPECT USER'S REDUCED MOTION PREFERENCE ===== */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -122,7 +182,41 @@ svg circle,
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    body.page-loaded .stats-card:hover,
+    body.page-loaded .welcome-card:hover,
+    body.page-loaded .quick-action-card:hover,
+    body.page-loaded .modern-action-card:hover {
+        transform: none !important;
     }
 }
 
-/* Loader rotation is now handled by JavaScript requestAnimationFrame */
+/* ===== MOBILE: Disable hover transforms completely ===== */
+@media (max-width: 768px) {
+    body.page-loaded .stats-card:hover,
+    body.page-loaded .welcome-card:hover,
+    body.page-loaded .quick-action-card:hover,
+    body.page-loaded .modern-action-card:hover,
+    body.page-loaded .card:hover {
+        transform: none !important;
+    }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.stats-card,
+.welcome-card,
+.quick-action-card,
+.modern-action-card {
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Prevent layout thrashing */
+.modern-dashboard,
+.dashboard-content,
+.main-content {
+    contain: layout style;
+}

@@ -9,6 +9,7 @@ use App\Models\JobType;
 use App\Models\JobView;
 use App\Models\User;
 use App\Services\KMeansClusteringService;
+use App\Services\AzureMLClusteringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,10 +18,14 @@ use Carbon\Carbon;
 class AnalyticsController extends Controller
 {
     protected $clusteringService;
-    
-    public function __construct(KMeansClusteringService $clusteringService)
-    {
+    protected $azureMLService;
+
+    public function __construct(
+        KMeansClusteringService $clusteringService,
+        AzureMLClusteringService $azureMLService
+    ) {
         $this->clusteringService = $clusteringService;
+        $this->azureMLService = $azureMLService;
         $this->middleware('auth');
     }
     
@@ -363,5 +368,233 @@ class AnalyticsController extends Controller
             'profileViewsThisMonth',
             'recentProfileViewers'
         ));
+    }
+
+    /**
+     * Get Azure ML clustering results
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function azureMLClustering(Request $request)
+    {
+        $type = $request->get('type', 'job');
+        $k = $request->get('k');
+
+        try {
+            if ($type === 'job') {
+                $result = $this->azureMLService->runJobClustering($k);
+            } else {
+                $result = $this->azureMLService->runUserClustering($k);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+                'source' => $result['source'] ?? 'unknown'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Clustering failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get job recommendations using Azure ML
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function azureMLJobRecommendations(Request $request)
+    {
+        $userId = $request->get('user_id', Auth::id());
+        $limit = $request->get('limit', 10);
+
+        try {
+            $recommendations = $this->azureMLService->getJobRecommendations($userId, $limit);
+
+            return response()->json([
+                'success' => true,
+                'data' => $recommendations->map(function($job) {
+                    return [
+                        'id' => $job->id,
+                        'title' => $job->title,
+                        'company' => $job->employer->employerProfile->company_name ?? 'N/A',
+                        'location' => $job->location,
+                        'salary_range' => $job->salary_range,
+                        'category' => $job->category->name ?? 'N/A',
+                        'job_type' => $job->jobType->name ?? 'N/A',
+                        'cluster_score' => $job->cluster_score ?? null,
+                        'created_at' => $job->created_at->diffForHumans()
+                    ];
+                }),
+                'count' => $recommendations->count()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get recommendations: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get candidate recommendations using Azure ML
+     *
+     * @param Request $request
+     * @param int $jobId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function azureMLCandidateRecommendations(Request $request, $jobId)
+    {
+        $limit = $request->get('limit', 10);
+
+        // Check ownership
+        $job = Job::find($jobId);
+        if (!$job || ($job->user_id != Auth::id() && Auth::user()->role != 'admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        try {
+            $recommendations = $this->azureMLService->getUserRecommendations($jobId, $limit);
+
+            return response()->json([
+                'success' => true,
+                'data' => $recommendations->map(function($user) {
+                    $profile = $user->jobSeekerProfile;
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'experience_years' => $profile->total_experience_years ?? 0,
+                        'skills' => $profile->skills ?? [],
+                        'match_score' => $user->match_score ?? null
+                    ];
+                }),
+                'count' => $recommendations->count()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get candidates: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Find optimal K for clustering using Azure ML
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function azureMLOptimalK(Request $request)
+    {
+        $type = $request->get('type', 'job');
+        $maxK = $request->get('max_k', 10);
+
+        try {
+            $result = $this->azureMLService->findOptimalK($type, $maxK);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to find optimal K: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get cluster analysis with metrics from Azure ML
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function azureMLClusterAnalysis(Request $request)
+    {
+        $type = $request->get('type', 'job');
+        $k = $request->get('k');
+
+        try {
+            $result = $this->azureMLService->getClusterAnalysis($type, $k);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cluster analysis failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get labor market insights from Azure ML
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function azureMLMarketInsights()
+    {
+        try {
+            $insights = $this->azureMLService->getLaborMarketInsights();
+
+            return response()->json([
+                'success' => true,
+                'data' => $insights
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get market insights: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check Azure ML endpoint health
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function azureMLHealth()
+    {
+        $health = $this->azureMLService->healthCheck();
+
+        return response()->json([
+            'success' => $health['accessible'],
+            'configured' => $health['configured'],
+            'message' => $health['message']
+        ]);
+    }
+
+    /**
+     * Clear Azure ML cache
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function azureMLClearCache()
+    {
+        if (Auth::user()->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Admin access required'
+            ], 403);
+        }
+
+        $this->azureMLService->clearCache();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Azure ML cache cleared'
+        ]);
     }
 }

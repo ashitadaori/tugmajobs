@@ -132,6 +132,14 @@ class Employer extends Model
     }
 
     /**
+     * Get reviews for this employer.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'employer_id', 'user_id');
+    }
+
+    /**
      * Check if employer is active.
      */
     public function isActive(): bool
@@ -191,7 +199,7 @@ class Employer extends Model
         if ($this->company_logo) {
             return asset('storage/' . $this->company_logo);
         }
-        
+
         return null;
     }
 
@@ -277,13 +285,8 @@ class Employer extends Model
 
         $optionalFields = [
             'company_logo',
-            'company_website',
-            'linkedin_url',
-            'facebook_url',
-            'twitter_url',
-            'founded_year',
-            'contact_person_name',
-            'contact_person_designation',
+            'company_culture',
+            'benefits_offered',
         ];
 
         $totalFields = count($requiredFields) + count($optionalFields);

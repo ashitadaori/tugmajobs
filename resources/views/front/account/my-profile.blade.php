@@ -4,138 +4,186 @@
 
 @section('jobseeker-content')
 <style>
-/* Profile Page Professional Styles */
+/* Profile Page Modern Styles */
 .profile-pro {
     padding: 0;
 }
 
-/* Page Header */
+/* Modern Page Header - Gradient Style */
 .profile-page-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+}
+
+.profile-page-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 60%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .profile-page-header .header-content h1 {
-    font-size: 1.375rem;
+    font-size: 1.75rem;
     font-weight: 700;
-    color: #111827;
-    margin: 0 0 0.375rem 0;
+    color: white;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.025em;
 }
 
 .profile-page-header .header-content p {
-    font-size: 0.875rem;
-    color: #6b7280;
+    font-size: 0.9375rem;
+    color: rgba(255, 255, 255, 0.85);
     margin: 0;
 }
 
 .profile-page-header .completion-badge {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: #eef2ff;
-    color: #4f46e5;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
+    gap: 0.625rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 50px;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    position: relative;
+    z-index: 1;
 }
 
-/* Cards */
+/* Modern Cards */
 .profile-pro .card {
     border: 1px solid #e5e7eb !important;
-    border-radius: 0.875rem !important;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden;
 }
 
 .profile-pro .card:hover {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+    border-color: #d1d5db !important;
 }
 
 .profile-pro .card-body {
-    padding: 1.5rem !important;
+    padding: 1.75rem !important;
 }
 
 .profile-pro .card-title {
-    font-size: 1.0625rem !important;
+    font-size: 1.125rem !important;
     font-weight: 700 !important;
     color: #111827 !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .profile-pro .card-title i {
-    color: #4f46e5 !important;
+    color: #6366f1 !important;
+    font-size: 1.125rem;
 }
 
-/* Form Controls */
+/* Modern Form Controls */
 .profile-pro .form-control,
 .profile-pro .form-select {
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
     font-size: 0.9375rem;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: #fff;
 }
 
 .profile-pro .form-control:focus,
 .profile-pro .form-select:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 .profile-pro label {
     font-size: 0.875rem;
     font-weight: 600;
     color: #374151;
+    margin-bottom: 0.5rem;
 }
 
-/* Buttons */
+/* Modern Gradient Buttons */
 .profile-pro .btn-primary {
-    background: #4f46e5 !important;
-    border-color: #4f46e5 !important;
-    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    border: none !important;
+    border-radius: 12px;
     font-weight: 600;
-    padding: 0.625rem 1.25rem;
-    transition: all 0.2s ease;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
 }
 
 .profile-pro .btn-primary:hover {
-    background: #4338ca !important;
-    border-color: #4338ca !important;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
 }
 
 .profile-pro .btn-outline-primary {
-    color: #4f46e5;
-    border-color: #4f46e5;
-    border-radius: 0.5rem;
+    color: #6366f1;
+    border-color: #c7d2fe;
+    border-radius: 12px;
     font-weight: 600;
+    background: #eef2ff;
+    transition: all 0.25s ease;
 }
 
 .profile-pro .btn-outline-primary:hover {
-    background: #4f46e5;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-color: transparent;
     color: white;
+    transform: translateY(-2px);
 }
 
-/* Skills Tags */
+/* Modern Skills Tags */
 .profile-pro #skillTags .badge {
-    background: #eef2ff !important;
-    color: #4f46e5 !important;
-    border: 1px solid #e0e7ff;
-    border-radius: 9999px;
-    padding: 0.375rem 0.75rem;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%) !important;
+    color: #6366f1 !important;
+    border: 1px solid #c7d2fe;
+    border-radius: 50px;
+    padding: 0.5rem 0.875rem;
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 600;
     margin: 0.25rem;
+    transition: all 0.2s ease;
 }
 
-/* Profile Picture */
+.profile-pro #skillTags .badge:hover {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    color: white !important;
+    border-color: transparent;
+}
+
+/* Modern Profile Picture */
 .profile-pro .profile-picture-preview img,
 .profile-pro .profile-picture-preview > div {
-    border: 3px solid #e5e7eb !important;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    border: 4px solid white !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s ease;
+}
+
+.profile-pro .profile-picture-preview:hover img,
+.profile-pro .profile-picture-preview:hover > div {
+    transform: scale(1.02);
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.2);
 }
 </style>
 
@@ -431,6 +479,7 @@
                             <input type="hidden" name="name" value="{{ $user->name }}">
                             <input type="hidden" name="email" value="{{ $user->email }}">
                             <input type="hidden" name="phone" value="{{ $user->phone }}">
+                            <input type="hidden" name="is_job_preferences_form" value="1">
                             @php
                                 $currentJobTitle = $user->jobSeekerProfile->current_job_title ?? '';
                                 $professionalSummary = $user->jobSeekerProfile->professional_summary ?? '';

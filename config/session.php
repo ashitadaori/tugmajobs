@@ -46,7 +46,8 @@ return [
     |
     */
 
-    'encrypt' => false,
+    // Enable session encryption in production for additional security
+    'encrypt' => env('SESSION_ENCRYPT', env('APP_ENV') === 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -168,7 +169,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // In production, set SESSION_SECURE_COOKIE=true in .env
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -196,6 +198,7 @@ return [
     |
     */
 
-    'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    // Use 'strict' for production environments for better CSRF protection
+    'same_site' => env('SESSION_SAME_SITE', env('APP_ENV') === 'production' ? 'strict' : 'lax'),
 
 ];

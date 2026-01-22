@@ -166,7 +166,7 @@ class Jobseeker extends Model
             $this->middle_name,
             $this->last_name
         ]);
-        
+
         $name = implode(' ', $parts);
         return $name ?: $this->user->name ?? 'Unknown';
     }
@@ -179,7 +179,7 @@ class Jobseeker extends Model
         if (!$this->date_of_birth) {
             return null;
         }
-        
+
         return $this->date_of_birth->age;
     }
 
@@ -190,11 +190,11 @@ class Jobseeker extends Model
     {
         $years = $this->total_experience_years;
         $months = $this->total_experience_months;
-        
+
         if ($years == 0 && $months == 0) {
             return 'Fresh Graduate';
         }
-        
+
         $experience = [];
         if ($years > 0) {
             $experience[] = $years . ' year' . ($years > 1 ? 's' : '');
@@ -202,7 +202,7 @@ class Jobseeker extends Model
         if ($months > 0) {
             $experience[] = $months . ' month' . ($months > 1 ? 's' : '');
         }
-        
+
         return implode(' ', $experience);
     }
 
@@ -214,13 +214,13 @@ class Jobseeker extends Model
         if (!$this->expected_salary_min && !$this->expected_salary_max) {
             return null;
         }
-        
+
         $currency = $this->salary_currency;
         $period = ucfirst($this->salary_period);
-        
+
         if ($this->expected_salary_min && $this->expected_salary_max) {
-            return "{$currency} " . number_format($this->expected_salary_min) . " - " . 
-                   number_format($this->expected_salary_max) . " / {$period}";
+            return "{$currency} " . number_format($this->expected_salary_min) . " - " .
+                number_format($this->expected_salary_max) . " / {$period}";
         } elseif ($this->expected_salary_min) {
             return "{$currency} " . number_format($this->expected_salary_min) . "+ / {$period}";
         } else {
@@ -252,7 +252,7 @@ class Jobseeker extends Model
         if ($this->available_from && $this->available_from->isFuture()) {
             return false;
         }
-        
+
         return $this->profile_visibility && $this->profile_status !== 'suspended';
     }
 
@@ -261,8 +261,8 @@ class Jobseeker extends Model
      */
     public function isPremium(): bool
     {
-        return $this->is_premium && 
-               ($this->premium_expires_at === null || $this->premium_expires_at->isFuture());
+        return $this->is_premium &&
+            ($this->premium_expires_at === null || $this->premium_expires_at->isFuture());
     }
 
     /**
@@ -273,7 +273,7 @@ class Jobseeker extends Model
         if ($this->profile_photo) {
             return asset('storage/' . $this->profile_photo);
         }
-        
+
         // Fallback to user's profile image
         return $this->user->profile_image ?? null;
     }
@@ -286,52 +286,80 @@ class Jobseeker extends Model
         if ($this->resume_file) {
             return asset('storage/' . $this->resume_file);
         }
-        
+
         return null;
     }
 
     /**
      * Calculate and update profile completion percentage.
      */
+    /**
+     * Calculate and update profile completion percentage.
+     */
     public function calculateProfileCompletion(): float
     {
-        $fields = [
-            'first_name' => 5,
-            'last_name' => 5,
-            'phone' => 5,
-            'date_of_birth' => 5,
-            'gender' => 5,
-            'current_address' => 5,
-            'city' => 5,
-            'professional_summary' => 10,
-            'skills' => 10,
-            'education' => 10,
-            'work_experience' => 10,
-            'resume_file' => 15,
-            'preferred_job_types' => 5,
-            'expected_salary_min' => 5,
-        ];
-        
-        $totalScore = 0;
-        $maxScore = array_sum($fields);
-        
-        foreach ($fields as $field => $points) {
-            $value = $this->$field;
-            
-            if (is_array($value)) {
-                if (!empty($value)) {
-                    $totalScore += $points;
-                }
-            } elseif (!empty($value)) {
-                $totalScore += $points;
-            }
-        }
-        
-        $percentage = round(($totalScore / $maxScore) * 100, 2);
-        
+        $user = $this->user;
+        $score = 0;
+
+        // 1. Basic Information (20 points)
+        // Name (5)
+        if (!empty($user->name))
+            $score += 5;
+        // Email (5)
+        if (!empty($user->email))
+            $score += 5;
+        // Phone (5)
+        if (!empty($user->phone))
+            $score += 5;
+        // Profile Image (5)
+        if (!empty($user->image))
+            $score += 5;
+
+        // 2. Professional Title (5 points)
+        if (!empty($this->current_job_title))
+            $score += 5;
+
+        // 3. Professional Summary (10 points) - Must be at least 100 chars
+        if (!empty($this->professional_summary) && strlen($this->professional_summary) >= 100)
+            $score += 10;
+
+        // 4. Skills (10 points) - Must have at least 3
+        if (is_array($this->skills) && count($this->skills) >= 3)
+            $score += 10;
+
+        // 5. Work Experience (8 points) - At least one entry
+        if (is_array($this->work_experience) && count($this->work_experience) > 0)
+            $score += 8;
+
+        // 6. Education (7 points) - At least one entry
+        if (is_array($this->education) && count($this->education) > 0)
+            $score += 7;
+
+        // 7. Resume (10 points) - Either in profile or uploaded
+        $hasResume = !empty($this->resume_file) || ($user && $user->resumes()->count() > 0);
+        if ($hasResume)
+            $score += 10;
+
+        // 8. Job Preferences (15 points)
+        // Categories (5)
+        if (is_array($this->preferred_categories) && count($this->preferred_categories) > 0)
+            $score += 5;
+        // Job Types (5)
+        if (is_array($this->preferred_job_types) && count($this->preferred_job_types) > 0)
+            $score += 5;
+        // Experience Level (5)
+        if (!empty($this->experience_level))
+            $score += 5;
+
+        // 9. KYC Verification (15 points)
+        if ($user && $user->kyc_status === 'verified')
+            $score += 15;
+
+        $percentage = min(100, max(0, $score));
+
         // Update the database
         $this->update(['profile_completion_percentage' => $percentage]);
-        
+
         return $percentage;
     }
 
@@ -341,7 +369,7 @@ class Jobseeker extends Model
     public function updateProfileStatus(): void
     {
         $completion = $this->calculateProfileCompletion();
-        
+
         if ($completion >= 80) {
             $this->update(['profile_status' => 'complete']);
         } elseif ($completion < 30) {
@@ -363,36 +391,36 @@ class Jobseeker extends Model
     public function getMatchingJobs()
     {
         $query = Job::where('status', 'active');
-        
+
         // Filter by preferred categories
         if ($this->preferred_categories) {
             $query->whereIn('category_id', $this->preferred_categories);
         }
-        
+
         // Filter by preferred locations
         if ($this->preferred_locations) {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 foreach ($this->preferred_locations as $location) {
                     $q->orWhere('location', 'like', "%{$location}%");
                 }
             });
         }
-        
+
         // Filter by salary range
         if ($this->expected_salary_min) {
             $query->where('salary_max', '>=', $this->expected_salary_min);
         }
-        
+
         // Filter by job types
         if ($this->preferred_job_types) {
             $query->whereIn('job_type', $this->preferred_job_types);
         }
-        
+
         // Include remote jobs if open to remote
         if ($this->open_to_remote) {
             $query->orWhere('is_remote', true);
         }
-        
+
         return $query->orderBy('created_at', 'desc');
     }
 
@@ -404,12 +432,12 @@ class Jobseeker extends Model
         if (!$this->skills) {
             return '';
         }
-        
+
         // Handle both array and string formats
         if (is_array($this->skills)) {
             return implode(', ', $this->skills);
         }
-        
+
         // If it's already a string, return it
         return $this->skills;
     }
@@ -422,7 +450,7 @@ class Jobseeker extends Model
         if (!$this->education || empty($this->education)) {
             return 'Not specified';
         }
-        
+
         $latest = collect($this->education)->sortByDesc('year')->first();
         return $latest['degree'] ?? 'Education completed';
     }
@@ -434,7 +462,7 @@ class Jobseeker extends Model
     {
         $matches = [];
         $score = 0;
-        
+
         // Salary match
         if ($job->salary_min && $this->expected_salary_max) {
             if ($job->salary_min <= $this->expected_salary_max) {
@@ -442,7 +470,7 @@ class Jobseeker extends Model
                 $score += 20;
             }
         }
-        
+
         // Location match
         if ($this->open_to_remote && $job->is_remote) {
             $matches['location'] = true;
@@ -451,31 +479,31 @@ class Jobseeker extends Model
             $matches['location'] = true;
             $score += 15;
         }
-        
+
         // Skills match
         if ($job->required_skills && $this->skills) {
             $jobSkills = $job->required_skills;
             $candidateSkills = $this->skills;
             $commonSkills = array_intersect($jobSkills, $candidateSkills);
-            
+
             if (!empty($commonSkills)) {
                 $matches['skills'] = $commonSkills;
                 $score += (count($commonSkills) / count($jobSkills)) * 30;
             }
         }
-        
+
         // Experience match
         if ($job->min_experience && $this->total_experience_years >= $job->min_experience) {
             $matches['experience'] = true;
             $score += 20;
         }
-        
+
         // Job type match
         if (in_array($job->job_type, $this->preferred_job_types ?? [])) {
             $matches['job_type'] = true;
             $score += 15;
         }
-        
+
         return [
             'matches' => $matches,
             'score' => round($score, 2),

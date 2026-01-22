@@ -31,15 +31,15 @@
                                 <div class="mb-4">
                                     <label for="email" class="form-label">Email Address</label>
                                     <div class="input-group">
-                                        <input type="email" name="email" id="email" 
-                                            class="form-control @error('email') is-invalid @enderror" 
+                                        <input type="email" name="email" id="email"
+                                            class="form-control @error('email') is-invalid @enderror"
                                             placeholder="name@example.com" value="{{ old('email') }}">
                                         <span class="input-icon">
                                             <i class="fas fa-envelope"></i>
                                         </span>
                                     </div>
                                     @error('email')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
                                 </div>
 

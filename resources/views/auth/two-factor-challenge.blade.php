@@ -19,9 +19,14 @@
                     @endif
 
                     <div id="code-form">
-                        <p class="text-muted mb-4">
-                            Please enter the 6-digit verification code sent to your email address.
-                        </p>
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                <i class="fas fa-mobile-alt fa-3x text-primary"></i>
+                            </div>
+                            <p class="text-muted">
+                                Open your authenticator app and enter the 6-digit verification code.
+                            </p>
+                        </div>
 
                         <form method="POST" action="{{ route('two-factor.verify') }}">
                             @csrf
@@ -33,6 +38,7 @@
                                        name="code"
                                        maxlength="6"
                                        pattern="\d{6}"
+                                       inputmode="numeric"
                                        placeholder="000000"
                                        autofocus
                                        autocomplete="one-time-code">
@@ -46,15 +52,6 @@
                             </button>
                         </form>
 
-                        <div class="text-center">
-                            <form method="POST" action="{{ route('two-factor.resend') }}" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-link text-decoration-none">
-                                    <i class="fas fa-redo me-1"></i>Resend Code
-                                </button>
-                            </form>
-                        </div>
-
                         <hr class="my-4">
 
                         <div class="text-center">
@@ -65,9 +62,14 @@
                     </div>
 
                     <div id="recovery-form" style="display: none;">
-                        <p class="text-muted mb-4">
-                            Enter one of your recovery codes to access your account.
-                        </p>
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                <i class="fas fa-key fa-3x text-warning"></i>
+                            </div>
+                            <p class="text-muted">
+                                Enter one of your recovery codes to access your account.
+                            </p>
+                        </div>
 
                         <form method="POST" action="{{ route('two-factor.verify-recovery') }}">
                             @csrf
@@ -104,6 +106,19 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Help Text -->
+            <div class="card mt-3 border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-question-circle me-1"></i> Need Help?</h6>
+                    <ul class="small text-muted mb-0">
+                        <li>Open your authenticator app (Google Authenticator, Microsoft Authenticator, etc.)</li>
+                        <li>Find the entry for "{{ config('app.name', 'TugmaJobs') }}"</li>
+                        <li>Enter the 6-digit code shown in the app</li>
+                        <li>If you've lost access to your authenticator, use a recovery code</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -121,5 +136,14 @@ function toggleRecoveryForm() {
         recoveryForm.style.display = 'block';
     }
 }
+
+// Auto-submit when 6 digits are entered
+document.getElementById('code').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    if (this.value.length === 6) {
+        // Optional: auto-submit after a brief delay
+        // setTimeout(() => this.form.submit(), 300);
+    }
+});
 </script>
 @endsection

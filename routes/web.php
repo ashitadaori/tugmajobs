@@ -12,15 +12,38 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\JobsController;
 use App\Http\Controllers\JobsControllerKMeans;
 use App\Http\Controllers\KycController;
+use App\Http\Controllers\ManualKycController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\EmployerController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\SocialAuthController;
+use App\Http\Controllers\TwoFactorAuthController;
+
+// Test route for debugging analytics
+Route::get('/test-admin-analytics', function () {
+    try {
+        $service = new App\Services\AdvancedKMeansClusteringService();
+        $controller = new App\Http\Controllers\Admin\PesoAnalyticsController($service);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Analytics controller is working',
+            'timestamp' => now()
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
 use App\Http\Controllers\EmployerAuthController;
 use Illuminate\Http\Request;
-use App\Http\Controllers\SavedJobController;
+
+use App\Http\Controllers\BookmarkedJobController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReviewController;
@@ -43,11 +66,11 @@ require __DIR__ . '/modules.php';
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
-    Route::get('login', function() {
+    Route::get('login', function () {
         return redirect()->route('home')->with('info', 'Please use the Sign In button to access your account.');
     })->name('login');
     Route::post('login', [LoginController::class, 'login']);
-    Route::get('register', function() {
+    Route::get('register', function () {
         return redirect()->route('home')->with('info', 'Please use the Get Started button to create your account.');
     })->name('register');
     Route::post('register', [RegisterController::class, 'register']);
@@ -85,12 +108,40 @@ Route::middleware('guest')->group(function () {
 
 Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-Route::get('/',[HomeController::class,'index'])->name('home');
+// Two-Factor Authentication Routes
+Route::prefix('two-factor')->name('two-factor.')->group(function () {
+    // Challenge routes (no auth - user is in 2FA challenge state)
+    Route::get('/challenge', [TwoFactorAuthController::class, 'show'])->name('challenge');
+    Route::post('/verify', [TwoFactorAuthController::class, 'verify'])->name('verify');
+    Route::post('/verify-recovery', [TwoFactorAuthController::class, 'verifyRecoveryCode'])->name('verify-recovery');
+});
+
+// 2FA Management Routes (requires auth)
+Route::middleware(['auth'])->prefix('2fa')->name('2fa.')->group(function () {
+    Route::get('/setup', [TwoFactorAuthController::class, 'showSetup'])->name('setup');
+    Route::post('/confirm-setup', [TwoFactorAuthController::class, 'confirmSetup'])->name('confirm-setup');
+    Route::post('/disable', [TwoFactorAuthController::class, 'disable'])->name('disable');
+    Route::post('/regenerate-recovery-codes', [TwoFactorAuthController::class, 'regenerateRecoveryCodes'])->name('regenerate-recovery-codes');
+    Route::post('/show-recovery-codes', [TwoFactorAuthController::class, 'showRecoveryCodes'])->name('show-recovery-codes');
+});
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+
+// Help Center Routes
+Route::get('/help', [App\Http\Controllers\HelpController::class, 'index'])->name('help.index');
+Route::get('/help/jobseeker', [App\Http\Controllers\HelpController::class, 'jobseeker'])->name('help.jobseeker');
+Route::get('/help/employer', [App\Http\Controllers\HelpController::class, 'employer'])->name('help.employer');
+
+// Static Pages
+Route::get('/terms-and-conditions', function () {
+    return view('front.terms');
+})->name('terms');
 
 // Profile redirect route for all users
-Route::get('/profile', function() {
+Route::get('/profile', function () {
     $user = Auth::user();
-    
+
     if ($user->isEmployer()) {
         return redirect()->route('employer.profile.edit');
     } elseif ($user->isJobSeeker()) {
@@ -104,29 +155,29 @@ Route::get('/profile', function() {
 })->middleware('auth')->name('profile.index');
 
 // Job browsing routes - require authentication (jobseekers only for job listing)
-Route::middleware(['auth', 'role:jobseeker'])->group(function() {
-    Route::get('/jobs',[JobsControllerKMeans::class,'index'])->name('jobs');
+Route::middleware(['auth', 'role:jobseeker'])->group(function () {
+    Route::get('/jobs', [JobsControllerKMeans::class, 'index'])->name('jobs');
 });
 
 // Job detail page - accessible by all authenticated users (jobseekers, employers, admins)
-Route::middleware(['auth'])->group(function() {
-    Route::get('/jobs/detail/{id}',[JobsControllerKMeans::class,'jobDetail'])->name('jobDetail');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/jobs/detail/{id}', [JobsControllerKMeans::class, 'jobDetail'])->name('jobDetail');
 });
 
 // K-means specific routes
-Route::middleware(['auth'])->group(function() {
+Route::middleware(['auth'])->group(function () {
     // Category selection routes for jobseekers
     Route::get('/jobs/select-categories', [JobsControllerKMeans::class, 'requireCategorySelection'])->name('jobs.select-categories');
     Route::post('/jobs/save-preferences', [JobsControllerKMeans::class, 'saveJobPreferences'])->name('jobs.save-preferences');
-    
+
     // Job recommendations API
     Route::get('/api/jobs/recommendations', [JobsControllerKMeans::class, 'getRecommendations'])->name('api.jobs.recommendations');
-    
+
     // Jobseeker dashboard with clustering
     Route::get('/jobseeker/dashboard', [JobsControllerKMeans::class, 'dashboard'])->name('jobseeker.dashboard.kmeans');
-    
+
     // K-means Enhanced Profile Routes (JobSeeker only)
-    Route::middleware(['check.jobseeker'])->prefix('kmeans/profile')->name('kmeans.profile.')->group(function() {
+    Route::middleware(['check.jobseeker'])->prefix('kmeans/profile')->name('kmeans.profile.')->group(function () {
         Route::get('/', [\App\Http\Controllers\JobseekerProfileKMeansController::class, 'profile'])->name('index');
         Route::post('/update', [\App\Http\Controllers\JobseekerProfileKMeansController::class, 'updateProfile'])->name('update');
         Route::get('/dashboard', [\App\Http\Controllers\JobseekerProfileKMeansController::class, 'getProfileDashboard'])->name('dashboard');
@@ -134,11 +185,9 @@ Route::middleware(['auth'])->group(function() {
     });
 });
 
-// Companies routes - require authentication
-Route::middleware(['auth', 'role:jobseeker'])->group(function() {
-    Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
-    Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
-});
+// Companies routes - publicly accessible for viewing
+Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
+Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
 
 // Location API Routes
 Route::prefix('api/location')->name('api.location.')->group(function () {
@@ -149,7 +198,7 @@ Route::prefix('api/location')->name('api.location.')->group(function () {
 });
 
 // Job Application and Save Routes (must be authenticated and KYC verified for jobseekers)
-Route::middleware(['auth', 'jobseeker.kyc'])->group(function() {
+Route::middleware(['auth', 'jobseeker.kyc'])->group(function () {
     // Step-by-step application process
     Route::get('/jobs/{id}/apply', [JobsController::class, 'startApplication'])->name('job.application.start');
     Route::post('/jobs/{id}/apply/process', [JobsController::class, 'processApplication'])->name('job.application.process');
@@ -164,10 +213,10 @@ Route::middleware(['auth', 'jobseeker.kyc'])->group(function() {
 });
 
 // Save/unsave jobs (authenticated but no KYC required)
-Route::middleware(['auth'])->group(function() {
-    Route::post('/jobs/{id}/save', [JobsController::class, 'saveJob'])->name('jobs.save');
-    Route::post('/jobs/{id}/unsave', [JobsController::class, 'unsaveJob'])->name('jobs.unsave');
-    Route::post('/jobs/{job}/toggle-save', [SavedJobController::class, 'toggleSave'])
+Route::middleware(['auth'])->group(function () {
+    Route::post('/jobs/{id}/bookmark', [JobsController::class, 'bookmarkJob'])->name('jobs.bookmark');
+    Route::post('/jobs/{id}/unbookmark', [JobsController::class, 'unbookmarkJob'])->name('jobs.unbookmark');
+    Route::post('/jobs/{job}/toggle-bookmark', [BookmarkedJobController::class, 'toggleBookmark'])
         ->name('jobs.toggle-save');
 
     // Employer Document Routes
@@ -199,26 +248,35 @@ Route::middleware(['auth'])->group(function() {
 
 // KYC Routes (Auth Required)
 Route::middleware(['auth'])->prefix('kyc')->name('kyc.')->group(function () {
-    Route::get('/', function() { return view('kyc.start'); })->name('index');
-    Route::get('/start', function() { return view('kyc.start'); })->name('start.form');
+    Route::get('/', function () {
+        return view('kyc.start');
+    })->name('index');
+    Route::get('/start', function () {
+        return view('kyc.start');
+    })->name('start.form');
     Route::post('/start', [KycController::class, 'startVerification'])->name('start');
     Route::post('/reset', [KycController::class, 'resetVerification'])->name('reset');
     Route::post('/check-status', [KycController::class, 'checkStatus'])->name('check-status');
-    Route::post('/dismiss-banner', function() { 
-        session(['kyc_banner_dismissed' => true]); 
-        return response()->json(['status' => 'dismissed']); 
+    Route::post('/dismiss-banner', function () {
+        session(['kyc_banner_dismissed' => true]);
+        return response()->json(['status' => 'dismissed']);
     })->name('dismiss-banner');
-    
-    Route::post('/mobile-completion-notify', [KycController::class, 'mobileCompletionNotify'])->name('mobile-completion-notify');
-    
 
+    Route::post('/mobile-completion-notify', [KycController::class, 'mobileCompletionNotify'])->name('mobile-completion-notify');
+
+    // Manual KYC Routes (for Philippine IDs not supported by Didit)
+    Route::get('/manual', [ManualKycController::class, 'showUploadForm'])->name('manual.form');
+    Route::post('/manual', [ManualKycController::class, 'upload'])->name('manual.upload');
+    Route::get('/manual/status', [ManualKycController::class, 'status'])->name('manual.status');
+    Route::delete('/manual/{document}/cancel', [ManualKycController::class, 'cancel'])->name('manual.cancel');
+    Route::get('/manual/{document}/view/{type}', [ManualKycController::class, 'viewDocument'])->name('manual.view');
 });
 
 // KYC redirect routes (No auth required - users return from external Didit verification)
 Route::prefix('kyc')->name('kyc.')->group(function () {
     Route::get('/success', [KycController::class, 'redirectHandler'])->name('success');
     Route::get('/failure', [KycController::class, 'failure'])->name('failure');
-    
+
     // Mock verification route for development/testing (disabled - use DIDIT_USE_MOCK=true to enable)
     // Route::get('/mock-verify', function() {
     //     $user = Auth::user();
@@ -255,7 +313,7 @@ Route::prefix('kyc')->name('kyc.')->group(function () {
 if (app()->environment('local', 'testing')) {
     Route::prefix('test')->name('test.')->group(function () {
         // KYC test redirect
-        Route::get('/kyc/redirect/{userId}', function($userId) {
+        Route::get('/kyc/redirect/{userId}', function ($userId) {
             $user = \App\Models\User::find($userId);
             if (!$user) {
                 return 'User not found';
@@ -271,7 +329,7 @@ if (app()->environment('local', 'testing')) {
         })->middleware('web')->name('kyc.redirect');
 
         // Verify employer for testing
-        Route::get('/verify-employer', function() {
+        Route::get('/verify-employer', function () {
             $user = Auth::user();
             if (!$user || !$user->isEmployer()) {
                 return response()->json(['error' => 'Unauthorized'], 401);
@@ -329,20 +387,20 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/update-profile-img', [AccountController::class, 'updateProfileImg'])->name('updateProfileimg');
         Route::post('/remove-profile-img', [AccountController::class, 'removeProfileImage'])->name('removeProfileImage');
         Route::post('/store-message', [AccountController::class, 'storeMessage'])->name('storeMessage');
-        
+
         // Job Seeker Routes
-        Route::group(['middleware' => ['auth', 'role:jobseeker']], function() {
+        Route::group(['middleware' => ['auth', 'role:jobseeker']], function () {
             Route::get('/dashboard', [AccountController::class, 'dashboard'])->name('dashboard');
             Route::get('/my-job-applications', [AccountController::class, 'myJobApplications'])->name('myJobApplications');
             Route::get('/my-job-applications/{id}', [AccountController::class, 'showJobApplication'])->name('showJobApplication');
             Route::post('/remove-job-application', [AccountController::class, 'removeJobs'])->name('removeJobs');
-            // Enhanced Saved Jobs System
-            Route::get('/saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
-            Route::post('/saved-jobs/toggle', [SavedJobController::class, 'toggle'])->name('saved-jobs.toggle');
-            Route::post('/saved-jobs/store', [SavedJobController::class, 'store'])->name('saved-jobs.store');
-            Route::delete('/saved-jobs/destroy', [SavedJobController::class, 'destroy'])->name('saved-jobs.destroy');
-            Route::get('/saved-jobs/count', [SavedJobController::class, 'count'])->name('saved-jobs.count');
-            
+            // Enhanced Bookmarked Jobs System
+            Route::get('/bookmarked-jobs', [BookmarkedJobController::class, 'index'])->name('bookmarked-jobs.index');
+            Route::post('/bookmarked-jobs/toggle', [BookmarkedJobController::class, 'toggle'])->name('bookmarked-jobs.toggle');
+            Route::post('/bookmarked-jobs/store', [BookmarkedJobController::class, 'store'])->name('bookmarked-jobs.store');
+            Route::delete('/bookmarked-jobs/destroy', [BookmarkedJobController::class, 'destroy'])->name('bookmarked-jobs.destroy');
+            Route::get('/bookmarked-jobs/count', [BookmarkedJobController::class, 'count'])->name('bookmarked-jobs.count');
+
             // Legacy routes (keep for backward compatibility)
             Route::get('/old-saved-jobs', [AccountController::class, 'savedJobs'])->name('savedJobs');
             Route::post('/remove-saved-job', [AccountController::class, 'removeSavedJob'])->name('removeSavedJob');
@@ -353,12 +411,12 @@ Route::middleware(['auth'])->group(function () {
 
             // Analytics Route
             Route::get('/analytics', [AnalyticsController::class, 'jobSeekerAnalytics'])->name('analytics');
-            
+
             // Notifications
             Route::post('/notifications/mark-as-read/{id}', [AccountController::class, 'markNotificationAsRead'])->name('notifications.mark-as-read');
             Route::post('/notifications/mark-all-as-read', [AccountController::class, 'markAllNotificationsAsRead'])->name('notifications.mark-all-as-read');
             Route::get('/notifications', [AccountController::class, 'notifications'])->name('notifications.index');
-            
+
             // Profile routes
             Route::get('/my-profile', [AccountController::class, 'myProfile'])->name('myProfile');
             Route::post('/update-my-profile', [AccountController::class, 'updateProfile'])->name('updateMyProfile');
@@ -369,34 +427,35 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/add-education', [AccountController::class, 'addEducation'])->name('addEducation');
             Route::post('/update-education', [AccountController::class, 'updateEducation'])->name('updateEducation');
             Route::delete('/delete-education', [AccountController::class, 'deleteEducation'])->name('deleteEducation');
-            
+
             // Resume Management
             Route::post('/upload-resume', [AccountController::class, 'uploadResume'])->name('uploadResume');
-            
+
             // Resume Builder
             Route::prefix('resume-builder')->name('resume-builder.')->group(function () {
                 Route::get('/', [\App\Http\Controllers\ResumeBuilderController::class, 'index'])->name('index');
                 Route::get('/create', [\App\Http\Controllers\ResumeBuilderController::class, 'create'])->name('create');
                 Route::post('/store', [\App\Http\Controllers\ResumeBuilderController::class, 'store'])->name('store');
+                Route::post('/import', [\App\Http\Controllers\ResumeBuilderController::class, 'importResume'])->name('import');
                 Route::get('/{resume}/edit', [\App\Http\Controllers\ResumeBuilderController::class, 'edit'])->name('edit');
                 Route::put('/{resume}', [\App\Http\Controllers\ResumeBuilderController::class, 'update'])->name('update');
                 Route::delete('/{resume}', [\App\Http\Controllers\ResumeBuilderController::class, 'destroy'])->name('destroy');
                 Route::get('/{resume}/preview', [\App\Http\Controllers\ResumeBuilderController::class, 'preview'])->name('preview');
                 Route::get('/{resume}/download', [\App\Http\Controllers\ResumeBuilderController::class, 'download'])->name('download');
             });
-            
+
             // Review System
             Route::post('/reviews/store', [ReviewController::class, 'store'])->name('reviews.store');
             Route::put('/reviews/{id}', [ReviewController::class, 'update'])->name('reviews.update');
             Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
             Route::get('/reviews/check-eligibility/{jobId}/{reviewType}', [ReviewController::class, 'checkEligibility'])->name('reviews.checkEligibility');
             Route::get('/my-reviews', [ReviewController::class, 'myReviews'])->name('myReviews');
-            
+
         });
-        
+
         // Job Recommendations
-        Route::get('/job-recommendations',[AnalyticsController::class,'jobRecommendations'])->name('account.jobRecommendations');
-        Route::get('/candidate-recommendations/{jobId}',[AnalyticsController::class,'candidateRecommendations'])->name('account.candidateRecommendations');
+        Route::get('/job-recommendations', [AnalyticsController::class, 'jobRecommendations'])->name('account.jobRecommendations');
+        Route::get('/candidate-recommendations/{jobId}', [AnalyticsController::class, 'candidateRecommendations'])->name('account.candidateRecommendations');
 
         // Profile routes moved to job seeker middleware group
 
@@ -404,7 +463,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/settings', [AccountController::class, 'settings'])->name('settings');
         Route::post('/update-notifications', [AccountController::class, 'updateNotifications'])->name('updateNotifications');
         Route::post('/update-privacy', [AccountController::class, 'updatePrivacy'])->name('updatePrivacy');
-        
+
         // Password management routes
         Route::match(['GET', 'POST'], '/change-password', [AccountController::class, 'changePassword'])->name('changePassword');
         Route::post('/update-password', [AccountController::class, 'updatePassword'])->name('updatePassword');
@@ -452,21 +511,21 @@ Route::group(['prefix' => 'employer', 'middleware' => ['auth', 'role:employer'],
     // Job Management
     Route::prefix('jobs')->name('jobs.')->group(function () {
         Route::get('/', [EmployerController::class, 'jobs'])->name('index');
-        
+
         // Routes that require KYC verification for unverified employers - TEMPORARILY DISABLED
         // Route::middleware(['employer.kyc'])->group(function () {
-            Route::get('/create', [EmployerController::class, 'createJob'])->name('create');
-            Route::post('/', [EmployerController::class, 'storeJob'])->name('store');
-            Route::get('/{job}/edit', [EmployerController::class, 'editJob'])->name('edit');
-            Route::put('/{job}', [EmployerController::class, 'updateJob'])->name('update');
+        Route::get('/create', [EmployerController::class, 'createJob'])->name('create');
+        Route::post('/', [EmployerController::class, 'storeJob'])->name('store');
+        Route::get('/{job}/edit', [EmployerController::class, 'editJob'])->name('edit');
+        Route::put('/{job}', [EmployerController::class, 'updateJob'])->name('update');
         // });
-        
+
         // Routes that don't require KYC verification
         Route::get('/{job}', [EmployerController::class, 'showJob'])->name('show');
         Route::delete('/{job}', [EmployerController::class, 'deleteJob'])->name('delete');
         Route::get('/drafts', [EmployerController::class, 'draftJobs'])->name('drafts');
     });
-    
+
     // Applications Management
     Route::prefix('applications')->name('applications.')->group(function () {
         Route::get('/', [EmployerController::class, 'jobApplications'])->name('index');
@@ -482,13 +541,13 @@ Route::group(['prefix' => 'employer', 'middleware' => ['auth', 'role:employer'],
         Route::post('/{application}/mark-hired', [EmployerController::class, 'markAsHired'])->name('markHired');
         Route::get('/{application}/documents', [EmployerController::class, 'viewSubmittedDocuments'])->name('documents');
     });
-    
+
     // Jobseeker Profile Viewing
     Route::get('/jobseeker/{userId}/profile', [EmployerController::class, 'viewJobseekerProfile'])->name('jobseeker.profile');
-    
+
     // Job Applicants
     Route::get('/jobs/{jobId}/applicants', [EmployerController::class, 'viewJobApplicants'])->name('jobs.applicants');
-    
+
     // Settings Management
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [EmployerController::class, 'settings'])->name('index');
@@ -500,8 +559,9 @@ Route::group(['prefix' => 'employer', 'middleware' => ['auth', 'role:employer'],
         Route::post('/security/2fa/enable', [EmployerController::class, 'enable2FA'])->name('2fa.enable');
         Route::post('/security/2fa/disable', [EmployerController::class, 'disable2FA'])->name('2fa.disable');
         Route::post('/account/deactivate', [EmployerController::class, 'deactivateAccount'])->name('account.deactivate');
+        Route::delete('/kyc/reset', [EmployerController::class, 'resetKyc'])->name('kyc.reset');
     });
-    
+
     // Review Management
     Route::prefix('reviews')->name('reviews.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Employer\ReviewController::class, 'index'])->name('index');
@@ -509,11 +569,51 @@ Route::group(['prefix' => 'employer', 'middleware' => ['auth', 'role:employer'],
         Route::put('/{id}/response', [\App\Http\Controllers\Employer\ReviewController::class, 'updateResponse'])->name('updateResponse');
         Route::delete('/{id}/response', [\App\Http\Controllers\Employer\ReviewController::class, 'deleteResponse'])->name('deleteResponse');
     });
-    
+
+    // Poster Builder with PosterMyWall Integration
+    Route::prefix('posters')->name('posters.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Employer\PosterController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Employer\PosterController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Employer\PosterController::class, 'store'])->name('store');
+
+        // PosterMyWall template browsing and selection
+        Route::get('/templates', [\App\Http\Controllers\Employer\PosterController::class, 'templates'])->name('templates');
+        Route::post('/templates/{templateId}/select', [\App\Http\Controllers\Employer\PosterController::class, 'selectTemplate'])->name('templates.select');
+        Route::get('/{poster}/editor', [\App\Http\Controllers\Employer\PosterController::class, 'editor'])->name('editor');
+        Route::post('/callback', [\App\Http\Controllers\Employer\PosterController::class, 'callback'])->name('callback');
+
+        Route::get('/{poster}/edit', [\App\Http\Controllers\Employer\PosterController::class, 'edit'])->name('edit');
+        Route::put('/{poster}', [\App\Http\Controllers\Employer\PosterController::class, 'update'])->name('update');
+        Route::delete('/{poster}', [\App\Http\Controllers\Employer\PosterController::class, 'destroy'])->name('destroy');
+        Route::get('/{poster}/preview', [\App\Http\Controllers\Employer\PosterController::class, 'preview'])->name('preview');
+        Route::get('/{poster}/download', [\App\Http\Controllers\Employer\PosterController::class, 'download'])->name('download');
+        Route::post('/{poster}/duplicate', [\App\Http\Controllers\Employer\PosterController::class, 'duplicate'])->name('duplicate');
+        Route::get('/job/{job}', [\App\Http\Controllers\Employer\PosterController::class, 'createFromJob'])->name('from-job');
+    });
+
     // Account Management
     Route::delete('/account/delete', [EmployerController::class, 'deleteAccount'])->name('delete-account');
-    
+
     // Team Management
     Route::delete('/team/members/{teamMember}', [EmployerController::class, 'removeTeamMember'])->name('team.remove');
+});
+
+// Azure ML Clustering API Routes
+Route::middleware(['auth'])->prefix('api/azure-ml')->name('api.azure-ml.')->group(function () {
+    // Clustering operations
+    Route::get('/clustering', [AnalyticsController::class, 'azureMLClustering'])->name('clustering');
+    Route::get('/cluster-analysis', [AnalyticsController::class, 'azureMLClusterAnalysis'])->name('cluster-analysis');
+    Route::get('/optimal-k', [AnalyticsController::class, 'azureMLOptimalK'])->name('optimal-k');
+
+    // Recommendations
+    Route::get('/job-recommendations', [AnalyticsController::class, 'azureMLJobRecommendations'])->name('job-recommendations');
+    Route::get('/candidate-recommendations/{jobId}', [AnalyticsController::class, 'azureMLCandidateRecommendations'])->name('candidate-recommendations');
+
+    // Market insights
+    Route::get('/market-insights', [AnalyticsController::class, 'azureMLMarketInsights'])->name('market-insights');
+
+    // Health check and admin
+    Route::get('/health', [AnalyticsController::class, 'azureMLHealth'])->name('health');
+    Route::post('/clear-cache', [AnalyticsController::class, 'azureMLClearCache'])->name('clear-cache');
 });
 

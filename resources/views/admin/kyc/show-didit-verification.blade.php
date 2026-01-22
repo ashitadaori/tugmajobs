@@ -305,15 +305,49 @@
             @endif
 
             <!-- Verification Images -->
+            @php
+                // Helper function to check if an image URL is valid (local storage, not expired external URL)
+                $isValidImageUrl = function($url) {
+                    if (empty($url)) return false;
+                    // Check if it's a local storage URL (contains /storage/)
+                    if (str_contains($url, '/storage/')) return true;
+                    // Check if it starts with the app URL
+                    if (str_starts_with($url, config('app.url'))) return true;
+                    // External URLs (like DiDit temporary URLs) are considered invalid/expired
+                    return false;
+                };
+
+                // Count valid images
+                $validImageCount = 0;
+                $hasExpiredImages = false;
+                foreach ($documentImages as $url) {
+                    if ($isValidImageUrl($url)) {
+                        $validImageCount++;
+                    } elseif (!empty($url)) {
+                        $hasExpiredImages = true;
+                    }
+                }
+            @endphp
+
             @if(!empty($documentImages))
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-camera me-2"></i>Verification Images
-                        <small class="text-muted ms-2">({{ count($documentImages) }} photos)</small>
+                        @if($validImageCount > 0)
+                            <small class="text-muted ms-2">({{ $validImageCount }} photos available)</small>
+                        @endif
                     </h5>
                 </div>
                 <div class="card-body">
+                    @if($hasExpiredImages && $validImageCount < count($documentImages))
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Some images have expired.</strong> DiDit verification images are temporary and may expire if not downloaded during initial verification.
+                        Images stored locally will remain available.
+                    </div>
+                    @endif
+
                     <div class="row g-3">
                         @if(isset($documentImages['front']))
                         <div class="col-lg-4 col-md-6">
@@ -326,16 +360,24 @@
                                     <small class="text-muted">Front side of ID document</small>
                                 </div>
                                 <div class="image-container">
-                                    <img src="{{ $documentImages['front'] }}" 
-                                         class="img-fluid rounded border shadow-sm" 
-                                         alt="Document Front Image"
-                                         style="cursor: pointer; max-height: 250px; width: 100%; object-fit: cover;"
-                                         onclick="showImageModal('{{ $documentImages['front'] }}', 'Document Front - ID Verification')">
+                                    @if($isValidImageUrl($documentImages['front']))
+                                        <img src="{{ $documentImages['front'] }}"
+                                             class="img-fluid rounded border shadow-sm"
+                                             alt="Document Front Image"
+                                             style="cursor: pointer; max-height: 250px; width: 100%; object-fit: cover;"
+                                             onclick="showImageModal('{{ $documentImages['front'] }}', 'Document Front - ID Verification')"
+                                             onerror="this.parentElement.innerHTML='<div class=\'text-center text-muted py-4\'><i class=\'fas fa-image fa-3x mb-2 opacity-25\'></i><p class=\'mb-0 small\'>Image not available</p></div>'">
+                                    @else
+                                        <div class="text-center text-muted py-4">
+                                            <i class="fas fa-clock fa-3x mb-2 opacity-25"></i>
+                                            <p class="mb-0 small">Image expired</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                         @endif
-                        
+
                         @if(isset($documentImages['back']))
                         <div class="col-lg-4 col-md-6">
                             <div class="verification-image-card p-3 border rounded bg-light">
@@ -347,16 +389,24 @@
                                     <small class="text-muted">Back side of ID document</small>
                                 </div>
                                 <div class="image-container">
-                                    <img src="{{ $documentImages['back'] }}" 
-                                         class="img-fluid rounded border shadow-sm" 
-                                         alt="Document Back Image"
-                                         style="cursor: pointer; max-height: 250px; width: 100%; object-fit: cover;"
-                                         onclick="showImageModal('{{ $documentImages['back'] }}', 'Document Back - ID Verification')">
+                                    @if($isValidImageUrl($documentImages['back']))
+                                        <img src="{{ $documentImages['back'] }}"
+                                             class="img-fluid rounded border shadow-sm"
+                                             alt="Document Back Image"
+                                             style="cursor: pointer; max-height: 250px; width: 100%; object-fit: cover;"
+                                             onclick="showImageModal('{{ $documentImages['back'] }}', 'Document Back - ID Verification')"
+                                             onerror="this.parentElement.innerHTML='<div class=\'text-center text-muted py-4\'><i class=\'fas fa-image fa-3x mb-2 opacity-25\'></i><p class=\'mb-0 small\'>Image not available</p></div>'">
+                                    @else
+                                        <div class="text-center text-muted py-4">
+                                            <i class="fas fa-clock fa-3x mb-2 opacity-25"></i>
+                                            <p class="mb-0 small">Image expired</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                         @endif
-                        
+
                         @if(isset($documentImages['portrait']))
                         <div class="col-lg-4 col-md-6">
                             <div class="verification-image-card p-3 border rounded bg-light">
@@ -368,18 +418,26 @@
                                     <small class="text-muted">Selfie taken during verification</small>
                                 </div>
                                 <div class="image-container">
-                                    <img src="{{ $documentImages['portrait'] }}" 
-                                         class="img-fluid rounded border shadow-sm" 
-                                         alt="Selfie Verification Image"
-                                         style="cursor: pointer; max-height: 250px; width: 100%; object-fit: cover;"
-                                         onclick="showImageModal('{{ $documentImages['portrait'] }}', 'Live Selfie - Identity Verification')">
+                                    @if($isValidImageUrl($documentImages['portrait']))
+                                        <img src="{{ $documentImages['portrait'] }}"
+                                             class="img-fluid rounded border shadow-sm"
+                                             alt="Selfie Verification Image"
+                                             style="cursor: pointer; max-height: 250px; width: 100%; object-fit: cover;"
+                                             onclick="showImageModal('{{ $documentImages['portrait'] }}', 'Live Selfie - Identity Verification')"
+                                             onerror="this.parentElement.innerHTML='<div class=\'text-center text-muted py-4\'><i class=\'fas fa-image fa-3x mb-2 opacity-25\'></i><p class=\'mb-0 small\'>Image not available</p></div>'">
+                                    @else
+                                        <div class="text-center text-muted py-4">
+                                            <i class="fas fa-clock fa-3x mb-2 opacity-25"></i>
+                                            <p class="mb-0 small">Image expired</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                         @endif
-                        
+
                         @foreach($documentImages as $type => $imageUrl)
-                            @if(!in_array($type, ['front', 'back', 'portrait']))
+                            @if(!in_array($type, ['front', 'back', 'portrait']) && !empty($imageUrl))
                             <div class="col-lg-4 col-md-6">
                                 <div class="verification-image-card p-3 border rounded bg-light">
                                     <div class="image-header text-center mb-2">
@@ -390,22 +448,35 @@
                                         <small class="text-muted">Additional verification image</small>
                                     </div>
                                     <div class="image-container">
-                                        <img src="{{ $imageUrl }}" 
-                                             class="img-fluid rounded border shadow-sm" 
-                                             alt="{{ ucfirst($type) }} Image"
-                                             style="cursor: pointer; max-height: 250px; width: 100%; object-fit: cover;"
-                                             onclick="showImageModal('{{ $imageUrl }}', '{{ ucfirst(str_replace('_', ' ', $type)) }}')">
+                                        @if($isValidImageUrl($imageUrl))
+                                            <img src="{{ $imageUrl }}"
+                                                 class="img-fluid rounded border shadow-sm"
+                                                 alt="{{ ucfirst($type) }} Image"
+                                                 style="cursor: pointer; max-height: 250px; width: 100%; object-fit: cover;"
+                                                 onclick="showImageModal('{{ $imageUrl }}', '{{ ucfirst(str_replace('_', ' ', $type)) }}')"
+                                                 onerror="this.parentElement.innerHTML='<div class=\'text-center text-muted py-4\'><i class=\'fas fa-image fa-3x mb-2 opacity-25\'></i><p class=\'mb-0 small\'>Image not available</p></div>'">
+                                        @else
+                                            <div class="text-center text-muted py-4">
+                                                <i class="fas fa-clock fa-3x mb-2 opacity-25"></i>
+                                                <p class="mb-0 small">Image expired</p>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
                             @endif
                         @endforeach
                     </div>
-                    
+
                     <div class="mt-3 text-center">
                         <small class="text-muted">
                             <i class="fas fa-info-circle me-1"></i>
-                            Click on any image to view full size • These are the actual photos taken during verification
+                            @if($validImageCount > 0)
+                                Click on any image to view full size • These are the actual photos taken during verification
+                            @else
+                                Images are downloaded and stored locally when the verification webhook is received.
+                                If images appear expired, the user may need to re-verify.
+                            @endif
                         </small>
                     </div>
                 </div>
@@ -421,7 +492,8 @@
                     <div class="text-muted">
                         <i class="fas fa-images fa-3x mb-3 opacity-25"></i>
                         <p class="mb-1">No verification images available</p>
-                        <small>The original photos taken during KYC verification are not accessible</small>
+                        <small>The original photos taken during KYC verification were not stored or have expired.<br>
+                        The user may need to re-verify their identity using the "Reset KYC" option.</small>
                     </div>
                 </div>
             </div>

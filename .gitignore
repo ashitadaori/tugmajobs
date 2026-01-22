@@ -23,3 +23,19 @@ yarn-error.log
 jobsite/
 backup_env_files/
 NUL
+nul
+
+# Debug files
+debug_*.php
+debug_*.log
+test_*.php
+
+# Compiled views (auto-generated)
+/storage/framework/views/*.php
+
+# User uploaded images
+/public/profile_img/
+
+# Cache and logs
+*.log
+/storage/logs/*.log

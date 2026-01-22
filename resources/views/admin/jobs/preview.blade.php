@@ -70,11 +70,11 @@
                             <h5 class="h6 text-gray-700">Salary Range</h5>
                             <p class="mb-0">
                                 @if($job->salary_min && $job->salary_max)
-                                    ${{ number_format($job->salary_min) }} - ${{ number_format($job->salary_max) }}
+                                    ₱{{ number_format($job->salary_min) }} - ₱{{ number_format($job->salary_max) }}
                                 @elseif($job->salary_min)
-                                    From ${{ number_format($job->salary_min) }}
+                                    From ₱{{ number_format($job->salary_min) }}
                                 @elseif($job->salary_max)
-                                    Up to ${{ number_format($job->salary_max) }}
+                                    Up to ₱{{ number_format($job->salary_max) }}
                                 @else
                                     Not specified
                                 @endif

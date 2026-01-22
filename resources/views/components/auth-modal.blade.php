@@ -88,11 +88,16 @@
                                             Forgot password?
                                         </a>
                                     </label>
-                                    <input type="password"
-                                           class="form-control form-control-lg"
-                                           id="loginPassword"
-                                           name="password"
-                                           placeholder="Enter your password">
+                                    <div class="input-group">
+                                        <input type="password"
+                                               class="form-control form-control-lg"
+                                               id="loginPassword"
+                                               name="password"
+                                               placeholder="Enter your password">
+                                        <button type="button" class="btn btn-outline-secondary password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', 'loginPasswordIcon')">
+                                            <i class="fas fa-eye-slash" id="loginPasswordIcon"></i>
+                                        </button>
+                                    </div>
                                     <div class="invalid-feedback">
                                         Please provide your password.
                                     </div>
@@ -194,11 +199,16 @@
                                     <label for="registerPassword" class="form-label fw-semibold text-dark">
                                         <span>Password</span>
                                     </label>
-                                    <input type="password"
-                                           class="form-control form-control-lg"
-                                           id="registerPassword"
-                                           name="password"
-                                           placeholder="Create a strong password">
+                                    <div class="input-group">
+                                        <input type="password"
+                                               class="form-control form-control-lg"
+                                               id="registerPassword"
+                                               name="password"
+                                               placeholder="Create a strong password">
+                                        <button type="button" class="btn btn-outline-secondary password-toggle-btn" onclick="togglePasswordVisibility('registerPassword', 'registerPasswordIcon')">
+                                            <i class="fas fa-eye-slash" id="registerPasswordIcon"></i>
+                                        </button>
+                                    </div>
                                     <div class="invalid-feedback">
                                         Password must be at least 8 characters.
                                     </div>
@@ -212,11 +222,16 @@
                                     <label for="registerPasswordConfirm" class="form-label fw-semibold text-dark">
                                         <span>Confirm Password</span>
                                     </label>
-                                    <input type="password"
-                                           class="form-control form-control-lg"
-                                           id="registerPasswordConfirm"
-                                           name="password_confirmation"
-                                           placeholder="Re-enter your password">
+                                    <div class="input-group">
+                                        <input type="password"
+                                               class="form-control form-control-lg"
+                                               id="registerPasswordConfirm"
+                                               name="password_confirmation"
+                                               placeholder="Re-enter your password">
+                                        <button type="button" class="btn btn-outline-secondary password-toggle-btn" onclick="togglePasswordVisibility('registerPasswordConfirm', 'registerPasswordConfirmIcon')">
+                                            <i class="fas fa-eye-slash" id="registerPasswordConfirmIcon"></i>
+                                        </button>
+                                    </div>
                                     <div class="invalid-feedback">
                                         Passwords must match.
                                     </div>
@@ -533,9 +548,63 @@ a.text-primary:hover {
 .btn-close:hover {
     opacity: 1;
 }
+
+/* Password toggle button styling */
+.password-toggle-btn {
+    border-left: 0;
+    border-color: #d1d5db;
+    background: #f9fafb;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.password-toggle-btn:focus {
+    box-shadow: none;
+    border-color: #2563eb;
+}
+
+.password-toggle-btn i {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.input-group .form-control-lg {
+    border-right: 0;
+}
+
+.input-group .form-control-lg:focus {
+    border-right: 0;
+}
+
+.input-group .form-control-lg:focus + .password-toggle-btn {
+    border-color: #2563eb;
+}
 </style>
 
 <script>
+// Password visibility toggle function
+function togglePasswordVisibility(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    }
+}
+
 function switchToRegister() {
     event.preventDefault();
     document.getElementById('loginForm').style.display = 'none';

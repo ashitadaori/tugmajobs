@@ -1,36 +1,34 @@
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize Featured Jobs Carousel
     if (document.querySelector('.featured-jobs-carousel')) {
         $('.featured-jobs-carousel').slick({
             dots: true,
-            infinite: false,
-            speed: 300,
-            slidesToShow: 1,
-            slidesToScroll: 1,
+            infinite: true,
+            speed: 500,
+            slidesToShow: 3,
+            slidesToScroll: 3,
             arrows: false,
+            autoplay: true,
+            autoplaySpeed: 5000,
             responsive: [
+                {
+                    breakpoint: 992,
+                    settings: {
+                        slidesToShow: 2,
+                        slidesToScroll: 2
+                    }
+                },
                 {
                     breakpoint: 768,
                     settings: {
                         slidesToShow: 1,
-                        slidesToScroll: 1
+                        slidesToScroll: 1,
+                        dots: true
                     }
                 }
             ]
         });
     }
-
-    // Add subtle animations to job cards on hover
-    document.querySelectorAll('.job-card').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-5px)';
-            card.style.boxShadow = '0 15px 30px rgba(0,0,0,0.1)';
-        });
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0)';
-            card.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
-        });
-    });
 });
 

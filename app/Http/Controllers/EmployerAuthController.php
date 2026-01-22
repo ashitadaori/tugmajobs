@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use App\Mail\LoginCodeMail;
 
 class EmployerAuthController extends Controller
 {
@@ -23,7 +27,7 @@ class EmployerAuthController extends Controller
             }
             return redirect()->route('account.dashboard');
         }
-        
+
         return view('auth.employer-login');
     }
 
@@ -39,7 +43,7 @@ class EmployerAuthController extends Controller
             }
             return redirect()->route('account.dashboard');
         }
-        
+
         return view('auth.employer-register');
     }
 
@@ -58,24 +62,32 @@ class EmployerAuthController extends Controller
                 'password' => 'required|min:5',
             ]);
 
-            if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->has('remember'))) {
-                $request->session()->regenerate();
-                $user = Auth::user();
+            // Find the user first to check 2FA before logging in
+            $user = User::where('email', $request->email)->first();
 
-                // Admin can login from any login page
-                // Redirect based on user role
-                if ($user->role === 'admin') {
-                    return redirect()->intended(route('admin.dashboard'));
-                } elseif ($user->role === 'employer') {
-                    return redirect()->intended(route('employer.dashboard'));
-                } else {
-                    return redirect()->intended(route('account.dashboard'));
-                }
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return back()->withErrors([
+                    'email' => 'The provided credentials do not match our records.',
+                ])->withInput($request->only('email'));
             }
 
-            return back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
-            ])->withInput($request->only('email'));
+            // Check if 2FA is enabled
+            if ($user->two_factor_enabled) {
+                // Store user ID and remember preference in session for 2FA verification
+                session([
+                    '2fa_user_id' => $user->id,
+                    '2fa_remember' => $request->has('remember'),
+                ]);
+
+                return redirect()->route('two-factor.challenge');
+            }
+
+            // No 2FA, proceed with normal login
+            Auth::login($user, $request->has('remember'));
+            $request->session()->regenerate();
+
+            // Redirect based on user role
+            return $this->redirectBasedOnRole($user);
 
         } else {
             // Magic link login
@@ -84,17 +96,17 @@ class EmployerAuthController extends Controller
             ]);
 
             // Generate a secure token
-            $token = \Illuminate\Support\Str::random(64);
+            $token = Str::random(64);
             $expiresAt = now()->addMinutes(15);
 
             // Delete any existing unused tokens for this email
-            \Illuminate\Support\Facades\DB::table('login_tokens')
+            DB::table('login_tokens')
                 ->where('email', $request->email)
                 ->where('used', false)
                 ->delete();
 
             // Create new login token
-            \Illuminate\Support\Facades\DB::table('login_tokens')->insert([
+            DB::table('login_tokens')->insert([
                 'email' => $request->email,
                 'token' => hash('sha256', $token),
                 'role' => 'employer',
@@ -107,9 +119,23 @@ class EmployerAuthController extends Controller
             $loginUrl = route('auth.verify-token', ['token' => $token]);
 
             // Send the email
-            \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\LoginCodeMail($loginUrl, 15));
+            Mail::to($request->email)->send(new LoginCodeMail($loginUrl, 15));
 
             return redirect()->route('home')->with('success', 'Check your email! We sent you a sign-in link.');
+        }
+    }
+
+    /**
+     * Redirect based on user role
+     */
+    protected function redirectBasedOnRole(User $user)
+    {
+        if ($user->role === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        } elseif ($user->role === 'employer') {
+            return redirect()->intended(route('employer.dashboard'));
+        } else {
+            return redirect()->intended(route('account.dashboard'));
         }
     }
 
@@ -164,17 +190,17 @@ class EmployerAuthController extends Controller
             ]);
 
             // Generate a secure token
-            $token = \Illuminate\Support\Str::random(64);
+            $token = Str::random(64);
             $expiresAt = now()->addMinutes(15);
 
             // Delete any existing unused tokens for this email
-            \Illuminate\Support\Facades\DB::table('login_tokens')
+            DB::table('login_tokens')
                 ->where('email', $request->email)
                 ->where('used', false)
                 ->delete();
 
             // Create new login token for registration
-            \Illuminate\Support\Facades\DB::table('login_tokens')->insert([
+            DB::table('login_tokens')->insert([
                 'email' => $request->email,
                 'token' => hash('sha256', $token),
                 'role' => 'employer',
@@ -187,7 +213,7 @@ class EmployerAuthController extends Controller
             $loginUrl = route('auth.verify-token', ['token' => $token]);
 
             // Send the email
-            \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\LoginCodeMail($loginUrl, 15));
+            Mail::to($request->email)->send(new LoginCodeMail($loginUrl, 15));
 
             return redirect()->route('home')->with('success', 'Check your email! We sent you a sign-in link.');
         }

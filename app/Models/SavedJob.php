@@ -10,6 +10,8 @@ class SavedJob extends Model
 {
     use HasFactory;
 
+    protected $table = 'bookmarked_jobs';
+
     protected $fillable = [
         'user_id',
         'job_id',
@@ -42,8 +44,8 @@ class SavedJob extends Model
     public static function isJobSavedByUser(int $jobId, int $userId): bool
     {
         return self::where('job_id', $jobId)
-                   ->where('user_id', $userId)
-                   ->exists();
+            ->where('user_id', $userId)
+            ->exists();
     }
 
     /**

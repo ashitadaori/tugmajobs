@@ -16,39 +16,42 @@ use Carbon\Carbon;
 class HomeController extends Controller
 {
     // This method will show home page
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         // Redirect authenticated jobseekers to their dashboard unless they specifically want the homepage
         if (Auth::check() && Auth::user()->isJobSeeker() && !$request->has('force_home')) {
             return redirect()->route('account.dashboard');
         }
         // Get featured jobs - show latest active jobs (status=1 means active/approved)
         $featuredJobs = Job::where('status', 1)
-                        ->with(['jobType', 'employer', 'category'])
-                        ->withCount('applications')
-                        ->orderBy('created_at', 'DESC')
-                        ->take(8)
-                        ->get();
+            ->with(['jobType', 'employer.employerProfile', 'employerCompany', 'category'])
+            ->withCount('applications')
+            ->orderBy('created_at', 'DESC')
+            ->take(8)
+            ->get();
 
         // Get latest jobs (showing newest active jobs)
         $latestJobs = Job::where('status', 1)
-                        ->with(['jobType', 'employer', 'category'])
-                        ->withCount('applications')
-                        ->orderBy('created_at', 'DESC')
-                        ->take(6)
-                        ->get();
+            ->with(['jobType', 'employer.employerProfile', 'employerCompany', 'category'])
+            ->withCount('applications')
+            ->orderBy('created_at', 'DESC')
+            ->take(6)
+            ->get();
 
         // Get active categories with job counts
         $categories = Category::where('status', 1)
-                        ->withCount(['jobs' => function($query) {
-                            $query->where('status', 1);
-                        }])
-                        ->orderBy('jobs_count', 'DESC')
-                        ->take(8)
-                        ->get();
+            ->withCount([
+                'jobs' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->orderBy('jobs_count', 'DESC')
+            ->take(8)
+            ->get();
 
         // Get all categories for the full listing
         $allCategories = Category::where('status', 1)->get();
-        
+
         // Get all job types
         $jobTypes = JobType::where('status', 1)->get();
 
@@ -58,8 +61,8 @@ class HomeController extends Controller
             'companies' => DB::table('employers')->count(),
             'applications' => JobApplication::count(),
             'jobs_this_week' => Job::where('status', 1)
-                                ->where('created_at', '>=', Carbon::now()->subWeek())
-                                ->count()
+                ->where('created_at', '>=', Carbon::now()->subWeek())
+                ->count()
         ];
 
         // Get trending job types based on views and applications
@@ -82,30 +85,32 @@ class HomeController extends Controller
             ->take(3)
             ->pluck('keyword')
             ->toArray();
-            
+
         // Add common popular search terms
         $commonKeywords = ['senior', 'junior', 'manager', 'remote', 'part-time', 'full-time'];
-        
+
         // Combine trending and common keywords, remove duplicates and empty values
         $popularKeywords = array_unique(array_merge($trendingKeywords, $commonKeywords));
-        $popularKeywords = array_filter($popularKeywords, function($keyword) {
+        $popularKeywords = array_filter($popularKeywords, function ($keyword) {
             return !empty($keyword) && strlen($keyword) > 2;
         });
-        
+
         // Take only 6 keywords and shuffle for variety
         $popularKeywords = array_slice($popularKeywords, 0, 6);
 
         // Get featured companies - combine standalone companies and employer profiles
-        $standaloneCompanies = \App\Models\Company::with(['jobs' => function($query) {
+        $standaloneCompanies = \App\Models\Company::with([
+            'jobs' => function ($query) {
                 $query->where('status', 1)->orderBy('created_at', 'desc');
-            }])
-            ->whereHas('jobs', function($query) {
+            }
+        ])
+            ->whereHas('jobs', function ($query) {
                 $query->where('status', 1);
             })
             ->orderBy('created_at', 'DESC')
             ->get()
-            ->map(function($company) {
-                return (object)[
+            ->map(function ($company) {
+                return (object) [
                     'id' => $company->id,
                     'name' => $company->name,
                     'company_name' => $company->name,
@@ -115,22 +120,37 @@ class HomeController extends Controller
                     'website' => $company->website,
                     'jobs_count' => $company->jobs->count(),
                     'type' => 'standalone',
-                    'slug' => $company->slug ?? null
+                    'slug' => $company->slug ?? null,
+                    'average_rating' => null,
+                    'reviews_count' => 0
                 ];
             });
 
-        $employerCompanies = Employer::with(['user', 'jobs' => function($query) {
+        $employerCompanies = Employer::with([
+            'user',
+            'jobs' => function ($query) {
                 $query->where('status', 1)->orderBy('created_at', 'desc');
-            }])
-            ->whereHas('jobs', function($query) {
+            }
+        ])
+            ->withCount([
+                'reviews' => function ($query) {
+                    $query->where('review_type', 'company');
+                }
+            ])
+            ->whereHas('jobs', function ($query) {
                 $query->where('status', 1);
             })
             ->whereNotNull('company_name')
             ->whereNotNull('company_description')
             ->orderBy('created_at', 'DESC')
             ->get()
-            ->map(function($employer) {
-                return (object)[
+            ->map(function ($employer) {
+                // $reviewsCount = \App\Models\Review::where('employer_id', $employer->user_id)
+                //     ->where('review_type', 'company')
+                //     ->count();
+                $averageRating = \App\Models\Review::getCompanyAverageRating($employer->user_id);
+
+                return (object) [
                     'id' => $employer->user_id,
                     'name' => $employer->company_name,
                     'company_name' => $employer->company_name,
@@ -140,13 +160,15 @@ class HomeController extends Controller
                     'website' => $employer->company_website,
                     'jobs_count' => $employer->jobs->count(),
                     'type' => 'employer',
-                    'user' => $employer->user
+                    'user' => $employer->user,
+                    'average_rating' => $averageRating ? round($averageRating, 1) : null,
+                    'reviews_count' => $employer->reviews_count
                 ];
             });
 
         // Merge and sort by most recent, take top 6
         $featuredCompanies = $standaloneCompanies->concat($employerCompanies)
-            ->sortByDesc('jobs_count')
+            ->sortByDesc('reviews_count')
             ->take(6);
 
         // Banner images for carousel

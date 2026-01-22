@@ -1,9 +1,12 @@
 <?php
 
-require_once 'vendor/autoload.php';
+// Get the project root directory (two levels up from this script)
+$projectRoot = dirname(dirname(__DIR__));
+
+require_once $projectRoot . '/vendor/autoload.php';
 
 // Load Laravel environment
-$app = require_once 'bootstrap/app.php';
+$app = require_once $projectRoot . '/bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 

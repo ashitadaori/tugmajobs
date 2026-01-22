@@ -30,13 +30,13 @@ class EmployerController extends Controller
         $employer = Auth::user();
         $now = Carbon::now();
         $lastMonth = Carbon::now()->subMonth();
-        
+
         // Get current month statistics
         $postedJobs = Job::where('employer_id', $employer->id)->count();
         $activeJobs = Job::where('employer_id', $employer->id)
-                        ->where('status', 'active')
-                        ->count();
-        $totalApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+            ->where('status', 'active')
+            ->count();
+        $totalApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })->count();
 
@@ -52,57 +52,57 @@ class EmployerController extends Controller
             ->whereYear('created_at', $lastMonth->year)
             ->count();
 
-        $lastMonthApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+        $lastMonthApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereMonth('created_at', $lastMonth->month)
-        ->whereYear('created_at', $lastMonth->year)
-        ->count();
+            ->whereMonth('created_at', $lastMonth->month)
+            ->whereYear('created_at', $lastMonth->year)
+            ->count();
 
         // Calculate growth percentages
-        $postedJobsGrowth = $lastMonthPostedJobs > 0 
-            ? (($postedJobs - $lastMonthPostedJobs) / $lastMonthPostedJobs) * 100 
+        $postedJobsGrowth = $lastMonthPostedJobs > 0
+            ? (($postedJobs - $lastMonthPostedJobs) / $lastMonthPostedJobs) * 100
             : 0;
 
-        $activeJobsGrowth = $lastMonthActiveJobs > 0 
-            ? (($activeJobs - $lastMonthActiveJobs) / $lastMonthActiveJobs) * 100 
+        $activeJobsGrowth = $lastMonthActiveJobs > 0
+            ? (($activeJobs - $lastMonthActiveJobs) / $lastMonthActiveJobs) * 100
             : 0;
 
-        $applicationsGrowth = $lastMonthApplications > 0 
-            ? (($totalApplications - $lastMonthApplications) / $lastMonthApplications) * 100 
+        $applicationsGrowth = $lastMonthApplications > 0
+            ? (($totalApplications - $lastMonthApplications) / $lastMonthApplications) * 100
             : 0;
 
         // Get pending applications count
-        $pendingApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+        $pendingApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->where('status', 'pending')
-        ->count();
+            ->where('status', 'pending')
+            ->count();
 
         // Get all jobs for performance chart
         $jobPerformance = Job::where('employer_id', $employer->id)
-                            ->select('id', 'status')
-                            ->get();
+            ->select('id', 'status')
+            ->get();
 
         // Get recent jobs
         $recentJobs = Job::where('employer_id', $employer->id)
-                        ->withCount('applications')
-                        ->orderBy('created_at', 'desc')
-                        ->take(5)
-                        ->get();
+            ->withCount('applications')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
         // Get recent applications
-        $recentApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+        $recentApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->with(['user', 'job'])
-        ->orderBy('created_at', 'desc')
-        ->take(5)
-        ->get();
+            ->with(['user', 'job'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
         // Get recent activities
         $recentActivities = collect();
-        
+
         // Add job applications to activities
         foreach ($recentApplications as $application) {
             $recentActivities->push([
@@ -113,7 +113,7 @@ class EmployerController extends Controller
                 'icon' => 'fa-user-plus'
             ]);
         }
-        
+
         // Add job postings to activities
         foreach ($recentJobs->take(3) as $job) {
             $recentActivities->push([
@@ -124,7 +124,7 @@ class EmployerController extends Controller
                 'icon' => 'fa-briefcase'
             ]);
         }
-        
+
         // Sort activities by date
         $recentActivities = $recentActivities->sortByDesc('created_at')->values();
 
@@ -134,19 +134,19 @@ class EmployerController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $applicationTrendsLabels[] = $date->format('M d');
-            $applicationTrendsData[] = JobApplication::whereHas('job', function($query) use ($employer) {
+            $applicationTrendsData[] = JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })
-            ->whereDate('created_at', $date)
-            ->count();
+                ->whereDate('created_at', $date)
+                ->count();
         }
 
         // Prepare job performance data
         $topJobs = Job::where('employer_id', $employer->id)
-                    ->withCount('applications')
-                    ->orderBy('applications_count', 'desc')
-                    ->take(5)
-                    ->get();
+            ->withCount('applications')
+            ->orderBy('applications_count', 'desc')
+            ->take(5)
+            ->get();
 
         $jobPerformanceLabels = $topJobs->pluck('title')->toArray();
         $jobPerformanceViews = $topJobs->pluck('views')->toArray();
@@ -155,20 +155,20 @@ class EmployerController extends Controller
         // Get profile completion percentage directly from Employer
         $profile = Employer::where('user_id', $employer->id)->with('user')->first();
         $profileCompletion = $profile ? $profile->getProfileCompletionPercentage() : 0;
-        
+
         // Get profile and job views
         $profileViews = $profile ? ($profile->profile_views ?? 0) : 0;
         $jobViews = Job::where('employer_id', $employer->id)->sum('views');
-        
+
         // Get shortlisted candidates
         // Note: This requires the shortlisted column to be added to the job_applications table
         // Run the migration: php artisan migrate
         try {
-            $shortlistedCandidates = JobApplication::whereHas('job', function($query) use ($employer) {
+            $shortlistedCandidates = JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })
-            ->where('shortlisted', true)
-            ->count();
+                ->where('shortlisted', true)
+                ->count();
         } catch (\Exception $e) {
             // If the column doesn't exist yet, use a placeholder value
             Log::warning('Shortlisted column not found: ' . $e->getMessage());
@@ -181,11 +181,11 @@ class EmployerController extends Controller
         $jobGrowth = $postedJobsGrowth;
         $applicationGrowth = $applicationsGrowth;
         $shortlistedChange = 0; // Placeholder for shortlisted change percentage
-        $newApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+        $newApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->where('created_at', '>=', Carbon::today())
-        ->count();
+            ->where('created_at', '>=', Carbon::today())
+            ->count();
 
         // Use the unified dashboard layout
         return view('front.account.employer.dashboard', compact(
@@ -219,36 +219,36 @@ class EmployerController extends Controller
     public function editProfile()
     {
         $employer = Auth::user();
-        
+
         // Get or create the Employer profile directly
         $profile = Employer::where('user_id', $employer->id)->first();
         if (!$profile) {
             $profile = new Employer([
                 'user_id' => $employer->id,
-                'company_name' => 'Company Name',
+                'company_name' => 'Company Name ' . $employer->id,
                 'status' => 'pending'
             ]);
             $profile->save();
         }
-        
+
         // Load the user relationship for profile completion calculation
         $profile->load('user');
-        
+
         // Calculate profile completion percentage
         $profileCompletion = $profile->getProfileCompletionPercentage();
-        
+
         // Get pending applications count for sidebar
-        $pendingApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+        $pendingApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->where('status', 'pending')
-        ->count();
+            ->where('status', 'pending')
+            ->count();
 
         // Get active jobs count for sidebar
         $activeJobs = Job::where('employer_id', $employer->id)
-                        ->where('status', 'active')
-                        ->count();
-                        
+            ->where('status', \App\Models\Job::STATUS_APPROVED)
+            ->count();
+
         return view('front.account.employer.profile.edit', compact('employer', 'profile', 'pendingApplications', 'activeJobs', 'profileCompletion'));
     }
 
@@ -256,7 +256,7 @@ class EmployerController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // Get or create the Employer profile directly
             $profile = Employer::where('user_id', $user->id)->first();
             if (!$profile) {
@@ -279,6 +279,8 @@ class EmployerController extends Controller
                 'company_size' => 'nullable|string|max:255',
                 'website' => 'nullable|url|max:255',
                 'location' => 'nullable|string|max:255',
+                'latitude' => 'nullable|numeric|between:-90,90',
+                'longitude' => 'nullable|numeric|between:-180,180',
                 'social_links' => 'nullable|array',
                 'company_culture' => 'nullable|array',
                 'benefits_offered' => 'nullable|array',
@@ -293,29 +295,29 @@ class EmployerController extends Controller
             if ($request->hasFile('profile_image')) {
                 try {
                     $file = $request->file('profile_image');
-                    
+
                     // Delete old profile image if it exists
                     if ($user->image) {
                         $oldPath = str_replace('storage/', '', $user->image);
                         Storage::disk('public')->delete($oldPath);
                     }
-                    
+
                     // Generate a unique filename
                     $filename = 'profile_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                    
+
                     // Ensure the profile_images directory exists
                     Storage::disk('public')->makeDirectory('profile_images');
-                    
+
                     // Store the new file
                     $path = $file->storeAs('profile_images', $filename, 'public');
-                    
+
                     if (!$path) {
                         throw new \Exception('Failed to store profile image');
                     }
-                    
+
                     $user->image = $path;
                     $user->save();
-                    
+
                 } catch (\Exception $e) {
                     Log::error('Error uploading profile image: ' . $e->getMessage());
                     throw new \Exception('Failed to upload profile image: ' . $e->getMessage());
@@ -327,39 +329,39 @@ class EmployerController extends Controller
             if ($request->hasFile('company_logo')) {
                 try {
                     $file = $request->file('company_logo');
-                    
+
                     \Log::info('Logo upload started', [
                         'original_name' => $file->getClientOriginalName(),
                         'size' => $file->getSize(),
                         'mime_type' => $file->getMimeType()
                     ]);
-                    
+
                     // Delete old logo if it exists
                     if ($profile->company_logo) {
                         $oldPath = str_replace('storage/', '', $profile->company_logo);
                         Storage::disk('public')->delete($oldPath);
                         \Log::info('Deleted old logo', ['old_path' => $oldPath]);
                     }
-                    
+
                     // Generate a unique filename
                     $filename = 'logo_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                    
+
                     // Ensure the company_logos directory exists
                     Storage::disk('public')->makeDirectory('company_logos');
-                    
+
                     // Store the new file
                     $logoPath = $file->storeAs('company_logos', $filename, 'public');
-                    
+
                     if (!$logoPath) {
                         throw new \Exception('Failed to store company logo');
                     }
-                    
+
                     \Log::info('Logo stored successfully', [
                         'path' => $logoPath,
                         'full_url' => Storage::disk('public')->url($logoPath),
                         'file_exists' => Storage::disk('public')->exists($logoPath)
                     ]);
-                    
+
                 } catch (\Exception $e) {
                     Log::error('Error uploading company logo: ' . $e->getMessage());
                     throw new \Exception('Failed to upload company logo: ' . $e->getMessage());
@@ -371,12 +373,12 @@ class EmployerController extends Controller
                 $user->name = $request->name;
                 $user->save();
             }
-            
+
             if ($request->filled('email') && $request->email !== $user->email) {
                 $user->email = $request->email;
                 $user->save();
             }
-            
+
             // Update profile fields
             $profile->fill([
                 'company_name' => $request->company_name,
@@ -390,6 +392,8 @@ class EmployerController extends Controller
                 'city' => $request->city,
                 'state' => $request->state,
                 'country' => $request->country ?? 'Philippines',
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
                 'linkedin_url' => $request->linkedin_url,
                 'facebook_url' => $request->facebook_url,
                 'twitter_url' => $request->twitter_url,
@@ -397,6 +401,8 @@ class EmployerController extends Controller
                 'founded_year' => $request->founded_year,
                 'contact_person_name' => $request->contact_person_name,
                 'contact_person_designation' => $request->contact_person_designation,
+                'company_culture' => $request->company_culture,
+                'benefits_offered' => $request->benefits_offered,
                 'status' => $request->has('save_draft') ? 'pending' : 'active'
             ]);
 
@@ -412,22 +418,22 @@ class EmployerController extends Controller
 
             // Save the profile
             $saved = $profile->save();
-            
+
             if (!$saved) {
                 \Log::error('Failed to save profile!');
                 throw new \Exception('Failed to save profile');
             }
-            
+
             // Refresh from database to confirm
             $profile->refresh();
-            
+
             \Log::info('Profile saved successfully - AFTER SAVE', [
                 'company_logo_in_db' => $profile->company_logo,
                 'logo_path_variable' => $logoPath,
                 'saved_result' => $saved,
                 'profile_id' => $profile->id
             ]);
-            
+
             // Prepare debug information for the session
             $debugInfo = [
                 'timestamp' => now()->toISOString(),
@@ -447,7 +453,7 @@ class EmployerController extends Controller
                 'profile_fresh' => $profile->fresh(),
                 'sidebar_cache_clear' => 'Profile data refreshed for sidebar display'
             ];
-            
+
             // Log the debug info
             \Log::info('Profile update completed successfully', $debugInfo);
 
@@ -459,7 +465,7 @@ class EmployerController extends Controller
             if ($request->hasFile('profile_image')) {
                 $successMessage .= ' Profile image uploaded.';
             }
-            
+
             // Redirect back with success message and scroll position
             return redirect()
                 ->route('employer.profile.edit')
@@ -469,7 +475,7 @@ class EmployerController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error updating employer profile: ' . $e->getMessage());
-            
+
             return redirect()
                 ->back()
                 ->withInput()
@@ -488,7 +494,7 @@ class EmployerController extends Controller
                 // Remove the logo file from storage
                 $logoPath = str_replace('storage/', '', $profile->company_logo);
                 Storage::disk('public')->delete($logoPath);
-                
+
                 // Update the profile to remove the logo path
                 $profile->company_logo = null;
                 $profile->save();
@@ -523,86 +529,90 @@ class EmployerController extends Controller
             $profile->save();
 
             return redirect()->back()
-                            ->with('success', 'Gallery image removed successfully.')
-                            ->with('scroll_position', request('scroll_position'));
+                ->with('success', 'Gallery image removed successfully.')
+                ->with('scroll_position', request('scroll_position'));
         }
 
         return redirect()->back()
-                        ->with('error', 'Image not found.')
-                        ->with('scroll_position', request('scroll_position'));
+            ->with('error', 'Image not found.')
+            ->with('scroll_position', request('scroll_position'));
     }
 
     public function jobApplications(Request $request)
     {
         $employer = Auth::user();
-        
-        $applications = JobApplication::whereHas('job', function($query) use ($employer) {
+
+        $applications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->with(['user', 'job', 'statusHistory'])
-        ->when($request->filled('status'), function($query) use ($request) {
-            $query->where('status', $request->status);
-        })
-        ->when($request->filled('job'), function($query) use ($request) {
-            $query->whereHas('job', function($q) use ($request) {
-                $q->where('id', $request->job);
-            });
-        })
-        ->when($request->filled('search'), function($query) use ($request) {
-            $query->whereHas('user', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
-            });
-        })
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+            ->with(['user', 'job', 'statusHistory'])
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->when($request->filled('job'), function ($query) use ($request) {
+                $query->whereHas('job', function ($q) use ($request) {
+                    $q->where('id', $request->job);
+                });
+            })
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $query->whereHas('user', function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->search . '%')
+                        ->orWhere('email', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
         // Get jobs for filter dropdown
         $jobs = Job::where('employer_id', $employer->id)
-                   ->select('id', 'title')
-                   ->orderBy('title')
-                   ->get();
+            ->select('id', 'title')
+            ->orderBy('title')
+            ->get();
 
         return view('front.account.employer.applications.index', compact('applications', 'jobs'));
     }
-    
+
     /**
      * Display shortlisted applications
      */
     public function shortlistedApplications(Request $request)
     {
         $employer = Auth::user();
-        
+
         try {
             // Check if the shortlisted column exists
-            $applications = JobApplication::whereHas('job', function($query) use ($employer) {
+            $applications = JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })
-            ->with(['user', 'job', 'statusHistory'])
-            ->where('shortlisted', true)
-            ->when($request->filled('job'), function($query) use ($request) {
-                $query->whereHas('job', function($q) use ($request) {
-                    $q->where('id', $request->job);
-                });
-            })
-            ->when($request->filled('search'), function($query) use ($request) {
-                $query->whereHas('user', function($q) use ($request) {
-                    $q->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('email', 'like', '%' . $request->search . '%');
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+                ->with(['user', 'job', 'statusHistory'])
+                ->where('shortlisted', true)
+                ->when($request->filled('job'), function ($query) use ($request) {
+                    $query->whereHas('job', function ($q) use ($request) {
+                        $q->where('id', $request->job);
+                    });
+                })
+                ->when($request->filled('search'), function ($query) use ($request) {
+                    $query->whereHas('user', function ($q) use ($request) {
+                        $q->where('name', 'like', '%' . $request->search . '%')
+                            ->orWhere('email', 'like', '%' . $request->search . '%');
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
         } catch (\Illuminate\Database\QueryException $e) {
             // If the shortlisted column doesn't exist, show a message
             if (str_contains($e->getMessage(), "Unknown column 'shortlisted'")) {
                 \Log::warning('Shortlisted column not found. Migration needs to be run.');
-                
+
                 // Return an empty collection with pagination
                 $applications = new \Illuminate\Pagination\LengthAwarePaginator(
-                    [], 0, 10, 1, ['path' => $request->url()]
+                    [],
+                    0,
+                    10,
+                    1,
+                    ['path' => $request->url()]
                 );
-                
+
                 // Flash a message to the session
                 session()->flash('warning', 'The shortlisted feature is not available yet. Please run the migration: php artisan migrate');
             } else {
@@ -613,13 +623,13 @@ class EmployerController extends Controller
 
         // Get jobs for filter dropdown
         $jobs = Job::where('employer_id', $employer->id)
-                   ->select('id', 'title')
-                   ->orderBy('title')
-                   ->get();
+            ->select('id', 'title')
+            ->orderBy('title')
+            ->get();
 
         return view('front.account.employer.applications.shortlisted', compact('applications', 'jobs'));
     }
-    
+
     /**
      * Toggle shortlist status for an application
      */
@@ -632,12 +642,12 @@ class EmployerController extends Controller
                 'message' => 'Unauthorized action'
             ], 403);
         }
-        
+
         try {
             // Toggle shortlisted status
             $application->shortlisted = !$application->shortlisted;
             $application->save();
-            
+
             return response()->json([
                 'status' => true,
                 'shortlisted' => $application->shortlisted,
@@ -647,13 +657,13 @@ class EmployerController extends Controller
             // If the shortlisted column doesn't exist
             if (str_contains($e->getMessage(), "Unknown column 'shortlisted'")) {
                 \Log::warning('Shortlisted column not found. Migration needs to be run.');
-                
+
                 return response()->json([
                     'status' => false,
                     'message' => 'The shortlisted feature is not available yet. Please run the migration: php artisan migrate'
                 ], 500);
             }
-            
+
             // If it's another error, return a generic error message
             return response()->json([
                 'status' => false,
@@ -670,7 +680,7 @@ class EmployerController extends Controller
         }
 
         return view('front.account.employer.applications.show', [
-            'application' => $application->load(['user', 'job.jobRequirements', 'statusHistory'])
+            'application' => $application->load(['user.jobseeker', 'job.jobRequirements', 'statusHistory'])
         ]);
     }
 
@@ -952,12 +962,12 @@ class EmployerController extends Controller
                 break;
 
             case JobApplication::STAGE_INTERVIEW:
-                // This case is handled when marking as hired
+                // Notification for interview passed/approved
                 Notification::create([
                     'user_id' => $application->user->id,
-                    'title' => 'Congratulations - You\'re Hired!',
-                    'message' => 'Congratulations! You have been hired for "' . $jobTitle . '" at ' . $companyName . '!' . ($notes ? ' Note: ' . $notes : ''),
-                    'type' => 'hired',
+                    'title' => 'Interview Successfully Completed',
+                    'message' => 'Your interview for "' . $jobTitle . '" at ' . $companyName . ' has been marked as successful! Please wait for the final hiring decision.',
+                    'type' => 'interview_passed',
                     'data' => $notificationData,
                     'action_url' => route('account.showJobApplication', $application->id),
                     'read_at' => null
@@ -1044,7 +1054,7 @@ class EmployerController extends Controller
             'interview_date' => 'required|date|after_or_equal:today',
             'interview_time' => 'required|string',
             'interview_location' => 'required|string|max:500',
-            'interview_type' => 'required|in:in_person,video_call,phone',
+            'interview_type' => 'required|in:in_person,video_call',
             'interview_notes' => 'nullable|string|max:1000'
         ]);
 
@@ -1139,7 +1149,7 @@ class EmployerController extends Controller
             'interview_date' => 'required|date|after_or_equal:today',
             'interview_time' => 'required|string',
             'interview_location' => 'required|string|max:500',
-            'interview_type' => 'required|in:in_person,video_call,phone',
+            'interview_type' => 'required|in:in_person,video_call',
             'interview_notes' => 'nullable|string|max:1000',
             'reschedule_reason' => 'required|string|max:500'
         ]);
@@ -1328,95 +1338,95 @@ class EmployerController extends Controller
     {
         $employer = Auth::user();
         $dateRange = request('range', '30'); // Default to 30 days
-        $startDate = now()->subDays((int)$dateRange);
+        $startDate = now()->subDays((int) $dateRange);
         $endDate = now();
-        
+
         // Calculate dynamic metrics
         $totalJobs = Job::where('employer_id', $employer->id)->count();
         $activeJobs = Job::where('employer_id', $employer->id)
-                        ->where('status', 'active')
-                        ->count();
-        
-        $totalApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+            ->where('status', 'active')
+            ->count();
+
+        $totalApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })->count();
-        
-        $applicationsInPeriod = JobApplication::whereHas('job', function($query) use ($employer) {
+
+        $applicationsInPeriod = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-        
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
         // Calculate total views from job views table
-        $totalViews = JobView::whereHas('job', function($query) use ($employer) {
+        $totalViews = JobView::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })->count();
-        
-        $viewsInPeriod = JobView::whereHas('job', function($query) use ($employer) {
+
+        $viewsInPeriod = JobView::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-        
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
         // Calculate conversion rate (applications / views)
         $conversionRate = $totalViews > 0 ? round(($totalApplications / $totalViews) * 100, 1) : 0;
-        
+
         // Calculate average time to hire
-        $avgTimeToHire = JobApplication::whereHas('job', function($query) use ($employer) {
+        $avgTimeToHire = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->where('status', 'approved')
-        ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg_days')
-        ->value('avg_days');
+            ->where('status', 'approved')
+            ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg_days')
+            ->value('avg_days');
         $avgTimeToHire = $avgTimeToHire ? round($avgTimeToHire) : 0;
-        
+
         // Calculate percentage changes (comparing current period with previous period)
-        $prevStartDate = $startDate->copy()->subDays((int)$dateRange);
+        $prevStartDate = $startDate->copy()->subDays((int) $dateRange);
         $prevEndDate = $startDate->copy();
-        
-        $prevApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+
+        $prevApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-        ->count();
-        
-        $prevViews = JobView::whereHas('job', function($query) use ($employer) {
+            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+            ->count();
+
+        $prevViews = JobView::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-        ->count();
-        
+            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+            ->count();
+
         $viewsChange = $prevViews > 0 ? round((($viewsInPeriod - $prevViews) / $prevViews) * 100, 1) : 0;
         $applicationsChange = $prevApplications > 0 ? round((($applicationsInPeriod - $prevApplications) / $prevApplications) * 100, 1) : 0;
-        
+
         // Get recent activity
-        $recentActivity = JobApplication::whereHas('job', function($query) use ($employer) {
+        $recentActivity = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->with(['job', 'user'])
-        ->orderBy('created_at', 'desc')
-        ->take(10)
-        ->get()
-        ->map(function($application) {
-            return (object)[
-                'created_at' => $application->created_at,
-                'type' => 'Application',
-                'description' => "{$application->user->name} applied for {$application->job->title}"
-            ];
-        });
+            ->with(['job', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function ($application) {
+                return (object) [
+                    'created_at' => $application->created_at,
+                    'type' => 'Application',
+                    'description' => "{$application->user->name} applied for {$application->job->title}"
+                ];
+            });
 
         // Get application trends (based on selected date range) - ONLY APPROVED APPLICATIONS
         $applicationTrends = collect();
-        $days = (int)$dateRange;
+        $days = (int) $dateRange;
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
-            $count = JobApplication::whereHas('job', function($query) use ($employer) {
+            $count = JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })
-            ->where('status', 'approved') // Only count approved applications
-            ->whereDate('updated_at', $date) // Use updated_at since that's when it was approved
-            ->count();
-            
+                ->where('status', 'approved') // Only count approved applications
+                ->whereDate('updated_at', $date) // Use updated_at since that's when it was approved
+                ->count();
+
             $applicationTrends->push([
                 'date' => now()->subDays($i)->format('M d'),
                 'count' => $count
@@ -1432,7 +1442,7 @@ class EmployerController extends Controller
             ->orderBy('applications_count', 'desc')
             ->take(5)
             ->get()
-            ->map(function($job) {
+            ->map(function ($job) {
                 // Calculate growth percentage for each job
                 $lastWeekApplications = $job->applications()
                     ->where('created_at', '>=', now()->subWeek())
@@ -1440,10 +1450,10 @@ class EmployerController extends Controller
                 $prevWeekApplications = $job->applications()
                     ->whereBetween('created_at', [now()->subWeeks(2), now()->subWeek()])
                     ->count();
-                
-                $growth = $prevWeekApplications > 0 ? 
+
+                $growth = $prevWeekApplications > 0 ?
                     round((($lastWeekApplications - $prevWeekApplications) / $prevWeekApplications) * 100, 1) : 0;
-                    
+
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
@@ -1457,36 +1467,36 @@ class EmployerController extends Controller
         // Calculate hiring funnel data
         $funnelData = [
             'applications' => $totalApplications,
-            'screening' => JobApplication::whereHas('job', function($query) use ($employer) {
+            'screening' => JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })->where('status', 'screening')->count(),
-            'interviews' => JobApplication::whereHas('job', function($query) use ($employer) {
+            'interviews' => JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })->where('status', 'interview')->count(),
-            'offers' => JobApplication::whereHas('job', function($query) use ($employer) {
+            'offers' => JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })->where('status', 'approved')->count()
         ];
-        
+
         // Get application sources data
-        $applicationSources = JobApplication::whereHas('job', function($query) use ($employer) {
+        $applicationSources = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->selectRaw('COALESCE(source, "Direct") as source, COUNT(*) as count')
-        ->groupBy('source')
-        ->orderBy('count', 'desc')
-        ->limit(5)
-        ->get()
-        ->mapWithKeys(function($item) {
-            return [$item->source => $item->count];
-        });
-        
+            ->selectRaw('COALESCE(source, "Direct") as source, COUNT(*) as count')
+            ->groupBy('source')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->source => $item->count];
+            });
+
         // Get pending applications count for sidebar
-        $pendingApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+        $pendingApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->where('status', 'pending')
-        ->count();
+            ->where('status', 'pending')
+            ->count();
 
         // NEW: Per-Job Performance Breakdown
         $jobPerformanceBreakdown = Job::where('employer_id', $employer->id)
@@ -1496,11 +1506,11 @@ class EmployerController extends Controller
             ])
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function($job) {
-                $conversionRate = $job->views_count > 0 
-                    ? round(($job->applications_count / $job->views_count) * 100, 1) 
+            ->map(function ($job) {
+                $conversionRate = $job->views_count > 0
+                    ? round(($job->applications_count / $job->views_count) * 100, 1)
                     : 0;
-                
+
                 // Calculate weekly trend
                 $lastWeekViews = JobView::where('job_id', $job->id)
                     ->where('created_at', '>=', now()->subWeek())
@@ -1508,10 +1518,10 @@ class EmployerController extends Controller
                 $prevWeekViews = JobView::where('job_id', $job->id)
                     ->whereBetween('created_at', [now()->subWeeks(2), now()->subWeek()])
                     ->count();
-                $viewsTrend = $prevWeekViews > 0 
-                    ? round((($lastWeekViews - $prevWeekViews) / $prevWeekViews) * 100, 1) 
+                $viewsTrend = $prevWeekViews > 0
+                    ? round((($lastWeekViews - $prevWeekViews) / $prevWeekViews) * 100, 1)
                     : 0;
-                
+
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
@@ -1526,7 +1536,7 @@ class EmployerController extends Controller
 
         return view('front.account.employer.analytics.index', compact(
             'totalViews',
-            'totalApplications', 
+            'totalApplications',
             'conversionRate',
             'avgTimeToHire',
             'viewsChange',
@@ -1563,11 +1573,11 @@ class EmployerController extends Controller
         $totalJobs = Job::where('employer_id', $employer->id)->count();
         $activeJobs = Job::where('employer_id', $employer->id)->where('status', 'active')->count();
 
-        $totalApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+        $totalApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })->count();
 
-        $totalViews = JobView::whereHas('job', function($query) use ($employer) {
+        $totalViews = JobView::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })->count();
 
@@ -1615,7 +1625,7 @@ class EmployerController extends Controller
             ->header('Content-Type', 'text/csv')
             ->header('Content-Disposition', "attachment; filename=\"$filename\"");
     }
-    
+
     /**
      * Get analytics data for AJAX requests
      */
@@ -1623,86 +1633,86 @@ class EmployerController extends Controller
     {
         $employer = Auth::user();
         $dateRange = $request->get('range', '30');
-        $startDate = now()->subDays((int)$dateRange);
+        $startDate = now()->subDays((int) $dateRange);
         $endDate = now();
-        
+
         // Get application trends data - ONLY APPROVED APPLICATIONS
         $applicationTrends = collect();
-        $days = (int)$dateRange;
+        $days = (int) $dateRange;
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
-            $count = JobApplication::whereHas('job', function($query) use ($employer) {
+            $count = JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })
-            ->where('status', 'approved') // Only count approved applications
-            ->whereDate('updated_at', $date) // Use updated_at since that's when it was approved
-            ->count();
-            
+                ->where('status', 'approved') // Only count approved applications
+                ->whereDate('updated_at', $date) // Use updated_at since that's when it was approved
+                ->count();
+
             $applicationTrends->push([
                 'date' => now()->subDays($i)->format('M d'),
                 'count' => $count
             ]);
         }
-        
+
         // Get job views data
         $viewTrends = collect();
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
-            $count = \App\Models\JobView::whereHas('job', function($query) use ($employer) {
+            $count = \App\Models\JobView::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })
-            ->whereDate('created_at', $date)
-            ->count();
-            
+                ->whereDate('created_at', $date)
+                ->count();
+
             $viewTrends->push([
                 'date' => now()->subDays($i)->format('M d'),
                 'count' => $count
             ]);
         }
-        
+
         // Calculate metrics for the period
-        $applicationsInPeriod = JobApplication::whereHas('job', function($query) use ($employer) {
+        $applicationsInPeriod = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-        
-        $viewsInPeriod = \App\Models\JobView::whereHas('job', function($query) use ($employer) {
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $viewsInPeriod = \App\Models\JobView::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-        
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
         // Previous period comparison
-        $prevStartDate = $startDate->copy()->subDays((int)$dateRange);
+        $prevStartDate = $startDate->copy()->subDays((int) $dateRange);
         $prevEndDate = $startDate->copy();
-        
-        $prevApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+
+        $prevApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-        ->count();
-        
-        $prevViews = \App\Models\JobView::whereHas('job', function($query) use ($employer) {
+            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+            ->count();
+
+        $prevViews = \App\Models\JobView::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-        ->count();
-        
+            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+            ->count();
+
         $viewsChange = $prevViews > 0 ? round((($viewsInPeriod - $prevViews) / $prevViews) * 100, 1) : 0;
         $applicationsChange = $prevApplications > 0 ? round((($applicationsInPeriod - $prevApplications) / $prevApplications) * 100, 1) : 0;
-        
+
         // Calculate conversion rate
-        $totalViews = \App\Models\JobView::whereHas('job', function($query) use ($employer) {
+        $totalViews = \App\Models\JobView::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })->count();
-        
-        $totalApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+
+        $totalApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })->count();
-        
+
         $conversionRate = $totalViews > 0 ? round(($totalApplications / $totalViews) * 100, 1) : 0;
-        
+
         return response()->json([
             'applicationTrends' => $applicationTrends,
             'viewTrends' => $viewTrends,
@@ -1717,7 +1727,7 @@ class EmployerController extends Controller
             ]
         ]);
     }
-    
+
     /**
      * Get application sources data
      */
@@ -1725,21 +1735,21 @@ class EmployerController extends Controller
     {
         $employer = Auth::user();
         $dateRange = $request->get('range', '30');
-        $startDate = now()->subDays((int)$dateRange);
-        
-        $sources = JobApplication::whereHas('job', function($query) use ($employer) {
+        $startDate = now()->subDays((int) $dateRange);
+
+        $sources = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->where('created_at', '>=', $startDate)
-        ->selectRaw('COALESCE(source, "Direct") as source, COUNT(*) as count')
-        ->groupBy('source')
-        ->orderBy('count', 'desc')
-        ->limit(5)
-        ->get()
-        ->mapWithKeys(function($item) {
-            return [$item->source => $item->count];
-        });
-        
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('COALESCE(source, "Direct") as source, COUNT(*) as count')
+            ->groupBy('source')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->source => $item->count];
+            });
+
         return response()->json($sources);
     }
 
@@ -1772,11 +1782,14 @@ class EmployerController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
-            'current_password' => ['required', function ($attribute, $value, $fail) {
-                if (!Hash::check($value, Auth::user()->password)) {
-                    $fail('The current password is incorrect.');
+            'current_password' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!Hash::check($value, Auth::user()->password)) {
+                        $fail('The current password is incorrect.');
+                    }
                 }
-            }],
+            ],
             'new_password' => 'required|min:8|confirmed',
         ]);
 
@@ -1808,34 +1821,37 @@ class EmployerController extends Controller
     public function deleteAccount(Request $request)
     {
         $user = Auth::user();
-        
+
         // Validate password
         $request->validate([
-            'password' => ['required', function ($attribute, $value, $fail) use ($user) {
-                if (!Hash::check($value, $user->password)) {
-                    $fail('The password is incorrect.');
+            'password' => [
+                'required',
+                function ($attribute, $value, $fail) use ($user) {
+                    if (!Hash::check($value, $user->password)) {
+                        $fail('The password is incorrect.');
+                    }
                 }
-            }],
+            ],
             'confirm_deletion' => 'required|in:DELETE'
         ]);
 
         try {
             DB::beginTransaction();
-            
+
             // Delete related data
             $user->employerProfile()->delete();
             $user->jobs()->delete();
             $user->jobApplications()->delete();
-            
+
             // Delete the user
             $user->delete();
-            
+
             DB::commit();
-            
+
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-            
+
             return redirect()->route('home')->with('success', 'Your account has been permanently deleted.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1850,21 +1866,23 @@ class EmployerController extends Controller
 
         // Validate password
         $request->validate([
-            'password' => ['required', function ($attribute, $value, $fail) use ($user) {
-                if (!Hash::check($value, $user->password)) {
-                    $fail('The password is incorrect.');
+            'password' => [
+                'required',
+                function ($attribute, $value, $fail) use ($user) {
+                    if (!Hash::check($value, $user->password)) {
+                        $fail('The password is incorrect.');
+                    }
                 }
-            }],
+            ],
         ]);
 
         try {
             // Deactivate the account
-            $user->status = 0;
-            $user->deactivated_at = now();
+            $user->is_active = false;
             $user->save();
 
-            // Also hide all job postings
-            $user->jobs()->update(['status' => 0]);
+            // Also hide all job postings by closing them
+            $user->jobs()->update(['status' => \App\Models\Job::STATUS_CLOSED]);
 
             Auth::logout();
             $request->session()->invalidate();
@@ -1878,30 +1896,105 @@ class EmployerController extends Controller
     }
 
     /**
+     * Reset KYC verification for the employer (allows them to re-verify)
+     */
+    public function resetKyc(Request $request)
+    {
+        $user = Auth::user();
+
+        try {
+            DB::beginTransaction();
+
+            Log::info('Employer resetting their own KYC', [
+                'user_id' => $user->id,
+                'email' => $user->email
+            ]);
+
+            // Delete all KYC verifications for this user
+            $deletedVerifications = $user->kycVerifications()->count();
+            if ($deletedVerifications > 0) {
+                $user->kycVerifications()->delete();
+                Log::info("Deleted {$deletedVerifications} KYC verification records");
+            }
+
+            // Delete all KYC data for this user
+            $deletedKycData = $user->kycData()->count();
+            if ($deletedKycData > 0) {
+                $user->kycData()->delete();
+                Log::info("Deleted {$deletedKycData} KYC data records");
+            }
+
+            // Delete all employer documents and their files
+            $employerDocuments = $user->employerDocuments;
+            $deletedDocuments = $employerDocuments->count();
+            if ($deletedDocuments > 0) {
+                foreach ($employerDocuments as $document) {
+                    // Delete the physical file if it exists
+                    if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
+                        Storage::disk('public')->delete($document->file_path);
+                    }
+                }
+                $user->employerDocuments()->delete();
+                Log::info("Deleted {$deletedDocuments} employer documents and their files");
+            }
+
+            // Reset user's KYC status to pending
+            $user->update([
+                'kyc_status' => 'pending',
+                'kyc_session_id' => null,
+                'kyc_completed_at' => null,
+                'kyc_verified_at' => null,
+                'kyc_data' => null
+            ]);
+
+            DB::commit();
+
+            Log::info('Employer KYC reset completed successfully', [
+                'user_id' => $user->id,
+                'deleted_verifications' => $deletedVerifications,
+                'deleted_kyc_data' => $deletedKycData,
+                'deleted_documents' => $deletedDocuments
+            ]);
+
+            return redirect()->back()->with('success', 'Your KYC verification has been reset. You can now start the verification process again.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to reset employer KYC', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to reset KYC verification: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Get recent activities for the dashboard
      */
     public function getActivities()
     {
         $employer = Auth::user();
-        
+
         // Get recent applications
-        $recentApplications = JobApplication::whereHas('job', function($query) use ($employer) {
+        $recentApplications = JobApplication::whereHas('job', function ($query) use ($employer) {
             $query->where('employer_id', $employer->id);
         })
-        ->with(['user', 'job'])
-        ->orderBy('created_at', 'desc')
-        ->take(5)
-        ->get();
-        
+            ->with(['user', 'job'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
         // Get recent jobs
         $recentJobs = Job::where('employer_id', $employer->id)
-                        ->orderBy('created_at', 'desc')
-                        ->take(3)
-                        ->get();
-        
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
         // Create activities collection
         $activities = collect();
-        
+
         // Add job applications to activities
         foreach ($recentApplications as $application) {
             $activities->push([
@@ -1912,7 +2005,7 @@ class EmployerController extends Controller
                 'icon' => 'fa-user-plus'
             ]);
         }
-        
+
         // Add job postings to activities
         foreach ($recentJobs as $job) {
             $activities->push([
@@ -1923,10 +2016,10 @@ class EmployerController extends Controller
                 'icon' => 'fa-briefcase'
             ]);
         }
-        
+
         // Sort activities by date
         $activities = $activities->sortByDesc('created_at')->values();
-        
+
         // Return activities as HTML
         $html = '';
         foreach ($activities as $activity) {
@@ -1942,10 +2035,10 @@ class EmployerController extends Controller
                 </div>
             </div>';
         }
-        
+
         return response($html);
     }
-    
+
     /**
      * Get chart data for the dashboard
      */
@@ -1953,25 +2046,25 @@ class EmployerController extends Controller
     {
         $employer = Auth::user();
         $period = $request->get('period', 7);
-        
+
         // Validate period
         $period = in_array($period, [7, 30, 90]) ? $period : 7;
-        
+
         // Prepare application trends data
         $labels = [];
         $values = [];
-        
+
         for ($i = ($period - 1); $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $labels[] = $date->format('M d');
-            
-            $values[] = JobApplication::whereHas('job', function($query) use ($employer) {
+
+            $values[] = JobApplication::whereHas('job', function ($query) use ($employer) {
                 $query->where('employer_id', $employer->id);
             })
-            ->whereDate('created_at', $date)
-            ->count();
+                ->whereDate('created_at', $date)
+                ->count();
         }
-        
+
         return response()->json([
             'labels' => $labels,
             'values' => $values
@@ -1996,16 +2089,16 @@ class EmployerController extends Controller
             ->sum('applications_count');
 
         $query = Job::where('employer_id', $employer->id)
-                   ->withCount(['applications', 'views'])
-                   ->orderBy('created_at', 'desc');
+            ->withCount(['applications', 'views'])
+            ->orderBy('created_at', 'desc');
 
         // Apply search filter
         if ($request->filled('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('location', 'like', "%{$search}%");
             });
         }
 
@@ -2047,7 +2140,7 @@ class EmployerController extends Controller
         // Check if employer profile is complete before allowing job creation
         $employer = Auth::user();
         $profile = Employer::where('user_id', $employer->id)->first();
-        
+
         // Define required fields for posting jobs (using correct database field names)
         $requiredFields = [
             'company_name' => 'Company Name',
@@ -2076,14 +2169,14 @@ class EmployerController extends Controller
             $message = 'Please complete your company profile before posting jobs. Missing: ' . implode(', ', $missingFields);
 
             return redirect()->route('employer.profile.edit')
-                           ->with('error', $message)
-                           ->with('highlight_required', true);
+                ->with('error', $message)
+                ->with('highlight_required', true);
         }
 
         $jobTypes = JobType::where('status', 1)->get();
         // Get all categories (now clean with no duplicates)
         $categories = Category::where('status', 1)->orderBy('name')->get();
-        
+
         return view('front.account.employer.jobs.create', [
             'categories' => $categories,
             'jobTypes' => $jobTypes
@@ -2104,12 +2197,12 @@ class EmployerController extends Controller
             'is_ajax' => $request->ajax(),
             'user_agent' => $request->userAgent()
         ]);
-        
+
         try {
             // First, check if employer profile is complete before processing job creation
             $employer = Auth::user();
             $profile = Employer::where('user_id', $employer->id)->first();
-            
+
             // Define required fields for posting jobs (using correct database field names)
             $requiredFields = [
                 'company_name' => 'Company Name',
@@ -2146,10 +2239,10 @@ class EmployerController extends Controller
                 }
 
                 return redirect()->route('employer.profile.edit')
-                               ->with('error', $message)
-                               ->with('highlight_required', true);
+                    ->with('error', $message)
+                    ->with('highlight_required', true);
             }
-            
+
             // Validate the request
             $validated = $request->validate([
                 'title' => 'required|string|min:5|max:255',
@@ -2157,6 +2250,8 @@ class EmployerController extends Controller
                 'requirements' => 'required|string|min:10|max:3000',
                 'benefits' => 'nullable|string|max:2000',
                 'location' => 'required|string|max:255',
+                'city' => 'nullable|string|max:100',
+                'province' => 'nullable|string|max:100',
                 'latitude' => 'nullable|numeric',
                 'longitude' => 'nullable|numeric',
                 'job_type_id' => 'required|exists:job_types,id',
@@ -2188,7 +2283,7 @@ class EmployerController extends Controller
             ]);
 
             $user = Auth::user();
-            
+
             \Log::info('Job validation passed', [
                 'validated_data' => $validated,
                 'user_id' => $user->id
@@ -2219,23 +2314,23 @@ class EmployerController extends Controller
             $job->salary_min = $validated['salary_min'] ?? null;
             $job->salary_max = $validated['salary_max'] ?? null;
             $job->deadline = $validated['deadline'] ?? null;
-            
+
             // Handle boolean fields as integers for database compatibility
             $job->featured = $request->boolean('is_featured') ? 1 : 0;
-            
+
             // ALL jobs require admin approval - no auto-approval
             $job->status = Job::STATUS_PENDING; // All jobs start as pending (0)
-            
+
             \Log::info('Job status set', [
                 'job_status' => $job->status,
                 'user_kyc_status' => $user->kyc_status,
                 'needs_admin_approval' => true,
                 'status_name' => 'Pending Approval'
             ]);
-            
-            $job->city = 'Sta. Cruz';
-            $job->province = 'Davao del Sur';
-            
+
+            $job->city = $validated['city'] ?? 'Sta. Cruz';
+            $job->province = $validated['province'] ?? 'Davao del Sur';
+
             // Extract barangay from location if possible
             if (strpos($validated['location'], ',') !== false) {
                 $locationParts = explode(',', $validated['location']);
@@ -2243,21 +2338,21 @@ class EmployerController extends Controller
             } else {
                 $job->barangay = $validated['location'];
             }
-            
+
             // Handle preliminary questions
             if ($request->boolean('requires_screening')) {
                 $preliminaryQuestions = [];
                 if (!empty($validated['preliminary_questions'])) {
                     $preliminaryQuestions = json_decode($validated['preliminary_questions'], true) ?: [];
                 }
-                
+
                 $job->requires_screening = true;
                 $job->preliminary_questions = $preliminaryQuestions;
             } else {
                 $job->requires_screening = false;
                 $job->preliminary_questions = null;
             }
-            
+
             $job->meta_data = [
                 'skills' => $skills,
                 'created_via' => 'web_form',
@@ -2291,7 +2386,10 @@ class EmployerController extends Controller
                 'job_type_id' => $job->job_type_id,
                 'location' => $job->location
             ]);
-            
+
+            // Notify all admins about the new job posting that needs approval
+            $this->notifyAdminsAboutNewJob($job, $user);
+
             // Verify the job was saved correctly
             $savedJob = Job::find($job->id);
             \Log::info('Job verification after save', [
@@ -2312,9 +2410,9 @@ class EmployerController extends Controller
             }
 
             return redirect()->route('employer.jobs.index')
-                           ->with('success', 'Job posted successfully! It is now pending admin approval before being published.')
-                           ->with('job_id', $job->id)
-                           ->with('job_status', 'pending');
+                ->with('success', 'Job posted successfully! It is now pending admin approval before being published.')
+                ->with('job_id', $job->id)
+                ->with('job_status', 'pending');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Job creation validation failed', [
@@ -2322,18 +2420,18 @@ class EmployerController extends Controller
                 'user_id' => Auth::id(),
                 'request_data' => $request->except(['_token'])
             ]);
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'status' => false,
                     'errors' => $e->errors()
                 ], 422);
             }
-            
+
             return redirect()->back()
-                           ->withErrors($e->errors())
-                           ->withInput()
-                           ->with('error', 'Please check the form for errors and try again.');
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('error', 'Please check the form for errors and try again.');
         } catch (\Exception $e) {
             \Log::error('Job creation failed', [
                 'error' => $e->getMessage(),
@@ -2350,8 +2448,8 @@ class EmployerController extends Controller
             }
 
             return redirect()->back()
-                           ->with('error', 'Failed to create job posting: ' . $e->getMessage())
-                           ->withInput();
+                ->with('error', 'Failed to create job posting: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -2379,7 +2477,7 @@ class EmployerController extends Controller
             'request_method' => $request->method(),
             'is_ajax' => $request->ajax()
         ]);
-        
+
         // Verify ownership
         if ($job->employer_id !== Auth::id()) {
             \Log::error('Unauthorized job update attempt', [
@@ -2387,7 +2485,7 @@ class EmployerController extends Controller
                 'job_employer_id' => $job->employer_id,
                 'current_user_id' => Auth::id()
             ]);
-            
+
             if ($request->ajax()) {
                 return response()->json(['status' => false, 'message' => 'Unauthorized action.'], 403);
             }
@@ -2401,6 +2499,7 @@ class EmployerController extends Controller
             'vacancy' => 'required|integer|min:1|max:100',
             'location' => 'required|max:50',
             'description' => 'required',
+            'qualifications' => 'nullable',
             'requirements' => 'nullable',
             'benefits' => 'nullable',
             'salary_range' => 'nullable|string',
@@ -2409,7 +2508,7 @@ class EmployerController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
-        
+
         if ($validator->fails()) {
             if ($request->ajax()) {
                 return response()->json([
@@ -2428,12 +2527,12 @@ class EmployerController extends Controller
                 'current_vacancy' => $job->vacancy,
                 'request_data' => $request->except(['_token', '_method'])
             ]);
-            
+
             // Check if this is a rejected job being resubmitted
             $wasRejected = $job->status === Job::STATUS_REJECTED;
             $wasClosed = $job->status === Job::STATUS_CLOSED;
             $oldVacancy = $job->vacancy;
-            
+
             $job->title = $request->title;
             $job->category_id = $request->category_id;
             $job->job_type_id = $request->job_type_id;
@@ -2444,25 +2543,26 @@ class EmployerController extends Controller
             $job->latitude = $request->latitude;
             $job->longitude = $request->longitude;
             $job->description = $request->description;
+            $job->qualifications = $request->qualifications;
             $job->requirements = $request->requirements;
             $job->benefits = $request->benefits;
             // Note: salary_range column doesn't exist, using salary_min and salary_max instead
             // $job->salary_range = $request->salary_range;
             $job->deadline = $request->deadline;
             $job->featured = $request->featured ?? false;
-            
+
             // If job was rejected and is being resubmitted, set status to pending
             if ($wasRejected) {
                 $job->status = Job::STATUS_PENDING;
                 $job->rejection_reason = null; // Clear rejection reason
                 $job->rejected_at = null; // Clear rejection timestamp
                 $message = 'Job resubmitted successfully! It is now pending admin approval.';
-            } 
+            }
             // If job was closed, check if we should reopen it
             elseif ($wasClosed) {
                 // Get current accepted applications count
                 $acceptedCount = $job->applications()->where('status', 'approved')->count();
-                
+
                 \Log::info('Checking if closed job should reopen', [
                     'job_id' => $job->id,
                     'old_vacancy' => $oldVacancy,
@@ -2470,7 +2570,7 @@ class EmployerController extends Controller
                     'accepted_count' => $acceptedCount,
                     'should_reopen' => $request->vacancy > $acceptedCount
                 ]);
-                
+
                 // If new vacancy is greater than accepted count, reopen the job
                 if ($request->vacancy > $acceptedCount) {
                     $job->status = Job::STATUS_APPROVED;
@@ -2480,19 +2580,20 @@ class EmployerController extends Controller
                 } else {
                     $message = 'Job updated but remains closed (all ' . $request->vacancy . ' position(s) are filled).';
                 }
-            }
-            else {
+            } else {
                 // Keep current status for normal edits (don't change approval status)
                 $message = 'Job updated successfully.';
             }
-            
+
             $saved = $job->save();
 
             // Handle job requirements (required documents)
             if ($request->has('job_requirements')) {
                 // Get existing requirement IDs from the form
                 $submittedIds = collect($request->job_requirements)
-                    ->filter(function($req) { return !empty($req['id']); })
+                    ->filter(function ($req) {
+                        return !empty($req['id']);
+                    })
                     ->pluck('id')
                     ->toArray();
 
@@ -2555,14 +2656,14 @@ class EmployerController extends Controller
                 'error' => $e->getMessage(),
                 'job_id' => $job->id
             ]);
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Error updating job: ' . $e->getMessage()
                 ], 500);
             }
-            
+
             return redirect()->back()->withErrors(['error' => 'Error updating job: ' . $e->getMessage()])->withInput();
         }
     }
@@ -2598,14 +2699,14 @@ class EmployerController extends Controller
             }
 
             return redirect()->route('employer.jobs.index')
-                            ->with('success', $message);
+                ->with('success', $message);
         } catch (\Exception $e) {
             if (request()->expectsJson() || request()->ajax()) {
                 return response()->json(['success' => false, 'message' => 'Error deleting job: ' . $e->getMessage()], 500);
             }
 
             return redirect()->route('employer.jobs.index')
-                            ->with('error', 'Error deleting job: ' . $e->getMessage());
+                ->with('error', 'Error deleting job: ' . $e->getMessage());
         }
     }
 
@@ -2613,22 +2714,22 @@ class EmployerController extends Controller
     {
         $employer = Auth::user();
         $jobs = Job::where('employer_id', $employer->id)
-                   ->where('featured', true)
-                   ->withCount('applications')
-                   ->orderBy('created_at', 'desc')
-                   ->paginate(10);
-        
+            ->where('featured', true)
+            ->withCount('applications')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         return view('front.account.employer.jobs.featured', compact('jobs'));
     }
 
     public function toggleJobFeature(Job $job)
     {
         $this->authorize('update', $job);
-        
+
         $job->update(['featured' => !$job->featured]);
-        
+
         return redirect()->back()
-                        ->with('success', $job->featured ? 'Job featured successfully.' : 'Job unfeatured successfully.');
+            ->with('success', $job->featured ? 'Job featured successfully.' : 'Job unfeatured successfully.');
     }
 
     public function settings()
@@ -2641,26 +2742,74 @@ class EmployerController extends Controller
 
     public function updateSettings(Request $request)
     {
-        $request->validate([
-            'email_notifications' => 'boolean',
-            'marketing_emails' => 'boolean',
-            'language' => 'required|string|in:en,es,fr',
-            'timezone' => 'required|string|timezone'
-        ]);
-
         $employer = Auth::user();
-        
-        // Update settings in the employer profile
-        $settings = $employer->settings ?? [];
-        $settings['email_notifications'] = $request->boolean('email_notifications');
-        $settings['marketing_emails'] = $request->boolean('marketing_emails');
-        $settings['language'] = $request->language;
-        $settings['timezone'] = $request->timezone;
-        
-        $employer->settings = $settings;
-        $employer->save();
+        $profile = $employer->employer;
 
-        return redirect()->back()->with('success', 'Settings updated successfully.');
+        // Determine which section is being updated
+        $section = $request->input('section', 'account');
+
+        try {
+            if ($section === 'account') {
+                $request->validate([
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|email|max:255|unique:users,email,' . $employer->id,
+                    'job_title' => 'nullable|string|max:255',
+                    'phone' => 'nullable|string|max:20',
+                ]);
+
+                // Update User model
+                $employer->name = $request->name;
+                $employer->email = $request->email;
+                $employer->save();
+
+                // Update Employer Profile model
+                $profile->contact_person_designation = $request->job_title;
+                $profile->business_phone = $request->phone;
+                $profile->save();
+
+                return redirect()->back()->with('success', 'Account information updated successfully.');
+            } elseif ($section === 'preferences') {
+                $request->validate([
+                    'timezone' => 'required|string',
+                    'language' => 'required|string',
+                    'date_format' => 'required|string',
+                    'currency' => 'required|string',
+                ]);
+
+                $settings = $profile->settings ?? [];
+                $settings['timezone'] = $request->timezone;
+                $settings['language'] = $request->language;
+                $settings['date_format'] = $request->date_format;
+                $settings['currency'] = $request->currency;
+
+                $profile->settings = $settings;
+                $profile->save();
+
+                return redirect()->back()->with('success', 'Preferences updated successfully.');
+            } elseif ($section === 'application') {
+                $request->validate([
+                    'auto_close_days' => 'required',
+                    'max_applications' => 'required|integer|min:1',
+                ]);
+
+                $settings = $profile->settings ?? [];
+                $settings['auto_close_days'] = $request->auto_close_days;
+                $settings['max_applications'] = $request->max_applications;
+                $settings['require_cover_letter'] = $request->has('require_cover_letter');
+                $settings['auto_reply'] = $request->has('auto_reply');
+
+                $profile->settings = $settings;
+                $profile->save();
+
+                return redirect()->back()->with('success', 'Application settings updated successfully.');
+            }
+
+            return redirect()->back()->with('error', 'Unknown settings section.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating employer settings: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update settings. Please try again.');
+        }
     }
 
     /**
@@ -2719,7 +2868,7 @@ class EmployerController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // Create a test notification directly in the database
             DB::table('notifications')->insert([
                 'id' => (string) Str::uuid(),
@@ -2736,17 +2885,17 @@ class EmployerController extends Controller
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
-            
+
             Log::info('Test notification created for user: ' . $user->id);
-            
+
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Test notification created successfully!'
             ]);
         } catch (\Exception $e) {
             Log::error('Test notification failed: ' . $e->getMessage());
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Failed to create test notification: ' . $e->getMessage()
             ], 500);
         }
@@ -2758,28 +2907,28 @@ class EmployerController extends Controller
     public function viewJobseekerProfile($userId)
     {
         $jobseeker = User::with(['jobSeekerProfile'])->findOrFail($userId);
-        
+
         // Ensure the user is a jobseeker
         if ($jobseeker->role !== 'jobseeker') {
             abort(404, 'Profile not found');
         }
-        
+
         // Record profile view
         \App\Models\ProfileView::recordView(
             $userId,
             Auth::id(),
             'profile_page'
         );
-        
+
         // Get jobseeker's applications to this employer's jobs (if any)
         $applications = JobApplication::where('user_id', $userId)
-            ->whereHas('job', function($query) {
+            ->whereHas('job', function ($query) {
                 $query->where('employer_id', Auth::id());
             })
             ->with('job')
             ->latest()
             ->get();
-        
+
         return view('front.account.employer.jobseeker-profile', compact('jobseeker', 'applications'));
     }
 
@@ -2791,12 +2940,72 @@ class EmployerController extends Controller
         $job = Job::where('id', $jobId)
             ->where('employer_id', Auth::id())
             ->firstOrFail();
-        
+
         $applications = JobApplication::where('job_id', $jobId)
             ->with(['user', 'user.jobSeekerProfile'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-        
+
         return view('front.account.employer.job-applicants', compact('job', 'applications'));
+    }
+
+    /**
+     * Notify all admins about a new job posting that needs approval
+     */
+    private function notifyAdminsAboutNewJob(Job $job, $employer)
+    {
+        try {
+            // Get all admin users
+            $admins = User::where('role', 'admin')->get();
+
+            if ($admins->isEmpty()) {
+                \Log::warning('No admins found to notify about new job posting', [
+                    'job_id' => $job->id
+                ]);
+                return;
+            }
+
+            // Get employer profile for company name
+            $employerProfile = Employer::where('user_id', $employer->id)->first();
+            $companyName = $employerProfile->company_name ?? $employer->name;
+
+            foreach ($admins as $admin) {
+                \DB::table('notifications')->insert([
+                    'user_id' => $admin->id,
+                    'title' => 'New Job Posting Awaiting Approval',
+                    'message' => 'A new job "' . $job->title . '" has been posted by ' . $companyName . ' and requires your approval.',
+                    'type' => 'new_job_pending',
+                    'data' => json_encode([
+                        'job_id' => $job->id,
+                        'job_title' => $job->title,
+                        'employer_id' => $employer->id,
+                        'employer_name' => $employer->name,
+                        'company_name' => $companyName,
+                        'location' => $job->location,
+                        'icon' => 'briefcase',
+                        'color' => 'warning'
+                    ]),
+                    'action_url' => route('admin.jobs.pending'),
+                    'read_at' => null,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+
+            // Clear dashboard cache so the pending count updates
+            \Cache::forget('admin_dashboard_stats');
+
+            \Log::info('Admins notified about new job posting', [
+                'job_id' => $job->id,
+                'job_title' => $job->title,
+                'admins_notified' => $admins->count()
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to notify admins about new job posting', [
+                'job_id' => $job->id,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

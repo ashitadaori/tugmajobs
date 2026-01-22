@@ -11,6 +11,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\SavedJob;
+use App\Models\BookmarkedJob;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 
@@ -91,7 +93,7 @@ class User extends Authenticatable
         'two_factor_enabled' => 'boolean',
         'two_factor_confirmed_at' => 'datetime',
     ];
-    
+
     /**
      * Get the jobs posted by the user.
      */
@@ -117,11 +119,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the saved jobs with job details.
+     * Get the jobs bookmarked by the user (alias for savedJobs).
      */
-    public function savedJobsWithDetails(): HasMany
+    public function bookmarkedJobs(): HasMany
     {
-        return $this->hasMany(SavedJob::class)->with(['job', 'job.employer', 'job.jobType', 'job.category']);
+        return $this->hasMany(BookmarkedJob::class);
+    }
+
+    /**
+     * Get the bookmarked jobs with job details.
+     */
+    public function bookmarkedJobsWithDetails(): HasMany
+    {
+        return $this->hasMany(BookmarkedJob::class)->with(['job', 'job.employer', 'job.jobType', 'job.category']);
     }
 
     /**
@@ -249,6 +259,11 @@ class User extends Authenticatable
         return $this->kyc_status === 'failed';
     }
 
+    public function isKycPendingReview(): bool
+    {
+        return $this->kyc_status === 'pending_review';
+    }
+
     public function getKycStatusBadgeAttribute(): string
     {
         $badges = [
@@ -256,7 +271,8 @@ class User extends Authenticatable
             'in_progress' => '<span class="badge bg-warning"><i class="fas fa-hourglass-half me-1"></i>In Progress</span>',
             'verified' => '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>',
             'failed' => '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Failed</span>',
-            'expired' => '<span class="badge bg-dark"><i class="fas fa-clock me-1"></i>Expired</span>'
+            'expired' => '<span class="badge bg-dark"><i class="fas fa-clock me-1"></i>Expired</span>',
+            'pending_review' => '<span class="badge bg-info"><i class="fas fa-hourglass-half me-1"></i>Pending Review</span>'
         ];
         return $badges[$this->kyc_status] ?? $badges['pending'];
     }
@@ -268,7 +284,8 @@ class User extends Authenticatable
             'in_progress' => 'Verification in Progress',
             'verified' => 'Verified',
             'failed' => 'Verification Failed',
-            'expired' => 'Verification Expired'
+            'expired' => 'Verification Expired',
+            'pending_review' => 'Pending Manual Review'
         ];
         return $statuses[$this->kyc_status] ?? 'Not Verified';
     }
@@ -292,7 +309,12 @@ class User extends Authenticatable
         if (in_array($this->kyc_status, ['pending', 'failed', 'expired'])) {
             return true;
         }
-        
+
+        // 'pending_review' means it is already submitted, so they cannot start again until verified or failed.
+        if ($this->kyc_status === 'pending_review') {
+            return false;
+        }
+
         // Allow restarting if in_progress but session is old (more than 30 minutes)
         // Extended timeout to give users more time to complete verification
         if ($this->kyc_status === 'in_progress' && $this->updated_at) {
@@ -301,10 +323,10 @@ class User extends Authenticatable
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Check if the current KYC session has timed out
      */
@@ -313,11 +335,11 @@ class User extends Authenticatable
         if ($this->kyc_status !== 'in_progress' || !$this->updated_at) {
             return false;
         }
-        
+
         $thirtyMinutesAgo = now()->subMinutes(30);
         return $this->updated_at->lt($thirtyMinutesAgo);
     }
-    
+
     /**
      * Reset expired KYC session back to pending
      */
@@ -349,7 +371,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuditLog::class);
     }
-    
+
     /**
      * Get the user's notifications.
      */
@@ -357,7 +379,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class);
     }
-    
+
     /**
      * Get the user's unread notifications count.
      */
@@ -375,28 +397,37 @@ class User extends Authenticatable
     public function getConnectedSocialProviders(): array
     {
         $providers = [];
-        
+
         if ($this->hasGoogleAccount()) {
             $providers[] = 'google';
         }
-        
+
         return $providers;
     }
 
     public function getProfileImageAttribute($value): ?string
     {
+        // Return custom uploaded image
+        if (!empty($this->image)) {
+            // Check for thumbnail first (generated by AccountController)
+            if (file_exists(public_path('profile_img/thumb/' . $this->image))) {
+                return asset('profile_img/thumb/' . $this->image);
+            }
+            // Check for original image
+            if (file_exists(public_path('profile_img/' . $this->image))) {
+                return asset('profile_img/' . $this->image);
+            }
+            // Fallback to storage (legacy)
+            return asset('storage/' . $this->image);
+        }
+
         // Return social profile image if no custom image is set
-        if (empty($value) && empty($this->image)) {
+        if (empty($value)) {
             if ($this->hasGoogleAccount()) {
                 return $this->attributes['profile_image'] ?? null;
             }
         }
-        
-        // Return custom uploaded image
-        if (!empty($this->image)) {
-            return asset('storage/' . $this->image);
-        }
-        
+
         // Return social profile image
         return $value;
     }
@@ -424,7 +455,7 @@ class User extends Authenticatable
                 ->where('document_type', $type)
                 ->where('status', 'approved')
                 ->exists();
-                
+
             if (!$hasApprovedDocument) {
                 return false;
             }

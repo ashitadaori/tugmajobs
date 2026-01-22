@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
 use App\Models\KycData;
+use App\Services\DuplicateAccountDetectionService;
+use App\Services\KycProfileSyncService;
 
 class KycWebhookController extends Controller
 {
@@ -87,10 +89,14 @@ class KycWebhookController extends Controller
             ]);
 
             // Step C: Update the Database within a Transaction
-            DB::transaction(function () use ($user, $payload, $sessionId) {
+            $duplicateDetected = false;
+            $duplicateMessage = null;
+            $profileSyncResult = null;
+
+            DB::transaction(function () use ($user, $payload, $sessionId, &$duplicateDetected, &$duplicateMessage, &$profileSyncResult) {
                 $status = strtolower($payload['status'] ?? '');
                 $previousStatus = $user->kyc_status;
-                
+
                 Log::info('Processing KYC status update', [
                     'user_id' => $user->id,
                     'previous_status' => $previousStatus,
@@ -100,14 +106,37 @@ class KycWebhookController extends Controller
 
                 // Map status to standardized values
                 $mappedStatus = $this->mapKycStatus($status);
-                
+
+                // DUPLICATE ACCOUNT DETECTION: Check if this identity is already verified
+                if ($mappedStatus === 'verified') {
+                    $duplicateService = new DuplicateAccountDetectionService();
+                    $duplicateCheck = $duplicateService->checkForDuplicateIdentity($user->id, $payload);
+
+                    if ($duplicateCheck['is_duplicate']) {
+                        Log::warning('DUPLICATE ACCOUNT BLOCKED: Identity already verified', [
+                            'user_id' => $user->id,
+                            'existing_user_id' => $duplicateCheck['existing_user_id'],
+                            'match_type' => $duplicateCheck['match_type'],
+                            'session_id' => $sessionId,
+                        ]);
+
+                        // Mark as failed due to duplicate
+                        $mappedStatus = 'failed';
+                        $duplicateDetected = true;
+                        $duplicateMessage = $duplicateCheck['message'];
+
+                        // Store the duplicate attempt details for admin review
+                        $this->logDuplicateAttempt($user, $payload, $sessionId, $duplicateCheck);
+                    }
+                }
+
                 // Update user's basic KYC status
                 $user->kyc_status = $mappedStatus;
                 if ($mappedStatus === 'verified') {
                     $user->kyc_verified_at = now();
                 }
                 $user->save();
-                
+
                 // Save detailed KYC data to the new kyc_data table ONLY if verified
                 if ($mappedStatus === 'verified') {
                     $this->saveKycData($user, $payload, $sessionId, $mappedStatus);
@@ -115,14 +144,33 @@ class KycWebhookController extends Controller
                         'user_id' => $user->id,
                         'session_id' => $sessionId
                     ]);
+
+                    // Auto-populate jobseeker profile with KYC data
+                    if ($user->isJobSeeker()) {
+                        $kycData = KycData::where('user_id', $user->id)
+                            ->where('session_id', $sessionId)
+                            ->first();
+
+                        if ($kycData) {
+                            $profileSyncService = new KycProfileSyncService();
+                            $profileSyncResult = $profileSyncService->syncKycToProfile($user, $kycData);
+
+                            Log::info('Profile sync attempted after KYC verification', [
+                                'user_id' => $user->id,
+                                'sync_success' => $profileSyncResult['success'],
+                                'synced_fields_count' => count($profileSyncResult['synced_fields'] ?? []),
+                            ]);
+                        }
+                    }
                 } else {
                     Log::info('KYC data NOT saved - verification not successful', [
                         'user_id' => $user->id,
                         'session_id' => $sessionId,
-                        'status' => $mappedStatus
+                        'status' => $mappedStatus,
+                        'duplicate_detected' => $duplicateDetected,
                     ]);
                 }
-                
+
                 Log::info('User KYC data saved successfully', [
                     'user_id' => $user->id,
                     'final_status' => $user->kyc_status,
@@ -146,41 +194,67 @@ class KycWebhookController extends Controller
                     $notificationMessage = '';
                     $notificationType = 'info';
 
-                    switch ($user->kyc_status) {
-                        case 'verified':
-                            $notificationTitle = 'Identity Verification Completed';
-                            $notificationMessage = 'Your identity has been successfully verified. You now have full access to all platform features.';
-                            $notificationType = 'success';
-                            break;
-                        case 'failed':
-                            $notificationTitle = 'Identity Verification Failed';
-                            $notificationMessage = 'Your identity verification was unsuccessful. Please try again with clear documents and good lighting.';
-                            $notificationType = 'error';
-                            break;
-                        case 'expired':
-                            $notificationTitle = 'Identity Verification Expired';
-                            $notificationMessage = 'Your identity verification session has expired. Please start a new verification process.';
-                            $notificationType = 'warning';
-                            break;
+                    // Special handling for duplicate account detection
+                    if ($duplicateDetected) {
+                        $notificationTitle = 'Identity Verification Failed - Duplicate Account';
+                        $notificationMessage = $duplicateMessage ?? 'This ID document has already been used to verify another account. Each person can only have one verified account on our platform.';
+                        $notificationType = 'error';
+                    } else {
+                        switch ($user->kyc_status) {
+                            case 'verified':
+                                $notificationTitle = 'Identity Verification Completed';
+
+                                // Customize message based on profile sync result
+                                if ($profileSyncResult && $profileSyncResult['success'] && !empty($profileSyncResult['synced_fields'])) {
+                                    $syncedCount = count($profileSyncResult['synced_fields']);
+                                    $notificationMessage = "Your identity has been successfully verified. Your profile has been automatically updated with {$syncedCount} field(s) from your ID. You now have full access to all platform features.";
+                                } else {
+                                    $notificationMessage = 'Your identity has been successfully verified. You now have full access to all platform features.';
+                                }
+
+                                $notificationType = 'success';
+                                break;
+                            case 'failed':
+                                $notificationTitle = 'Identity Verification Failed';
+                                $notificationMessage = 'Your identity verification was unsuccessful. Please try again with clear documents and good lighting.';
+                                $notificationType = 'error';
+                                break;
+                            case 'expired':
+                                $notificationTitle = 'Identity Verification Expired';
+                                $notificationMessage = 'Your identity verification session has expired. Please start a new verification process.';
+                                $notificationType = 'warning';
+                                break;
+                        }
                     }
 
                     if ($notificationTitle) {
+                        $notificationData = [
+                            'kyc_status' => $user->kyc_status,
+                            'session_id' => $sessionId,
+                            'source' => 'kyc_webhook',
+                            'duplicate_detected' => $duplicateDetected,
+                        ];
+
+                        // Add profile sync info to notification data
+                        if ($profileSyncResult && $profileSyncResult['success']) {
+                            $notificationData['profile_synced'] = true;
+                            $notificationData['synced_fields'] = array_keys($profileSyncResult['synced_fields'] ?? []);
+                            $notificationData['profile_completion'] = $profileSyncResult['profile_completion'] ?? null;
+                        }
+
                         \App\Models\Notification::create([
                             'user_id' => $user->id,
                             'title' => $notificationTitle,
                             'message' => $notificationMessage,
                             'type' => $notificationType,
-                            'data' => [
-                                'kyc_status' => $user->kyc_status,
-                                'session_id' => $sessionId,
-                                'source' => 'kyc_webhook',
-                            ],
+                            'data' => $notificationData,
                         ]);
 
                         Log::info('KYC notification created', [
                             'user_id' => $user->id,
                             'notification_type' => $notificationType,
                             'kyc_status' => $user->kyc_status,
+                            'duplicate_detected' => $duplicateDetected,
                         ]);
                     }
                 } catch (\Exception $e) {
@@ -635,6 +709,7 @@ class KycWebhookController extends Controller
 
     /**
      * Download an image from a URL and store it permanently in Laravel storage
+     * This is critical for preventing image expiration - DiDit URLs are temporary!
      *
      * @param string $url The URL of the image to download
      * @param int $userId The user ID
@@ -645,75 +720,218 @@ class KycWebhookController extends Controller
      */
     private function downloadAndStoreImage(string $url, int $userId, string $sessionId, string $type, string $extension = 'jpg'): ?string
     {
+        // Maximum retry attempts for downloading
+        $maxRetries = 3;
+        $retryDelay = 2; // seconds between retries
+
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            try {
+                Log::info('Downloading KYC image', [
+                    'url' => substr($url, 0, 100) . '...', // Truncate URL for logging
+                    'user_id' => $userId,
+                    'session_id' => $sessionId,
+                    'type' => $type,
+                    'attempt' => $attempt
+                ]);
+
+                // Download the image from the URL with increased timeout
+                $response = Http::timeout(60)
+                    ->withHeaders([
+                        'User-Agent' => 'Mozilla/5.0 (compatible; JobPortalKYC/1.0)',
+                        'Accept' => 'image/*,*/*'
+                    ])
+                    ->get($url);
+
+                if (!$response->successful()) {
+                    Log::warning('Failed to download KYC image - HTTP error', [
+                        'url' => substr($url, 0, 100) . '...',
+                        'status' => $response->status(),
+                        'user_id' => $userId,
+                        'attempt' => $attempt
+                    ]);
+
+                    if ($attempt < $maxRetries) {
+                        sleep($retryDelay);
+                        continue;
+                    }
+
+                    // Final attempt failed - store null to indicate download failure
+                    Log::error('KYC image download failed after all retries - URL may be expired', [
+                        'url' => substr($url, 0, 100) . '...',
+                        'user_id' => $userId,
+                        'type' => $type
+                    ]);
+                    return null; // Return null instead of expired URL
+                }
+
+                // Get the image content
+                $imageContent = $response->body();
+
+                if (empty($imageContent)) {
+                    Log::warning('Downloaded KYC image is empty', [
+                        'url' => substr($url, 0, 100) . '...',
+                        'user_id' => $userId,
+                        'attempt' => $attempt
+                    ]);
+
+                    if ($attempt < $maxRetries) {
+                        sleep($retryDelay);
+                        continue;
+                    }
+
+                    return null;
+                }
+
+                // Verify it's actually image data (basic check)
+                $minImageSize = 1000; // Minimum 1KB for a valid image
+                if (strlen($imageContent) < $minImageSize) {
+                    Log::warning('Downloaded KYC image is too small, may be invalid', [
+                        'size' => strlen($imageContent),
+                        'user_id' => $userId,
+                        'attempt' => $attempt
+                    ]);
+
+                    if ($attempt < $maxRetries) {
+                        sleep($retryDelay);
+                        continue;
+                    }
+                }
+
+                // Create a unique filename
+                $filename = sprintf(
+                    'kyc/%d/%s/%s_%s.%s',
+                    $userId,
+                    $sessionId,
+                    $type,
+                    time(),
+                    $extension
+                );
+
+                // Ensure directory exists
+                $directory = dirname($filename);
+                if (!Storage::disk('public')->exists($directory)) {
+                    Storage::disk('public')->makeDirectory($directory);
+                }
+
+                // Store the image in the public disk so it's accessible via URL
+                $stored = Storage::disk('public')->put($filename, $imageContent);
+
+                if (!$stored) {
+                    Log::error('Failed to store KYC image to disk', [
+                        'filename' => $filename,
+                        'user_id' => $userId
+                    ]);
+
+                    if ($attempt < $maxRetries) {
+                        sleep($retryDelay);
+                        continue;
+                    }
+
+                    return null;
+                }
+
+                // Generate the public URL for the stored image
+                $storedPath = Storage::disk('public')->url($filename);
+
+                Log::info('KYC image downloaded and stored successfully', [
+                    'stored_path' => $storedPath,
+                    'user_id' => $userId,
+                    'type' => $type,
+                    'size' => strlen($imageContent),
+                    'attempt' => $attempt
+                ]);
+
+                return $storedPath;
+
+            } catch (\Exception $e) {
+                Log::warning('Exception while downloading KYC image', [
+                    'user_id' => $userId,
+                    'type' => $type,
+                    'error' => $e->getMessage(),
+                    'attempt' => $attempt
+                ]);
+
+                if ($attempt < $maxRetries) {
+                    sleep($retryDelay);
+                    continue;
+                }
+
+                Log::error('KYC image download failed after all retries', [
+                    'user_id' => $userId,
+                    'type' => $type,
+                    'error' => $e->getMessage()
+                ]);
+
+                // Return null instead of the expired URL
+                // This makes it clear the image isn't available
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Log a duplicate account attempt for admin review
+     *
+     * @param User $user The user attempting verification
+     * @param array $payload The KYC verification payload
+     * @param string $sessionId The KYC session ID
+     * @param array $duplicateCheck The duplicate check result
+     * @return void
+     */
+    private function logDuplicateAttempt(User $user, array $payload, string $sessionId, array $duplicateCheck): void
+    {
         try {
-            Log::info('Downloading KYC image', [
-                'url' => $url,
-                'user_id' => $userId,
-                'session_id' => $sessionId,
-                'type' => $type
-            ]);
+            // Create an admin notification for the duplicate attempt
+            if (class_exists(\App\Models\Notification::class)) {
+                // Get all admin users
+                $admins = User::whereIn('role', ['admin', 'superadmin'])->get();
 
-            // Download the image from the URL
-            $response = Http::timeout(30)->get($url);
+                $decision = $payload['decision'] ?? [];
+                $idVerification = $decision['id_verification'] ?? [];
 
-            if (!$response->successful()) {
-                Log::error('Failed to download KYC image', [
-                    'url' => $url,
-                    'status' => $response->status(),
-                    'user_id' => $userId
+                foreach ($admins as $admin) {
+                    \App\Models\Notification::create([
+                        'user_id' => $admin->id,
+                        'title' => 'Duplicate Account Attempt Detected',
+                        'message' => sprintf(
+                            'User %s (ID: %d, Email: %s) attempted to verify with an ID that belongs to another user (ID: %d). Match type: %s',
+                            $user->name,
+                            $user->id,
+                            $user->email,
+                            $duplicateCheck['existing_user_id'],
+                            $duplicateCheck['match_type']
+                        ),
+                        'type' => 'warning',
+                        'data' => [
+                            'event_type' => 'duplicate_account_attempt',
+                            'attempting_user_id' => $user->id,
+                            'attempting_user_email' => $user->email,
+                            'existing_user_id' => $duplicateCheck['existing_user_id'],
+                            'match_type' => $duplicateCheck['match_type'],
+                            'session_id' => $sessionId,
+                            'document_type' => $idVerification['document_type'] ?? null,
+                            'attempted_at' => now()->toISOString(),
+                        ],
+                    ]);
+                }
+
+                Log::info('Admin notifications created for duplicate account attempt', [
+                    'user_id' => $user->id,
+                    'existing_user_id' => $duplicateCheck['existing_user_id'],
+                    'admin_count' => $admins->count(),
                 ]);
-                return $url; // Return original URL as fallback
             }
 
-            // Get the image content
-            $imageContent = $response->body();
-
-            if (empty($imageContent)) {
-                Log::error('Downloaded KYC image is empty', [
-                    'url' => $url,
-                    'user_id' => $userId
-                ]);
-                return $url; // Return original URL as fallback
-            }
-
-            // Create a unique filename
-            $filename = sprintf(
-                'kyc/%d/%s/%s_%s.%s',
-                $userId,
-                $sessionId,
-                $type,
-                time(),
-                $extension
-            );
-
-            // Store the image in the public disk so it's accessible via URL
-            Storage::disk('public')->put($filename, $imageContent);
-
-            // Generate the public URL for the stored image
-            $storedPath = Storage::disk('public')->url($filename);
-
-            Log::info('KYC image downloaded and stored successfully', [
-                'original_url' => $url,
-                'stored_path' => $storedPath,
-                'user_id' => $userId,
-                'type' => $type,
-                'size' => strlen($imageContent)
-            ]);
-
-            return $storedPath;
+            // Also log to a dedicated table if it exists (optional future enhancement)
+            // DuplicateAttemptLog::create([...]);
 
         } catch (\Exception $e) {
-            Log::error('Exception while downloading KYC image', [
-                'url' => $url,
-                'user_id' => $userId,
-                'type' => $type,
+            Log::error('Failed to log duplicate account attempt', [
+                'user_id' => $user->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
             ]);
-
-            // Return the original URL as fallback
-            // This ensures the webhook doesn't fail even if image download fails
-            return $url;
         }
     }
 }

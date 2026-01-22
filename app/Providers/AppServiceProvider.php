@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\URL;
 use App\Services\DiditService;
 use App\Services\MockDiditService;
 use App\Contracts\KycServiceInterface;
+use App\Models\Job;
+use App\Observers\JobObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +39,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register Job Observer for automatic content analysis
+        Job::observe(JobObserver::class);
+
         // Force the application URL from config to prevent localhost redirects
         if (config('app.url')) {
             \URL::forceRootUrl(config('app.url'));

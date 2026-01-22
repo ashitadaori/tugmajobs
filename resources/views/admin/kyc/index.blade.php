@@ -38,13 +38,44 @@
                             <td>{{ $document->document_number }}</td>
                             <td>{{ $document->created_at->format('M d, Y') }}</td>
                             <td>
-                                <div class="d-flex gap-2">
-                                    <!-- Download Button -->
-                                    <a href="{{ route('admin.kyc.document.download', $document) }}" 
-                                       class="btn btn-sm btn-info"
-                                       title="Download Document">
-                                        <i class="fas fa-download"></i>
-                                    </a>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    @php
+                                        $files = json_decode($document->document_file, true);
+                                    @endphp
+
+                                    <!-- View Documents Button (for JSON format) -->
+                                    @if(is_array($files))
+                                        <div class="btn-group" role="group">
+                                            @if(!empty($files['front']))
+                                                <a href="{{ route('kyc.manual.view', [$document, 'front']) }}"
+                                                   class="btn btn-sm btn-outline-info"
+                                                   title="View Front" target="_blank">
+                                                    <i class="fas fa-image"></i> Front
+                                                </a>
+                                            @endif
+                                            @if(!empty($files['back']))
+                                                <a href="{{ route('kyc.manual.view', [$document, 'back']) }}"
+                                                   class="btn btn-sm btn-outline-info"
+                                                   title="View Back" target="_blank">
+                                                    <i class="fas fa-image"></i> Back
+                                                </a>
+                                            @endif
+                                            @if(!empty($files['selfie']))
+                                                <a href="{{ route('kyc.manual.view', [$document, 'selfie']) }}"
+                                                   class="btn btn-sm btn-outline-warning"
+                                                   title="View Selfie" target="_blank">
+                                                    <i class="fas fa-camera"></i> Selfie
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <!-- Legacy Download Button -->
+                                        <a href="{{ route('admin.kyc.document.download', $document) }}"
+                                           class="btn btn-sm btn-info"
+                                           title="Download Document">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    @endif
 
                                     <!-- Approve Button -->
                                     <form action="{{ route('admin.kyc.verify', $document) }}" 

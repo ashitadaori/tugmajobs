@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\Employer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -12,20 +13,82 @@ class CompanyManagementController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Company::withCount('jobs');
+        $search = $request->get('search');
+        $filter = $request->get('filter', 'all'); // all, admin, registered
 
+        // Get admin-created companies
+        $adminCompaniesQuery = Company::withCount('jobs')
+            ->select([
+                'id',
+                'name',
+                'email',
+                'logo',
+                'location',
+                'is_active',
+                'created_at',
+                \DB::raw("'admin' as source"),
+                \DB::raw("NULL as user_id"),
+            ]);
+
+        // Get employer-registered companies
+        $employerCompaniesQuery = Employer::withCount('jobs')
+            ->select([
+                'id',
+                'company_name as name',
+                'business_email as email',
+                'company_logo as logo',
+                \DB::raw("CONCAT(COALESCE(city, ''), IF(city IS NOT NULL AND state IS NOT NULL, ', ', ''), COALESCE(state, '')) as location"),
+                \DB::raw("CASE WHEN status = 'active' THEN 1 ELSE 0 END as is_active"),
+                'created_at',
+                \DB::raw("'registered' as source"),
+                'user_id',
+            ]);
+
+        // Apply search filter
         if ($request->filled('search')) {
-            $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $adminCompaniesQuery->where(function($q) use ($search) {
                 $q->where('name', 'LIKE', '%' . $search . '%')
                   ->orWhere('email', 'LIKE', '%' . $search . '%')
                   ->orWhere('location', 'LIKE', '%' . $search . '%');
             });
+
+            $employerCompaniesQuery->where(function($q) use ($search) {
+                $q->where('company_name', 'LIKE', '%' . $search . '%')
+                  ->orWhere('business_email', 'LIKE', '%' . $search . '%')
+                  ->orWhere('city', 'LIKE', '%' . $search . '%')
+                  ->orWhere('state', 'LIKE', '%' . $search . '%');
+            });
         }
 
-        $companies = $query->orderBy('created_at', 'DESC')->paginate(15);
+        // Get results based on filter
+        if ($filter === 'admin') {
+            $adminCompanies = $adminCompaniesQuery->get();
+            $employerCompanies = collect();
+        } elseif ($filter === 'registered') {
+            $adminCompanies = collect();
+            $employerCompanies = $employerCompaniesQuery->get();
+        } else {
+            $adminCompanies = $adminCompaniesQuery->get();
+            $employerCompanies = $employerCompaniesQuery->get();
+        }
 
-        return view('admin.company-management.index', compact('companies'));
+        // Merge and sort by created_at
+        $allCompanies = $adminCompanies->concat($employerCompanies)
+            ->sortByDesc('created_at');
+
+        // Manual pagination
+        $perPage = 15;
+        $currentPage = $request->get('page', 1);
+        $total = $allCompanies->count();
+        $companies = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allCompanies->forPage($currentPage, $perPage),
+            $total,
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('admin.company-management.index', compact('companies', 'filter'));
     }
 
     public function create()

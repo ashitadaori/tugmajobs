@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clustering Status Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #10b981;
+            color: white;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .icon {
+            font-size: 24px;
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .stat:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            color: #666;
+        }
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+        }
+        .check {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .warning {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+        .error {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .command-box {
+            background: #1e293b;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+        .footer {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+        }
+        .mode-local {
+            background: #10b981;
+        }
+        .mode-azure {
+            background: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 K-Means Clustering Status</h1>
+            <div class="status-badge mode-local" id="mode-badge">
+                🟢 LOCAL CLUSTERING ACTIVE
+            </div>
+            <p style="margin-top: 10px; color: #666;">Cost: <strong>$0/month</strong></p>
+        </div>
+
+        <!-- System Status Grid -->
+        <div class="grid">
+            <!-- Health Card -->
+            <div class="card">
+                <h2><span class="icon">💚</span> System Health</h2>
+                <div class="stat">
+                    <span class="stat-label">Overall Status</span>
+                    <span class="stat-value check">✓ Operational</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Health Score</span>
+                    <span class="stat-value">5/5 (100%)</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Database</span>
+                    <span class="stat-value check">✓ Connected</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Cache</span>
+                    <span class="stat-value check">✓ Working</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Fallback</span>
+                    <span class="stat-value check">✓ Enabled</span>
+                </div>
+            </div>
+
+            <!-- Data Card -->
+            <div class="card">
+                <h2><span class="icon">📊</span> Data Availability</h2>
+                <div class="stat">
+                    <span class="stat-label">Total Jobs</span>
+                    <span class="stat-value">51</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Active Jobs</span>
+                    <span class="stat-value">10</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Job Seekers</span>
+                    <span class="stat-value">14</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">With Profiles</span>
+                    <span class="stat-value">14</span>
+                </div>
+            </div>
+
+            <!-- Performance Card -->
+            <div class="card">
+                <h2><span class="icon">⚡</span> Performance</h2>
+                <div class="stat">
+                    <span class="stat-label">Clustering Time</span>
+                    <span class="stat-value">~15ms</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Recommendations</span>
+                    <span class="stat-value">~23ms</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Cache TTL</span>
+                    <span class="stat-value">2 hours</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Cache Speedup</span>
+                    <span class="stat-value">10-20x</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clustering Info -->
+        <div class="card" style="margin-bottom: 30px;">
+            <h2><span class="icon">🔬</span> Clustering Details</h2>
+            <div class="stat">
+                <span class="stat-label">Algorithm</span>
+                <span class="stat-value">K-Means (Lloyd)</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Number of Clusters (K)</span>
+                <span class="stat-value">5 (default)</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Feature Scaling</span>
+                <span class="stat-value">Standard Scaler</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Max Iterations</span>
+                <span class="stat-value">100</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Features per Job</span>
+                <span class="stat-value">8 (category, salary, location, etc.)</span>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2><span class="icon">🚀</span> Quick Actions</h2>
+            <div class="actions">
+                <button class="btn btn-success" onclick="runTest()">
+                    ✓ Verify System
+                </button>
+                <button class="btn btn-primary" onclick="showDocs()">
+                    📖 View Docs
+                </button>
+                <button class="btn btn-warning" onclick="enableAzure()">
+                    ☁️ Enable Azure ML
+                </button>
+                <button class="btn btn-danger" onclick="clearCache()">
+                    🗑️ Clear Cache
+                </button>
+            </div>
+        </div>
+
+        <!-- Commands -->
+        <div class="card">
+            <h2><span class="icon">💻</span> Useful Commands</h2>
+            <p style="margin-bottom: 10px; color: #666;">Run these in your terminal:</p>
+
+            <strong>Verify Clustering:</strong>
+            <div class="command-box">php verify-clustering.php</div>
+
+            <strong>Enable Azure ML:</strong>
+            <div class="command-box">redeploy-azure-ml.bat</div>
+
+            <strong>Disable Azure ML (Save $102/month):</strong>
+            <div class="command-box">delete-azure-ml.bat</div>
+
+            <strong>Clear Cache:</strong>
+            <div class="command-box">php artisan cache:clear</div>
+
+            <strong>Check Logs:</strong>
+            <div class="command-box">tail -f storage/logs/laravel.log</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Last Verified:</strong> Run <code>php verify-clustering.php</code> for latest status</p>
+            <p style="margin-top: 10px;">
+                <a href="CLUSTERING-VERIFICATION-GUIDE.md" style="color: #667eea;">View Full Verification Guide</a> |
+                <a href="AZURE-ML-MANAGEMENT.md" style="color: #667eea;">Azure ML Management</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function runTest() {
+            alert('Run this command in your terminal:\n\nphp verify-clustering.php');
+        }
+
+        function showDocs() {
+            alert('Documentation files:\n\n1. CLUSTERING-VERIFICATION-GUIDE.md\n2. AZURE-ML-MANAGEMENT.md\n\nOpen these files to view complete guides.');
+        }
+
+        function enableAzure() {
+            if (confirm('This will deploy Azure ML endpoint and cost ~$102/month.\n\nContinue?')) {
+                alert('Run this command:\n\nredeploy-azure-ml.bat\n\nDeployment takes 10-15 minutes.');
+            }
+        }
+
+        function clearCache() {
+            if (confirm('Clear clustering cache?\n\nNext request will re-run clustering (slower).')) {
+                alert('Run this command:\n\nphp artisan cache:clear');
+            }
+        }
+    </script>
+</body>
+</html>

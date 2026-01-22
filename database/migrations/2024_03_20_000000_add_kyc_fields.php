@@ -9,9 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('kyc_status')->default('pending');
-            $table->string('kyc_inquiry_id')->nullable();
-            $table->timestamp('kyc_completed_at')->nullable();
+            if (!Schema::hasColumn('users', 'kyc_status')) {
+                $table->string('kyc_status')->default('pending');
+            }
+            if (!Schema::hasColumn('users', 'kyc_inquiry_id')) {
+                $table->string('kyc_inquiry_id')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'kyc_completed_at')) {
+                $table->timestamp('kyc_completed_at')->nullable();
+            }
         });
 
         // We'll use the existing is_verified column for KYC verification in employer_profiles

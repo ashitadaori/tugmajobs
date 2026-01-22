@@ -5,273 +5,175 @@
 
 @section('content')
 <!-- CACHE BUSTER: {{ now() }} -->
-<div class="container-fluid">
-    <div class="row">
-        <!-- Main Content -->
-        <div class="col-12">
-            <!-- VISIBLE PAGE TITLE -->
-            <div class="mb-4 p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <h2 class="text-white mb-0 fw-bold">
-                    <i class="bi bi-file-earmark-text me-3"></i>Employer Documents
-                </h2>
-                <p class="text-white mb-0 mt-2 opacity-75">Manage your verification documents</p>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h4 class="mb-1">Document Verification</h4>
-                    <p class="text-muted mb-0">Upload required documents to complete your employer verification</p>
+<div class="row">
+    <!-- Verification Status -->
+    <div class="col-12 mb-4">
+        <div class="ep-card">
+            <div class="ep-card-header">
+                <h3 class="ep-card-title">
+                    <i class="bi bi-shield-check"></i>
+                    Verification Status
+                </h3>
+                <div class="ep-card-actions">
+                    @if(auth()->user()->isKycVerified())
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i> Verified
+                        </span>
+                    @else
+                        <button type="button" class="ep-btn ep-btn-sm ep-btn-primary" onclick="startInlineVerification(event)">
+                            <i class="bi bi-shield-lock me-1"></i> Complete KYC
+                        </button>
+                    @endif
                 </div>
-                <a href="{{ route('employer.documents.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Upload Document
-                </a>
             </div>
-
-            <!-- Verification Progress -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="verification-progress-card documents-card">
-                        <div class="card-header">
-                            <h6>Verification Progress</h6>
-                        </div>
-                        <div class="card-body">
-                            
-                            <!-- KYC Status -->
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="me-3">
-                                    @if(auth()->user()->isKycVerified())
-                                        <i class="fas fa-check-circle text-success fa-lg"></i>
-                                    @else
-                                        <i class="fas fa-clock text-warning fa-lg"></i>
-                                    @endif
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-medium">KYC Verification</span>
-                                        @if(auth()->user()->isKycVerified())
-                                            <span class="badge bg-success">Completed</span>
-                                        @else
-                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="startInlineVerification(event)">
-                                                <i class="fas fa-shield-alt me-1"></i>Complete KYC
-                                            </button>
-                                        @endif
-                                    </div>
-                                    <small class="text-muted">Identity verification using official documents</small>
-                                </div>
+            <div class="ep-card-body">
+                <div class="row g-4 align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-light p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="bi {{ auth()->user()->canPostJobs() ? 'bi-check-lg text-success' : 'bi-pause-circle text-warning' }} fs-4"></i>
                             </div>
+                            <div>
+                                <h5 class="mb-1 fw-semibold">Job Posting Access</h5>
+                                <p class="mb-0 text-muted small">
+                                    @if(auth()->user()->canPostJobs())
+                                        Your account is verified. You can post job openings freely.
+                                    @else
+                                        Upload required documents to unlock job posting features.
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                            <hr>
-
-                            <!-- Documents Status -->
-                            @php
-                                $requiredTypes = collect(\App\Models\EmployerDocument::getDocumentTypes())
-                                    ->filter(fn($config) => $config['required']);
-                                $completedRequired = 0;
-                            @endphp
-
-                            @foreach($requiredTypes as $type => $config)
-                                @php
-                                    $document = $documentsByType->get($type, collect())->first();
-                                    $isCompleted = $document && $document->isApproved();
-                                    if ($isCompleted) $completedRequired++;
-                                @endphp
-                                
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="me-3">
-                                        @if($isCompleted)
-                                            <i class="fas fa-check-circle text-success"></i>
-                                        @elseif($document && $document->isPending())
-                                            <i class="fas fa-clock text-warning"></i>
-                                        @elseif($document && $document->isRejected())
-                                            <i class="fas fa-times-circle text-danger"></i>
-                                        @else
-                                            <i class="fas fa-upload text-muted"></i>
-                                        @endif
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="fw-medium">{{ $config['label'] }}</span>
-                                            @if($isCompleted)
-                                                <span class="badge bg-success">Approved</span>
-                                            @elseif($document && $document->isPending())
-                                                <span class="badge bg-warning">Under Review</span>
-                                            @elseif($document && $document->isRejected())
-                                                <span class="badge bg-danger">Rejected</span>
+    <!-- Documents List -->
+    <div class="col-12">
+        <div class="ep-card">
+            <div class="ep-card-header">
+                <h3 class="ep-card-title">
+                    <i class="bi bi-file-earmark-text"></i>
+                    Uploaded Documents
+                </h3>
+                <div class="ep-card-actions">
+                    <a href="{{ route('employer.documents.create') }}" class="ep-btn ep-btn-primary">
+                        <i class="bi bi-plus-lg"></i>
+                        Upload Document
+                    </a>
+                </div>
+            </div>
+            <div class="ep-card-body p-0">
+                @if($documents->isEmpty())
+                    <div class="text-center py-5">
+                        <div class="mb-3 text-muted opacity-50">
+                            <i class="bi bi-folder2-open display-1"></i>
+                        </div>
+                        <h5 class="fw-semibold text-secondary">No documents found</h5>
+                        <p class="text-muted small mb-4">Upload your business documents to get verified.</p>
+                        <a href="{{ route('employer.documents.create') }}" class="ep-btn ep-btn-outline">
+                            <i class="bi bi-upload me-2"></i> Upload First Document
+                        </a>
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table align-middle hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 text-muted small text-uppercase fw-semibold">Document Type</th>
+                                    <th class="py-3 text-muted small text-uppercase fw-semibold">File Name</th>
+                                    <th class="py-3 text-muted small text-uppercase fw-semibold">Status</th>
+                                    <th class="py-3 text-muted small text-uppercase fw-semibold">Date</th>
+                                    <th class="pe-4 py-3 text-end text-muted small text-uppercase fw-semibold">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($documents as $document)
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="rounded bg-light p-2 text-primary">
+                                                    <i class="bi bi-file-text fs-5"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium text-dark">
+                                                        {{ $document->document_type_config['label'] ?? ucfirst(str_replace('_', ' ', $document->document_type)) }}
+                                                    </div>
+                                                    @if($document->document_type_config['required'] ?? false)
+                                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small" style="font-size: 0.65rem;">Required</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="text-dark fw-medium">{{ $document->document_name }}</div>
+                                            <small class="text-muted">{{ $document->formatted_file_size }}</small>
+                                        </td>
+                                        <td>
+                                            @if($document->isApproved())
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                                                    <i class="bi bi-check-circle me-1"></i> Approved
+                                                </span>
+                                            @elseif($document->isPending())
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">
+                                                    <i class="bi bi-hourglass-split me-1"></i> Under Review
+                                                </span>
+                                            @elseif($document->isRejected())
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
+                                                    <i class="bi bi-x-circle me-1"></i> Rejected
+                                                </span>
                                             @else
-                                                <span class="status-badge not-uploaded">
-                                                    <i class="fas fa-upload"></i>
-                                                    Not Uploaded
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">
+                                                    {{ $document->status_label }}
                                                 </span>
                                             @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-
-                            <hr>
-
-                            <!-- Overall Status -->
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    @if(auth()->user()->canPostJobs())
-                                        <i class="fas fa-check-circle text-success fa-lg"></i>
-                                    @else
-                                        <i class="fas fa-exclamation-triangle text-warning fa-lg"></i>
-                                    @endif
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-bold">Job Posting Status</span>
-                                        @if(auth()->user()->canPostJobs())
-                                            <span class="badge bg-success fs-6">Enabled</span>
-                                        @else
-                                            <span class="badge bg-warning fs-6">Pending Verification</span>
-                                        @endif
-                                    </div>
-                                    <small class="text-muted">
-                                        @if(auth()->user()->canPostJobs())
-                                            You can now post job openings on our platform
-                                        @else
-                                            Complete KYC and document verification to post jobs
-                                        @endif
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Documents List -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="documents-card">
-                        <div class="card-header">
-                            <h6>Uploaded Documents</h6>
-                        </div>
-                        <div class="card-body">
-                            @if($documents->isEmpty())
-                                <div class="empty-state-enhanced">
-                                    <div class="empty-state-icon">
-                                        <i class="fas fa-file-upload"></i>
-                                    </div>
-                                    <div class="empty-state-title">No documents uploaded yet</div>
-                                    <div class="empty-state-description">
-                                        Upload your business documents to complete verification and unlock job posting features
-                                    </div>
-                                    <a href="{{ route('employer.documents.create') }}" class="empty-state-action">
-                                        <i class="fas fa-plus"></i>
-                                        Upload First Document
-                                    </a>
-                                </div>
-                            @else
-                                <div class="documents-table table-responsive">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Document Type</th>
-                                                <th>Name</th>
-                                                <th>Status</th>
-                                                <th>Submitted</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($documents as $document)
-                                                <tr>
-                                                    <td>
-                                                        <div class="document-type-cell">
-                                                            <div class="document-type-icon">
-                                                                <i class="fas fa-file-alt"></i>
-                                                            </div>
-                                                            <div class="document-info">
-                                                                <div class="document-name">{{ $document->document_type_config['label'] ?? ucfirst(str_replace('_', ' ', $document->document_type)) }}</div>
-                                                                @if($document->document_type_config['required'] ?? false)
-                                                                    <div class="required-label">
-                                                                        <i class="fas fa-exclamation-triangle me-1"></i>
-                                                                        Required
-                                                                    </div>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="document-info">
-                                                            <div class="document-name">{{ $document->document_name }}</div>
-                                                            <div class="document-meta">{{ $document->formatted_file_size }}</div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        @if($document->isApproved())
-                                                            <span class="status-badge approved">
-                                                                <i class="fas fa-check-circle"></i>
-                                                                Approved
-                                                            </span>
-                                                        @elseif($document->isPending())
-                                                            <span class="status-badge pending">
-                                                                <i class="fas fa-clock"></i>
-                                                                Under Review
-                                                            </span>
-                                                        @elseif($document->isRejected())
-                                                            <span class="status-badge rejected">
-                                                                <i class="fas fa-times-circle"></i>
-                                                                Rejected
-                                                            </span>
-                                                        @else
-                                                            <span class="status-badge not-uploaded">
-                                                                <i class="fas fa-upload"></i>
-                                                                {{ $document->status_label }}
-                                                            </span>
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        <div class="date-cell">
-                                                            <div class="date-main">{{ $document->submitted_at->format('M d, Y') }}</div>
-                                                            <div class="date-time">{{ $document->submitted_at->format('g:i A') }}</div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="action-buttons">
-                                                            <a href="{{ route('employer.documents.show', $document) }}" 
-                                                               class="btn btn-outline-primary" title="View">
-                                                                <i class="fas fa-eye"></i>
-                                                            </a>
-                                                            <a href="{{ route('employer.documents.download', $document) }}" 
-                                                               class="btn btn-outline-success" title="Download">
-                                                                <i class="fas fa-download"></i>
-                                                            </a>
-                                                            @if($document->isRejected())
-                                                                <a href="{{ route('employer.documents.edit', $document) }}" 
-                                                                   class="btn btn-outline-warning" title="Resubmit">
-                                                                    <i class="fas fa-edit"></i>
-                                                                </a>
-                                                            @endif
-                                                            @if(!$document->isApproved())
-                                                                <button type="button" class="btn btn-outline-danger" 
-                                                                        onclick="deleteDocument({{ $document->id }})" title="Delete">
-                                                                    <i class="fas fa-trash"></i>
-                                                                </button>
-                                                            @endif
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                @if($document->isRejected() && $document->admin_notes)
-                                                    <tr>
-                                                        <td colspan="5">
-                                                            <div class="alert alert-warning mb-0 ms-4">
-                                                                <strong>Admin Notes:</strong> {{ $document->admin_notes }}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
+                                        </td>
+                                        <td>
+                                            <div class="text-dark">{{ $document->submitted_at->format('M d, Y') }}</div>
+                                            <small class="text-muted">{{ $document->submitted_at->format('g:i A') }}</small>
+                                        </td>
+                                        <td class="pe-4 text-end">
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <a href="{{ route('employer.documents.show', $document) }}" 
+                                                   class="btn btn-sm btn-light border" title="View">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{{ route('employer.documents.download', $document) }}" 
+                                                   class="btn btn-sm btn-light border" title="Download">
+                                                    <i class="bi bi-download"></i>
+                                                </a>
+                                                @if($document->isRejected())
+                                                    <a href="{{ route('employer.documents.edit', $document) }}" 
+                                                       class="btn btn-sm btn-warning-subtle text-warning border border-warning-subtle" title="Resubmit">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
                                                 @endif
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @endif
-                        </div>
+                                                @if(!$document->isApproved())
+                                                    <button type="button" class="btn btn-sm btn-danger-subtle text-danger border border-danger-subtle" 
+                                                            onclick="deleteDocument({{ $document->id }})" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @if($document->isRejected() && $document->admin_notes)
+                                        <tr class="bg-danger-subtle">
+                                            <td colspan="5" class="ps-4 pe-4 py-2">
+                                                <div class="d-flex align-items-center text-danger small">
+                                                    <i class="bi bi-exclamation-circle me-2"></i>
+                                                    <strong>Admin Notes:</strong>&nbsp;{{ $document->admin_notes }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                </div>  
+                @endif
             </div>
         </div>
     </div>
@@ -279,21 +181,27 @@
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Delete Document</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">Delete Document</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this document? This action cannot be undone.</p>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3 text-danger opacity-75">
+                    <i class="bi bi-trash3 display-1"></i>
+                </div>
+                <h5 class="fw-semibold mb-2">Are you sure?</h5>
+                <p class="text-muted mb-0">This action cannot be undone. The document will be permanently removed.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <div class="modal-footer border-0 pt-0 justify-content-center pb-4">
+                <button type="button" class="ep-btn ep-btn-sm ep-btn-outline" data-bs-dismiss="modal">Cancel</button>
                 <form id="deleteForm" method="POST" style="display: inline;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <button type="submit" class="ep-btn ep-btn-sm ep-btn-danger">
+                        <i class="bi bi-trash me-2"></i> Delete Document
+                    </button>
                 </form>
             </div>
         </div>

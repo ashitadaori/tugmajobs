@@ -14,51 +14,229 @@ use App\Services\DiditService;
 
 class KycController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Display list of manual KYC documents for review
+     */
+    public function manualDocuments(Request $request)
     {
         $query = KycDocument::with('user')->latest();
-        
-        // Filter by user if provided
-        if ($request->has('user')) {
-            $query->where('user_id', $request->user);
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('status', $request->status);
         }
-        
-        $documents = $query->paginate(20);
-        return view('admin.kyc.index', compact('documents'));
+
+        // Filter by user type (employer/jobseeker)
+        if ($request->has('user_type') && $request->user_type !== '') {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('role', $request->user_type);
+            });
+        }
+
+        // Search by user name or email
+        if ($request->has('search') && $request->search !== '') {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('email', 'LIKE', '%' . $request->search . '%');
+            });
+        }
+
+        // Filter by document type
+        if ($request->has('document_type') && $request->document_type !== '') {
+            $query->where('document_type', $request->document_type);
+        }
+
+        $documents = $query->paginate(20)->appends($request->query());
+
+        // Get distinct document types for filter dropdown
+        $documentTypes = KycDocument::distinct()->pluck('document_type')->filter()->sort()->values();
+
+        // Count pending documents for badge
+        $pendingCount = KycDocument::where('status', 'pending')->count();
+
+        return view('admin.kyc.manual-documents', compact('documents', 'documentTypes', 'pendingCount'));
     }
 
-    public function verify(KycDocument $document)
+    /**
+     * Show detailed view of a manual KYC document
+     */
+    public function showManualDocument(KycDocument $document)
     {
-        $document->update([
-            'status' => 'verified'
-        ]);
+        $document->load('user');
 
-        $document->user->jobSeekerProfile()->update([
-            'is_kyc_verified' => true
-        ]);
+        // Parse document files
+        $files = [];
+        if ($document->document_file) {
+            $decoded = json_decode($document->document_file, true);
+            if (is_array($decoded)) {
+                $files = $decoded;
+            } else {
+                // Legacy single file format
+                $files['document'] = $document->document_file;
+            }
+        }
 
-        return redirect()->back()
-            ->with('success', 'Document verified successfully.');
+        return view('admin.kyc.show-manual-document', compact('document', 'files'));
     }
 
-    public function reject(Request $request, KycDocument $document)
+    /**
+     * Verify/Approve a manual KYC document
+     */
+    public function verifyManualDocument(KycDocument $document)
+    {
+        try {
+            // Load user relationship
+            $document->load('user');
+
+            // Update document status
+            $document->update([
+                'status' => 'verified'
+            ]);
+
+            // Update user's main KYC status (this is where KYC verification is tracked)
+            $document->user->update([
+                'kyc_status' => 'verified',
+                'kyc_verified_at' => now(),
+            ]);
+
+            Log::info('Manual KYC document verified', [
+                'document_id' => $document->id,
+                'user_id' => $document->user_id,
+                'admin_id' => auth()->id(),
+            ]);
+
+            return redirect()->route('admin.kyc.manual-documents')
+                ->with('success', 'Document verified successfully. User KYC status updated to verified.');
+
+        } catch (\Exception $e) {
+            Log::error('Failed to verify manual KYC document', [
+                'document_id' => $document->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Failed to verify document: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject a manual KYC document
+     */
+    public function rejectManualDocument(Request $request, KycDocument $document)
     {
         $request->validate([
             'rejection_reason' => 'required|string|max:500'
         ]);
 
-        $document->update([
-            'status' => 'rejected',
-            'rejection_reason' => $request->rejection_reason
-        ]);
+        try {
+            // Load user relationship
+            $document->load('user');
 
-        return redirect()->back()
-            ->with('success', 'Document rejected successfully.');
+            $document->update([
+                'status' => 'rejected',
+                'rejection_reason' => $request->rejection_reason
+            ]);
+
+            // Update user's KYC status to failed
+            $document->user->update([
+                'kyc_status' => 'failed',
+            ]);
+
+            Log::info('Manual KYC document rejected', [
+                'document_id' => $document->id,
+                'user_id' => $document->user_id,
+                'admin_id' => auth()->id(),
+                'reason' => $request->rejection_reason,
+            ]);
+
+            return redirect()->route('admin.kyc.manual-documents')
+                ->with('success', 'Document rejected successfully.');
+
+        } catch (\Exception $e) {
+            Log::error('Failed to reject manual KYC document', [
+                'document_id' => $document->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Failed to reject document: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Download a manual KYC document file
+     */
+    public function downloadManualDocument(KycDocument $document)
+    {
+        $files = json_decode($document->document_file, true);
+
+        if (is_array($files)) {
+            // For JSON format, download all files as zip or first file
+            $firstFile = $files['front'] ?? $files['back'] ?? $files['selfie'] ?? reset($files);
+            if ($firstFile && Storage::disk('private')->exists($firstFile)) {
+                return Storage::disk('private')->download($firstFile);
+            }
+        } else {
+            // Legacy single file format
+            if ($document->document_file && Storage::disk('private')->exists($document->document_file)) {
+                return Storage::disk('private')->download($document->document_file);
+            }
+        }
+
+        return redirect()->back()->with('error', 'File not found.');
+    }
+
+    /**
+     * View a specific manual KYC document image
+     */
+    public function viewManualDocumentImage(KycDocument $document, string $type)
+    {
+        $files = json_decode($document->document_file, true);
+
+        if (!is_array($files) || !isset($files[$type])) {
+            abort(404, 'Image not found');
+        }
+
+        $filePath = $files[$type];
+
+        // Check if file is null (e.g., back image might be optional)
+        if (!$filePath) {
+            abort(404, 'Image not uploaded');
+        }
+
+        if (!Storage::disk('private')->exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        $mimeType = Storage::disk('private')->mimeType($filePath);
+
+        return response(Storage::disk('private')->get($filePath), 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+        ]);
+    }
+
+    // Legacy methods for backward compatibility
+    public function index(Request $request)
+    {
+        return $this->manualDocuments($request);
+    }
+
+    public function verify(KycDocument $document)
+    {
+        return $this->verifyManualDocument($document);
+    }
+
+    public function reject(Request $request, KycDocument $document)
+    {
+        return $this->rejectManualDocument($request, $document);
     }
 
     public function download(KycDocument $document)
     {
-        return Storage::download($document->document_file);
+        return $this->downloadManualDocument($document);
     }
 
     /**

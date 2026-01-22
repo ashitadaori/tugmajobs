@@ -31,7 +31,7 @@
                                                             <span class="badge bg-primary me-2">{{ $job->jobType->name }}</span>
                                                         @endif
                                                         @if($job->salary)
-                                                            <span class="text-success fw-bold">${{ number_format($job->salary) }}</span>
+                                                            <span class="text-success fw-bold">₱{{ number_format($job->salary) }}</span>
                                                         @endif
                                                     </div>
                                                     <div class="d-flex flex-column align-items-end">

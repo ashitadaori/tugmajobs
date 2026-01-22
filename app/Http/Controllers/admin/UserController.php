@@ -87,6 +87,73 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Search users in real-time (AJAX endpoint)
+     */
+    public function search(Request $request)
+    {
+        $query = User::query();
+
+        // Search by name or email
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by role
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+
+        // Filter by KYC status
+        if ($request->filled('kyc_status') && $request->kyc_status !== 'all') {
+            $query->where('kyc_status', $request->kyc_status);
+        }
+
+        // Sort
+        $sortField = $request->input('sort', 'created_at');
+        $sortDirection = $request->input('direction', 'desc');
+        $query->orderBy($sortField, $sortDirection);
+
+        $users = $query->with(['employer', 'jobseeker', 'jobSeekerProfile'])
+                      ->paginate(10)
+                      ->withQueryString();
+
+        // If it's an AJAX request, return JSON
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.users.partials.users-table-rows', compact('users'))->render(),
+                'total' => $users->total(),
+                'from' => $users->firstItem() ?? 0,
+                'to' => $users->lastItem() ?? 0,
+                'pagination' => $users->hasPages() ? $users->links()->render() : ''
+            ]);
+        }
+
+        // Get counts for filters
+        $counts = [
+            'total' => User::count(),
+            'verified' => User::where('kyc_status', 'verified')->count(),
+            'unverified' => User::where('kyc_status', '!=', 'verified')->count(),
+            'employers' => User::where('role', 'employer')->count(),
+            'jobseekers' => User::where('role', 'jobseeker')->count(),
+            'admins' => User::whereIn('role', ['admin', 'superadmin'])->count(),
+            'kyc_verified' => User::where('kyc_status', 'verified')->count(),
+            'kyc_pending' => User::where('kyc_status', 'in_progress')->count(),
+            'kyc_rejected' => User::where('kyc_status', 'rejected')->count(),
+            'kyc_not_started' => User::where('kyc_status', 'not_started')->count(),
+        ];
+
+        return view('admin.users.list',[
+            'users' => $users,
+            'counts' => $counts,
+            'filters' => $request->all()
+        ]);
+    }
+
     public function show($id){
         $user = User::with(['employer', 'jobseeker'])->findOrFail($id);
         

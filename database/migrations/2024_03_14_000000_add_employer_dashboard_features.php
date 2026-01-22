@@ -25,54 +25,80 @@ return new class extends Migration
 
         // Add notes and interview details to job_applications table
         Schema::table('job_applications', function (Blueprint $table) {
-            $table->foreignId('employer_id')->after('user_id')->constrained('users')->onDelete('cascade');
-            $table->timestamp('applied_date')->after('status')->nullable();
-            $table->string('interview_type')->after('resume')->nullable();
-            $table->timestamp('interview_date')->after('interview_type')->nullable();
-            $table->text('interview_details')->after('interview_date')->nullable();
-            $table->text('notes')->after('interview_details')->nullable();
-            $table->string('source')->after('notes')->nullable();
+            if (!Schema::hasColumn('job_applications', 'employer_id')) {
+                $table->foreignId('employer_id')->after('user_id')->constrained('users')->onDelete('cascade');
+            }
+            if (!Schema::hasColumn('job_applications', 'applied_date')) {
+                $table->timestamp('applied_date')->after('status')->nullable();
+            }
+            if (!Schema::hasColumn('job_applications', 'interview_type')) {
+                $table->string('interview_type')->after('resume')->nullable();
+            }
+            if (!Schema::hasColumn('job_applications', 'interview_date')) {
+                $table->timestamp('interview_date')->after('interview_type')->nullable();
+            }
+            if (!Schema::hasColumn('job_applications', 'interview_details')) {
+                $table->text('interview_details')->after('interview_date')->nullable();
+            }
+            if (!Schema::hasColumn('job_applications', 'notes')) {
+                $table->text('notes')->after('interview_details')->nullable();
+            }
+            if (!Schema::hasColumn('job_applications', 'source')) {
+                $table->string('source')->after('notes')->nullable();
+            }
         });
 
         // Create application_status_history table
-        Schema::create('application_status_history', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('job_application_id')->constrained()->onDelete('cascade');
-            $table->string('old_status');
-            $table->string('new_status');
-            $table->text('notes')->nullable();
-            $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('application_status_history')) {
+            Schema::create('application_status_history', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('job_application_id')->constrained()->onDelete('cascade');
+                $table->string('old_status');
+                $table->string('new_status');
+                $table->text('notes')->nullable();
+                $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
+                $table->timestamps();
+            });
+        }
 
         // Create team_members table for managing company team
-        Schema::create('team_members', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('employer_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('role')->default('viewer'); // viewer, recruiter, admin
-            $table->json('permissions')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (!Schema::hasTable('team_members')) {
+            Schema::create('team_members', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('employer_id')->constrained('users')->onDelete('cascade');
+                $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+                $table->string('role')->default('viewer'); // viewer, recruiter, admin
+                $table->json('permissions')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
 
         // Add parent_id to users table for team hierarchy
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('parent_id')->nullable()->after('id')->constrained('users')->onDelete('cascade');
-            $table->boolean('two_factor_enabled')->default(false)->after('remember_token');
-            $table->string('two_factor_secret')->nullable()->after('two_factor_enabled');
+            if (!Schema::hasColumn('users', 'parent_id')) {
+                $table->foreignId('parent_id')->nullable()->after('id')->constrained('users')->onDelete('cascade');
+            }
+            if (!Schema::hasColumn('users', 'two_factor_enabled')) {
+                $table->boolean('two_factor_enabled')->default(false)->after('remember_token');
+            }
+            if (!Schema::hasColumn('users', 'two_factor_secret')) {
+                $table->string('two_factor_secret')->nullable()->after('two_factor_enabled');
+            }
         });
 
         // Create job_views table for detailed analytics
-        Schema::create('job_views', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('job_id')->constrained()->onDelete('cascade');
-            $table->string('ip_address')->nullable();
-            $table->string('user_agent')->nullable();
-            $table->string('device_type')->nullable();
-            $table->string('referrer')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('job_views')) {
+            Schema::create('job_views', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('job_id')->constrained()->onDelete('cascade');
+                $table->string('ip_address')->nullable();
+                $table->string('user_agent')->nullable();
+                $table->string('device_type')->nullable();
+                $table->string('referrer')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

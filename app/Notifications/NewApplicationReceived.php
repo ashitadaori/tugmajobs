@@ -29,8 +29,8 @@ class NewApplicationReceived extends Notification
      */
     public function via(object $notifiable): array
     {
-        // Only use database notifications for now (mail server not configured)
-        return ['database'];
+        // Only use mail channel - in-app notifications are created separately in the custom notifications table
+        return ['mail'];
     }
 
     /**

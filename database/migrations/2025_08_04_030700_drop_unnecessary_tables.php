@@ -133,19 +133,9 @@ return new class extends Migration
      */
     private function cleanupRedundantTables(): void
     {
-        // Check for duplicate category tables
-        if (Schema::hasTable('categories') && Schema::hasTable('job_categories')) {
-            // Keep job_categories as it's more specific and has better structure
-            $categoriesCount = DB::table('categories')->count();
-            $jobCategoriesCount = DB::table('job_categories')->count();
-            
-            if ($jobCategoriesCount >= $categoriesCount) {
-                // job_categories has same or more data, safe to drop categories
-                Schema::dropIfExists('categories');
-                echo "Dropped redundant 'categories' table (kept 'job_categories').\n";
-            }
-        }
-        
+        // Note: Keep categories table as it's still referenced by jobs table via foreign key
+        // Removing it would break the application
+
         // Clean up unused role/permission tables if they're empty
         // Drop in correct order to avoid foreign key constraints
         $authTablesToCheck = [
@@ -154,7 +144,7 @@ return new class extends Migration
             'permissions',      // Parent table
             'roles'            // Parent table
         ];
-        
+
         foreach ($authTablesToCheck as $table) {
             if (Schema::hasTable($table)) {
                 $count = DB::table($table)->count();

@@ -24,6 +24,8 @@ class Company extends Model
         'company_size',
         'founded_year',
         'location',
+        'latitude',
+        'longitude',
         'address',
         'city',
         'state',
@@ -35,6 +37,8 @@ class Company extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
     ];
 
     protected static function boot()

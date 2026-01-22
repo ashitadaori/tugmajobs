@@ -1,0 +1,15 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
+
+name: kmeans-clustering-endpoint
+description: K-Means Clustering endpoint for TugmaJobs job portal
+auth_mode: key
+
+# Traffic routing (100% to primary deployment)
+traffic:
+  kmeans-clustering-deployment: 100
+
+# Tags for organization
+tags:
+  project: tugmajobs
+  purpose: job-recommendation
+  algorithm: kmeans-clustering

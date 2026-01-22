@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ config('app.name') }} - Jobseeker Dashboard</title>
-    
+
     <!-- Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -13,9 +14,9 @@
     <link href="{{ asset('assets/css/enhanced-notifications.css') }}" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @auth
-    <meta name="user-id" content="{{ Auth::id() }}">
+        <meta name="user-id" content="{{ Auth::id() }}">
     @endauth
-    
+
     <style>
         /* Jobseeker Layout Background Styling - Purple Theme */
         :root {
@@ -31,19 +32,19 @@
             --text-dark: #1e293b;
             --text-muted: #64748b;
         }
-        
+
         body.jobseeker-dashboard {
             background-color: var(--gray-50);
             margin: 0;
             padding: 0;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        
+
         .jobseeker-layout-wrapper {
             background-color: var(--gray-50);
             min-height: 100vh;
         }
-        
+
         .main-content {
             background-color: var(--gray-50);
             flex: 1;
@@ -52,7 +53,7 @@
             width: calc(100% - 280px);
             min-height: 100vh;
         }
-        
+
         /* Responsive adjustments */
         @media (max-width: 991.98px) {
             .main-content {
@@ -61,7 +62,7 @@
                 padding: 1rem;
             }
         }
-        
+
         /* Content styling for better readability */
         .main-content .container-fluid {
             background: white;
@@ -71,41 +72,41 @@
             margin: 0;
             color: #1e293b;
         }
-        
+
         /* Ensure all text is readable */
         .main-content * {
             color: inherit;
         }
-        
-        .main-content h1, 
-        .main-content h2, 
-        .main-content h3, 
-        .main-content h4, 
-        .main-content h5, 
+
+        .main-content h1,
+        .main-content h2,
+        .main-content h3,
+        .main-content h4,
+        .main-content h5,
         .main-content h6 {
             color: #1e293b;
             font-weight: 600;
         }
-        
+
         .main-content .text-muted {
             color: #64748b !important;
         }
-        
+
         .main-content a {
             color: #6366f1;
         }
-        
+
         .main-content .btn {
             font-weight: 500;
         }
-        
+
         @media (max-width: 768px) {
             .main-content .container-fluid {
                 padding: 1rem;
                 border-radius: 8px;
             }
         }
-        
+
         /* Top Bar Styling */
         .top-bar-jobseeker {
             background: white;
@@ -113,18 +114,18 @@
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-        
+
         .top-bar-jobseeker h5 {
             color: #1e293b;
             font-weight: 600;
             margin: 0;
         }
-        
+
         /* Notification dropdown styling for jobseeker */
         .notification-dropdown {
             position: relative;
         }
-        
+
         .notification-bell {
             background: transparent;
             border: none;
@@ -136,12 +137,12 @@
             transition: all 0.2s ease;
             position: relative;
         }
-        
+
         .notification-bell:hover {
             background: #f1f5f9;
             color: #6366f1;
         }
-        
+
         .notification-badge {
             position: absolute;
             top: 0.25rem;
@@ -156,12 +157,13 @@
             text-align: center;
         }
     </style>
-    
+
     @stack('styles')
 </head>
+
 <body class="jobseeker-dashboard">
     @include('components.maintenance-banner')
-    
+
     <div class="d-flex jobseeker-layout-wrapper">
         <!-- Sidebar -->
         @include('front.layouts.jobseeker-sidebar')
@@ -180,11 +182,14 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Content -->
             @yield('content')
         </main>
     </div>
+
+    <!-- Help Modal -->
+    @include('components.jobseeker-help-modal')
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -193,4 +198,5 @@
     <script src="{{ asset('assets/js/notifications.js') }}"></script>
     @stack('scripts')
 </body>
+
 </html>

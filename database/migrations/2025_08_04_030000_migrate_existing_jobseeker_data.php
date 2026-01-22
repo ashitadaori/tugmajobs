@@ -74,32 +74,34 @@ return new class extends Migration
             ]);
         }
 
-        // Create admin profiles for admin users
-        $adminUsers = DB::table('users')
-            ->whereIn('role', ['admin', 'superadmin'])
-            ->whereNotExists(function ($query) {
-                $query->select(DB::raw(1))
-                      ->from('admins')
-                      ->whereColumn('admins.user_id', 'users.id');
-            })
-            ->get();
+        // Create admin profiles for admin users (only if admins table exists)
+        if (Schema::hasTable('admins')) {
+            $adminUsers = DB::table('users')
+                ->whereIn('role', ['admin', 'superadmin'])
+                ->whereNotExists(function ($query) {
+                    $query->select(DB::raw(1))
+                          ->from('admins')
+                          ->whereColumn('admins.user_id', 'users.id');
+                })
+                ->get();
 
-        foreach ($adminUsers as $user) {
-            DB::table('admins')->insert([
-                'user_id' => $user->id,
-                'admin_level' => $user->role === 'superadmin' ? 'super_admin' : 'admin',
-                'department' => 'General',
-                'position' => $user->role === 'superadmin' ? 'Super Administrator' : 'Administrator',
-                'can_manage_users' => true,
-                'can_manage_jobs' => true,
-                'can_manage_employers' => true,
-                'can_view_analytics' => true,
-                'can_manage_settings' => $user->role === 'superadmin',
-                'can_manage_admins' => $user->role === 'superadmin',
-                'status' => 'active',
-                'created_at' => $user->created_at,
-                'updated_at' => $user->updated_at,
-            ]);
+            foreach ($adminUsers as $user) {
+                DB::table('admins')->insert([
+                    'user_id' => $user->id,
+                    'admin_level' => $user->role === 'superadmin' ? 'super_admin' : 'admin',
+                    'department' => 'General',
+                    'position' => $user->role === 'superadmin' ? 'Super Administrator' : 'Administrator',
+                    'can_manage_users' => true,
+                    'can_manage_jobs' => true,
+                    'can_manage_employers' => true,
+                    'can_view_analytics' => true,
+                    'can_manage_settings' => $user->role === 'superadmin',
+                    'can_manage_admins' => $user->role === 'superadmin',
+                    'status' => 'active',
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at,
+                ]);
+            }
         }
     }
 
@@ -109,8 +111,14 @@ return new class extends Migration
     public function down(): void
     {
         // Remove migrated data (optional - be careful with this in production)
-        DB::table('jobseekers')->truncate();
-        DB::table('employers')->where('company_name', 'LIKE', '%@%')->delete(); // Remove auto-created employer profiles
-        DB::table('admins')->delete();
+        if (Schema::hasTable('jobseekers')) {
+            DB::table('jobseekers')->truncate();
+        }
+        if (Schema::hasTable('employers')) {
+            DB::table('employers')->where('company_name', 'LIKE', '%@%')->delete();
+        }
+        if (Schema::hasTable('admins')) {
+            DB::table('admins')->delete();
+        }
     }
 };

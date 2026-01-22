@@ -1,0 +1,490 @@
+/* ============================================================
+   TUGMAJOBS - UNIFIED CSS VARIABLES (Design Tokens)
+   Single source of truth for all design tokens
+   ============================================================ */
+
+@layer base {
+    :root {
+        /* ============================================
+           COLOR SYSTEM
+           ============================================ */
+
+        /* Primary Colors - Professional Indigo */
+        --color-primary-50: #eef2ff;
+        --color-primary-100: #e0e7ff;
+        --color-primary-200: #c7d2fe;
+        --color-primary-300: #a5b4fc;
+        --color-primary-400: #818cf8;
+        --color-primary-500: #6366f1;
+        --color-primary-600: #4f46e5;
+        --color-primary-700: #4338ca;
+        --color-primary-800: #3730a3;
+        --color-primary-900: #312e81;
+
+        /* Primary shortcuts */
+        --color-primary: var(--color-primary-600);
+        --color-primary-light: var(--color-primary-500);
+        --color-primary-dark: var(--color-primary-700);
+
+        /* Secondary Colors - Teal */
+        --color-secondary-50: #f0fdfa;
+        --color-secondary-100: #ccfbf1;
+        --color-secondary-200: #99f6e4;
+        --color-secondary-300: #5eead4;
+        --color-secondary-400: #2dd4bf;
+        --color-secondary-500: #14b8a6;
+        --color-secondary-600: #0d9488;
+        --color-secondary-700: #0f766e;
+        --color-secondary-800: #115e59;
+        --color-secondary-900: #134e4a;
+
+        /* Secondary shortcuts */
+        --color-secondary: var(--color-secondary-600);
+        --color-secondary-light: var(--color-secondary-500);
+        --color-secondary-dark: var(--color-secondary-700);
+
+        /* Success Colors - Green */
+        --color-success-50: #ecfdf5;
+        --color-success-100: #d1fae5;
+        --color-success-200: #a7f3d0;
+        --color-success-300: #6ee7b7;
+        --color-success-400: #34d399;
+        --color-success-500: #10b981;
+        --color-success-600: #059669;
+        --color-success-700: #047857;
+        --color-success-800: #065f46;
+        --color-success-900: #064e3b;
+
+        /* Success shortcuts */
+        --color-success: var(--color-success-600);
+        --color-success-light: var(--color-success-500);
+        --color-success-bg: var(--color-success-50);
+
+        /* Warning Colors - Amber */
+        --color-warning-50: #fffbeb;
+        --color-warning-100: #fef3c7;
+        --color-warning-200: #fde68a;
+        --color-warning-300: #fcd34d;
+        --color-warning-400: #fbbf24;
+        --color-warning-500: #f59e0b;
+        --color-warning-600: #d97706;
+        --color-warning-700: #b45309;
+        --color-warning-800: #92400e;
+        --color-warning-900: #78350f;
+
+        /* Warning shortcuts */
+        --color-warning: var(--color-warning-600);
+        --color-warning-light: var(--color-warning-500);
+        --color-warning-bg: var(--color-warning-50);
+
+        /* Danger Colors - Red */
+        --color-danger-50: #fef2f2;
+        --color-danger-100: #fee2e2;
+        --color-danger-200: #fecaca;
+        --color-danger-300: #fca5a5;
+        --color-danger-400: #f87171;
+        --color-danger-500: #ef4444;
+        --color-danger-600: #dc2626;
+        --color-danger-700: #b91c1c;
+        --color-danger-800: #991b1b;
+        --color-danger-900: #7f1d1d;
+
+        /* Danger shortcuts */
+        --color-danger: var(--color-danger-600);
+        --color-danger-light: var(--color-danger-500);
+        --color-danger-bg: var(--color-danger-50);
+
+        /* Info Colors - Blue */
+        --color-info-50: #eff6ff;
+        --color-info-100: #dbeafe;
+        --color-info-200: #bfdbfe;
+        --color-info-300: #93c5fd;
+        --color-info-400: #60a5fa;
+        --color-info-500: #3b82f6;
+        --color-info-600: #2563eb;
+        --color-info-700: #1d4ed8;
+        --color-info-800: #1e40af;
+        --color-info-900: #1e3a8a;
+
+        /* Info shortcuts */
+        --color-info: var(--color-info-600);
+        --color-info-light: var(--color-info-500);
+        --color-info-bg: var(--color-info-50);
+
+        /* Neutral Colors - Gray */
+        --color-gray-50: #f9fafb;
+        --color-gray-100: #f3f4f6;
+        --color-gray-200: #e5e7eb;
+        --color-gray-300: #d1d5db;
+        --color-gray-400: #9ca3af;
+        --color-gray-500: #6b7280;
+        --color-gray-600: #4b5563;
+        --color-gray-700: #374151;
+        --color-gray-800: #1f2937;
+        --color-gray-900: #111827;
+        --color-gray-950: #030712;
+
+        /* White & Black */
+        --color-white: #ffffff;
+        --color-black: #000000;
+
+        /* Background Colors */
+        --color-bg-primary: var(--color-gray-50);
+        --color-bg-secondary: var(--color-white);
+        --color-bg-tertiary: var(--color-gray-100);
+        --color-bg-card: var(--color-white);
+        --color-bg-sidebar: var(--color-white);
+
+        /* Text Colors */
+        --color-text-primary: var(--color-gray-900);
+        --color-text-secondary: var(--color-gray-600);
+        --color-text-tertiary: var(--color-gray-500);
+        --color-text-muted: var(--color-gray-400);
+        --color-text-inverse: var(--color-white);
+
+        /* Border Colors */
+        --color-border: var(--color-gray-200);
+        --color-border-light: var(--color-gray-100);
+        --color-border-dark: var(--color-gray-300);
+
+        /* ============================================
+           GRADIENTS
+           ============================================ */
+        --gradient-primary: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-700) 100%);
+        --gradient-secondary: linear-gradient(135deg, var(--color-secondary-500) 0%, var(--color-secondary-700) 100%);
+        --gradient-success: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-700) 100%);
+        --gradient-warning: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-700) 100%);
+        --gradient-danger: linear-gradient(135deg, var(--color-danger-500) 0%, var(--color-danger-700) 100%);
+        --gradient-info: linear-gradient(135deg, var(--color-info-500) 0%, var(--color-info-700) 100%);
+        --gradient-dark: linear-gradient(180deg, var(--color-gray-800) 0%, var(--color-gray-900) 100%);
+        --gradient-sidebar: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%);
+
+        /* ============================================
+           TYPOGRAPHY
+           ============================================ */
+
+        /* Font Families */
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+
+        /* Font Sizes */
+        --text-xs: 0.75rem;      /* 12px */
+        --text-sm: 0.875rem;     /* 14px */
+        --text-base: 1rem;       /* 16px */
+        --text-lg: 1.125rem;     /* 18px */
+        --text-xl: 1.25rem;      /* 20px */
+        --text-2xl: 1.5rem;      /* 24px */
+        --text-3xl: 1.875rem;    /* 30px */
+        --text-4xl: 2.25rem;     /* 36px */
+        --text-5xl: 3rem;        /* 48px */
+        --text-6xl: 3.75rem;     /* 60px */
+
+        /* Font Weights */
+        --font-light: 300;
+        --font-normal: 400;
+        --font-medium: 500;
+        --font-semibold: 600;
+        --font-bold: 700;
+        --font-extrabold: 800;
+
+        /* Line Heights */
+        --leading-none: 1;
+        --leading-tight: 1.25;
+        --leading-snug: 1.375;
+        --leading-normal: 1.5;
+        --leading-relaxed: 1.625;
+        --leading-loose: 2;
+
+        /* Letter Spacing */
+        --tracking-tighter: -0.05em;
+        --tracking-tight: -0.025em;
+        --tracking-normal: 0em;
+        --tracking-wide: 0.025em;
+        --tracking-wider: 0.05em;
+        --tracking-widest: 0.1em;
+
+        /* ============================================
+           SPACING
+           ============================================ */
+        --space-0: 0;
+        --space-px: 1px;
+        --space-0-5: 0.125rem;   /* 2px */
+        --space-1: 0.25rem;      /* 4px */
+        --space-1-5: 0.375rem;   /* 6px */
+        --space-2: 0.5rem;       /* 8px */
+        --space-2-5: 0.625rem;   /* 10px */
+        --space-3: 0.75rem;      /* 12px */
+        --space-3-5: 0.875rem;   /* 14px */
+        --space-4: 1rem;         /* 16px */
+        --space-5: 1.25rem;      /* 20px */
+        --space-6: 1.5rem;       /* 24px */
+        --space-7: 1.75rem;      /* 28px */
+        --space-8: 2rem;         /* 32px */
+        --space-9: 2.25rem;      /* 36px */
+        --space-10: 2.5rem;      /* 40px */
+        --space-11: 2.75rem;     /* 44px */
+        --space-12: 3rem;        /* 48px */
+        --space-14: 3.5rem;      /* 56px */
+        --space-16: 4rem;        /* 64px */
+        --space-20: 5rem;        /* 80px */
+        --space-24: 6rem;        /* 96px */
+        --space-28: 7rem;        /* 112px */
+        --space-32: 8rem;        /* 128px */
+
+        /* ============================================
+           BORDER RADIUS
+           ============================================ */
+        --radius-none: 0;
+        --radius-sm: 0.25rem;    /* 4px */
+        --radius-md: 0.375rem;   /* 6px */
+        --radius-lg: 0.5rem;     /* 8px */
+        --radius-xl: 0.75rem;    /* 12px */
+        --radius-2xl: 1rem;      /* 16px */
+        --radius-3xl: 1.5rem;    /* 24px */
+        --radius-full: 9999px;
+
+        /* ============================================
+           SHADOWS
+           ============================================ */
+        --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+        --shadow-none: 0 0 #0000;
+
+        /* Colored Shadows */
+        --shadow-primary: 0 4px 14px 0 rgba(79, 70, 229, 0.25);
+        --shadow-success: 0 4px 14px 0 rgba(5, 150, 105, 0.25);
+        --shadow-warning: 0 4px 14px 0 rgba(217, 119, 6, 0.25);
+        --shadow-danger: 0 4px 14px 0 rgba(220, 38, 38, 0.25);
+
+        /* ============================================
+           TRANSITIONS & ANIMATIONS
+           ============================================ */
+
+        /* Transition Durations */
+        --duration-75: 75ms;
+        --duration-100: 100ms;
+        --duration-150: 150ms;
+        --duration-200: 200ms;
+        --duration-300: 300ms;
+        --duration-500: 500ms;
+        --duration-700: 700ms;
+        --duration-1000: 1000ms;
+
+        /* Transition Timing Functions */
+        --ease-linear: linear;
+        --ease-in: cubic-bezier(0.4, 0, 1, 1);
+        --ease-out: cubic-bezier(0, 0, 0.2, 1);
+        --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+        --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+        /* Common Transitions */
+        --transition-fast: all 150ms var(--ease-in-out);
+        --transition-base: all 200ms var(--ease-in-out);
+        --transition-slow: all 300ms var(--ease-in-out);
+        --transition-colors: color, background-color, border-color, text-decoration-color, fill, stroke 150ms var(--ease-in-out);
+        --transition-opacity: opacity 150ms var(--ease-in-out);
+        --transition-shadow: box-shadow 150ms var(--ease-in-out);
+        --transition-transform: transform 200ms var(--ease-in-out);
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+
+        /* Container */
+        --container-sm: 640px;
+        --container-md: 768px;
+        --container-lg: 1024px;
+        --container-xl: 1280px;
+        --container-2xl: 1536px;
+
+        /* Sidebar */
+        --sidebar-width: 280px;
+        --sidebar-width-collapsed: 80px;
+        --sidebar-width-mobile: 100%;
+
+        /* Navbar/Topbar */
+        --topbar-height: 60px;
+        --topbar-height-mobile: 56px;
+
+        /* Z-Index Scale */
+        --z-dropdown: 1000;
+        --z-sticky: 1020;
+        --z-fixed: 1030;
+        --z-modal-backdrop: 1040;
+        --z-modal: 1050;
+        --z-popover: 1060;
+        --z-tooltip: 1070;
+        --z-toast: 1080;
+
+        /* ============================================
+           BREAKPOINTS (for reference in JS)
+           ============================================ */
+        --breakpoint-sm: 640px;
+        --breakpoint-md: 768px;
+        --breakpoint-lg: 1024px;
+        --breakpoint-xl: 1280px;
+        --breakpoint-2xl: 1536px;
+
+        /* ============================================
+           COMPONENT SPECIFIC TOKENS
+           ============================================ */
+
+        /* Buttons */
+        --btn-padding-x: var(--space-4);
+        --btn-padding-y: var(--space-2-5);
+        --btn-font-size: var(--text-sm);
+        --btn-font-weight: var(--font-medium);
+        --btn-border-radius: var(--radius-lg);
+        --btn-min-height: 44px; /* Touch target */
+
+        /* Cards */
+        --card-padding: var(--space-6);
+        --card-border-radius: var(--radius-xl);
+        --card-shadow: var(--shadow-sm);
+        --card-shadow-hover: var(--shadow-md);
+
+        /* Form Inputs */
+        --input-padding-x: var(--space-4);
+        --input-padding-y: var(--space-3);
+        --input-border-radius: var(--radius-lg);
+        --input-border-color: var(--color-border);
+        --input-focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.15);
+
+        /* Badges */
+        --badge-padding-x: var(--space-2-5);
+        --badge-padding-y: var(--space-1);
+        --badge-font-size: var(--text-xs);
+        --badge-border-radius: var(--radius-full);
+
+        /* ============================================
+           JOB TYPE COLORS
+           ============================================ */
+        --job-type-fulltime: var(--color-info-600);
+        --job-type-fulltime-bg: var(--color-info-50);
+        --job-type-parttime: var(--color-success-600);
+        --job-type-parttime-bg: var(--color-success-50);
+        --job-type-contract: var(--color-warning-600);
+        --job-type-contract-bg: var(--color-warning-50);
+        --job-type-remote: #7c3aed;
+        --job-type-remote-bg: #f5f3ff;
+        --job-type-internship: #ec4899;
+        --job-type-internship-bg: #fdf2f8;
+        --job-type-freelance: #f97316;
+        --job-type-freelance-bg: #fff7ed;
+    }
+
+}
+
+/* ============================================
+   COMMON KEYFRAME ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(-5%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% {
+        transform: translateY(0);
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+}
+
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* ============================================
+   UTILITY ANIMATION CLASSES
+   ============================================ */
+.animate-fade-in { animation: fadeIn var(--duration-200) var(--ease-out); }
+.animate-fade-in-up { animation: fadeInUp var(--duration-300) var(--ease-out); }
+.animate-fade-in-down { animation: fadeInDown var(--duration-300) var(--ease-out); }
+.animate-slide-in-left { animation: slideInLeft var(--duration-300) var(--ease-out); }
+.animate-slide-in-right { animation: slideInRight var(--duration-300) var(--ease-out); }
+.animate-scale-in { animation: scaleIn var(--duration-200) var(--ease-out); }
+.animate-pulse { animation: pulse 2s var(--ease-in-out) infinite; }
+.animate-spin { animation: spin 1s linear infinite; }
+.animate-bounce { animation: bounce 1s infinite; }
+.animate-shimmer { animation: shimmer 2s infinite linear; }

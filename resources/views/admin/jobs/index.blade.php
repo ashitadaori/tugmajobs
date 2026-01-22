@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page_title', 'Jobs Management')
+@section('page_title', 'Jobs Posted')
 
 @section('content')
 <style>
@@ -39,22 +39,16 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <div class="container-fluid">
-    <!-- CACHE BUSTER VERIFICATION -->
-    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-        <strong>🚀 CACHE BUSTER ACTIVE!</strong> Version: <code>{{ config('app.asset_version', 'v1') }}</code> - Page loaded successfully!
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    
     <!-- Top Action Bar -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="mb-1">Jobs Management</h2>
-                    <p class="text-muted mb-0">Manage all job postings on the platform</p>
+                    <h2 class="mb-1 fw-bold">Jobs Posted</h2>
+                    <p class="text-muted mb-0">Manage and post job opportunities on your platform</p>
                 </div>
-                <a href="{{ route('admin.jobs.create') }}" class="btn btn-primary btn-lg" style="font-size: 1.2rem; padding: 1rem 2rem;">
-                    <i class="bi bi-plus-circle me-2"></i>POST NEW JOB
+                <a href="{{ route('admin.jobs.create') }}" class="btn btn-dark px-4 py-2">
+                    <i class="bi bi-plus me-2"></i>Post New Job
                 </a>
             </div>
         </div>
@@ -71,16 +65,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Jobs Table Card -->
     <div class="card shadow-sm">
-        <div class="card-header bg-white py-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">All Jobs ({{ $jobs->total() }})</h5>
-                <div class="btn-group btn-group-sm">
-                    <a href="{{ route('admin.jobs.index') }}" class="btn btn-outline-primary active">All Jobs</a>
-                    <a href="{{ route('admin.jobs.pending') }}" class="btn btn-outline-warning">Pending</a>
-                    <a href="{{ route('admin.jobs.create') }}" class="btn btn-success">
-                        <i class="bi bi-plus"></i> New
-                    </a>
-                </div>
+        <div class="card-header bg-light py-4">
+            <!-- Full Width Search Bar -->
+            <div class="position-relative mb-3">
+                <input type="text"
+                       id="live-search"
+                       class="form-control form-control-lg rounded-pill"
+                       placeholder="Search jobs by title or company..."
+                       style="padding-left: 45px; padding-right: 45px;"
+                       autocomplete="off">
+                <i class="bi bi-search position-absolute" style="left: 18px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 1.1rem;"></i>
+                <span id="search-spinner" class="position-absolute d-none" style="right: 18px; top: 50%; transform: translateY(-50%);">
+                    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                </span>
+                <button type="button" id="clear-search" class="btn btn-link btn-sm position-absolute d-none p-0" style="right: 18px; top: 50%; transform: translateY(-50%); color: #6c757d;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{{ route('admin.jobs.index') }}" class="btn {{ !request('status') ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-4">All Jobs</a>
+                <a href="{{ route('admin.jobs.index', ['status' => 'new']) }}" class="btn {{ request('status') == 'new' ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-4">New Jobs</a>
+                <a href="{{ route('admin.jobs.index', ['status' => 'pending']) }}" class="btn {{ request('status') == 'pending' ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-4">Pending Jobs</a>
+                <a href="{{ route('admin.jobs.index', ['status' => 'active']) }}" class="btn {{ request('status') == 'active' ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-4">Active Jobs</a>
+
+                <!-- Hidden status filter for JS compatibility -->
+                <select id="status-filter" class="d-none">
+                    <option value="">All Status</option>
+                    <option value="0">Pending</option>
+                    <option value="1">Approved</option>
+                    <option value="2">Rejected</option>
+                    <option value="3">Expired</option>
+                    <option value="4">Closed</option>
+                </select>
             </div>
         </div>
         <div class="card-body p-0">
@@ -97,76 +115,33 @@ document.addEventListener('DOMContentLoaded', function() {
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @forelse($jobs as $job)
-                            <tr>
-                                <td>
-                                    <div class="fw-bold">{{ $job->title }}</div>
-                                    @if($job->posted_by_admin ?? false)
-                                        <span class="badge bg-info text-white" style="font-size: 0.7rem;">
-                                            <i class="bi bi-shield-check"></i> Admin Posted
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>{{ $job->employer->name ?? 'N/A' }}</td>
-                                <td>{{ $job->category->name ?? 'N/A' }}</td>
-                                <td>{{ $job->jobType->name ?? 'N/A' }}</td>
-                                <td>
-                                    @if($job->status === 'pending')
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                    @elseif($job->status === 'approved')
-                                        <span class="badge bg-success">Approved</span>
-                                    @elseif($job->status === 'rejected')
-                                        <span class="badge bg-danger">Rejected</span>
-                                    @else
-                                        <span class="badge bg-secondary">{{ ucfirst($job->status) }}</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <small class="text-muted">{{ $job->created_at->format('M d, Y') }}</small>
-                                </td>
-                                <td class="text-center">
-                                    <a href="{{ route('admin.jobs.show', $job) }}" 
-                                       class="btn btn-sm btn-outline-primary"
-                                       title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ route('admin.jobs.applicants', $job->id) }}" 
-                                       class="btn btn-sm btn-outline-success"
-                                       title="View Applicants">
-                                        <i class="bi bi-people"></i> ({{ $job->applications_count ?? 0 }})
-                                    </a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-5">
-                                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-                                    <p class="text-muted mt-2">No jobs found</p>
-                                    <a href="{{ route('admin.jobs.create') }}" class="btn btn-primary">
-                                        <i class="bi bi-plus-circle me-2"></i>Post Your First Job
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforelse
+                    <tbody id="jobs-table-body">
+                        @include('admin.jobs.partials.jobs-table-rows', ['jobs' => $jobs])
                     </tbody>
                 </table>
             </div>
         </div>
         
         <!-- Pagination -->
-        @if($jobs->hasPages())
-            <div class="card-footer bg-white">
+        <div class="card-footer bg-white" id="pagination-container">
+            @if($jobs->hasPages())
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-muted small">
+                    <div class="text-muted small" id="pagination-info">
                         Showing {{ $jobs->firstItem() }} to {{ $jobs->lastItem() }} of {{ $jobs->total() }} jobs
                     </div>
-                    <nav>
+                    <nav id="pagination-links">
                         {{ $jobs->links('vendor.pagination.simple-admin') }}
                     </nav>
                 </div>
-            </div>
-        @endif
+            @else
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small" id="pagination-info">
+                        Showing {{ $jobs->count() }} of {{ $jobs->total() }} jobs
+                    </div>
+                    <nav id="pagination-links"></nav>
+                </div>
+            @endif
+        </div>
     </div>
 </div>
 
@@ -262,7 +237,7 @@ nav svg *,
         const observer = new MutationObserver(function(mutations) {
             removeAllArrows();
         });
-        
+
         // Start observing after DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             const paginationElements = document.querySelectorAll('.pagination, nav');
@@ -272,5 +247,150 @@ nav svg *,
         });
     }
 })();
+</script>
+
+<!-- Live Search JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('live-search');
+    const statusFilter = document.getElementById('status-filter');
+    const tableBody = document.getElementById('jobs-table-body');
+    const jobsTotal = document.getElementById('jobs-total');
+    const paginationInfo = document.getElementById('pagination-info');
+    const paginationLinks = document.getElementById('pagination-links');
+    const searchSpinner = document.getElementById('search-spinner');
+    const clearSearchBtn = document.getElementById('clear-search');
+
+    let searchTimeout = null;
+    let currentRequest = null;
+
+    // Function to perform the search
+    function performSearch() {
+        const query = searchInput.value.trim();
+        const status = statusFilter.value;
+
+        // Show/hide clear button
+        if (query.length > 0) {
+            clearSearchBtn.classList.remove('d-none');
+            searchSpinner.classList.add('d-none');
+        } else {
+            clearSearchBtn.classList.add('d-none');
+        }
+
+        // Show loading spinner
+        searchSpinner.classList.remove('d-none');
+        clearSearchBtn.classList.add('d-none');
+
+        // Cancel previous request if any
+        if (currentRequest) {
+            currentRequest.abort();
+        }
+
+        // Create new request
+        currentRequest = new AbortController();
+
+        // Build the URL with query parameters
+        const params = new URLSearchParams();
+        if (query) params.append('q', query);
+        if (status !== '') params.append('status', status);
+
+        const url = '{{ route("admin.jobs.search") }}?' + params.toString();
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            signal: currentRequest.signal
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update table body
+            tableBody.innerHTML = data.html;
+
+            // Update total count
+            jobsTotal.textContent = data.total;
+
+            // Update pagination info
+            if (data.from && data.to) {
+                paginationInfo.textContent = `Showing ${data.from} to ${data.to} of ${data.total} jobs`;
+            } else {
+                paginationInfo.textContent = `Showing 0 of ${data.total} jobs`;
+            }
+
+            // Update pagination links
+            paginationLinks.innerHTML = data.pagination;
+
+            // Hide spinner, show clear button if there's text
+            searchSpinner.classList.add('d-none');
+            if (query.length > 0) {
+                clearSearchBtn.classList.remove('d-none');
+            }
+
+            // Remove arrows from new pagination
+            document.querySelectorAll('.pagination svg, nav svg').forEach(function(svg) {
+                svg.remove();
+            });
+        })
+        .catch(error => {
+            if (error.name !== 'AbortError') {
+                console.error('Search error:', error);
+            }
+            searchSpinner.classList.add('d-none');
+            if (query.length > 0) {
+                clearSearchBtn.classList.remove('d-none');
+            }
+        });
+    }
+
+    // Debounced search on input
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+
+        // Debounce: wait 300ms after user stops typing
+        searchTimeout = setTimeout(performSearch, 300);
+    });
+
+    // Immediate search on status filter change
+    statusFilter.addEventListener('change', function() {
+        clearTimeout(searchTimeout);
+        performSearch();
+    });
+
+    // Clear search button
+    clearSearchBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        clearSearchBtn.classList.add('d-none');
+        performSearch();
+        searchInput.focus();
+    });
+
+    // Search on Enter key (optional, for immediate search)
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
+            performSearch();
+        }
+    });
+
+    // Keyboard shortcut: Ctrl+K or Cmd+K to focus search
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+
+        // Escape to clear and blur search
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('d-none');
+            searchInput.blur();
+            performSearch();
+        }
+    });
+});
 </script>
 @endsection

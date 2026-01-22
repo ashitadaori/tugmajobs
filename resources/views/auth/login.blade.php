@@ -38,5 +38,28 @@ document.addEventListener('DOMContentLoaded', function() {
     switchToLogin();
 });
 @endif
+
+// Show toast notifications for login errors
+document.addEventListener('DOMContentLoaded', function() {
+    @if(Session::has('error'))
+        if (typeof showToast === 'function') {
+            showToast('{{ Session::get('error') }}', 'error', 5000);
+        }
+    @endif
+
+    @if(Session::has('success'))
+        if (typeof showToast === 'function') {
+            showToast('{{ Session::get('success') }}', 'success', 5000);
+        }
+    @endif
+
+    @if($errors->any())
+        if (typeof showToast === 'function') {
+            @foreach($errors->all() as $error)
+                showToast('{{ $error }}', 'error', 5000);
+            @endforeach
+        }
+    @endif
+});
 </script>
-@endsection 
+@endsection

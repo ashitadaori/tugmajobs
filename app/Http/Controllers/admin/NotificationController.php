@@ -13,22 +13,30 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
-        $limit = $request->get('limit', 20);
         $userId = auth()->id();
 
-        $notifications = DB::table('notifications')
-            ->where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->limit($limit)
-            ->get();
+        // If this is an AJAX request, return JSON for the notification dropdown
+        if ($request->ajax() || $request->wantsJson()) {
+            $limit = $request->get('limit', 20);
 
-        return response()->json([
-            'notifications' => $notifications,
-            'unread_count' => DB::table('notifications')
+            $notifications = DB::table('notifications')
                 ->where('user_id', $userId)
-                ->whereNull('read_at')
-                ->count()
-        ]);
+                ->orderBy('created_at', 'desc')
+                ->limit($limit)
+                ->get();
+
+            return response()->json([
+                'notifications' => $notifications,
+                'unread_count' => DB::table('notifications')
+                    ->where('user_id', $userId)
+                    ->whereNull('read_at')
+                    ->count()
+            ]);
+        }
+
+        // For regular browser requests, redirect to dashboard
+        // The notification dropdown is accessible from any admin page via the header
+        return redirect()->route('admin.dashboard');
     }
 
     /**

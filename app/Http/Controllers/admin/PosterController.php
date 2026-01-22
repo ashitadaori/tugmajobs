@@ -18,10 +18,16 @@ class PosterController extends Controller
     public function index()
     {
         $posters = Poster::with(['template', 'creator'])
+            ->adminPosters()
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
-        return view('admin.posters.index', compact('posters'));
+        $stats = [
+            'total' => Poster::adminPosters()->count(),
+            'thisMonth' => Poster::adminPosters()->where('created_at', '>=', now()->startOfMonth())->count(),
+        ];
+
+        return view('admin.posters.index', compact('posters', 'stats'));
     }
 
     /**
@@ -52,6 +58,14 @@ class PosterController extends Controller
             'job_title' => 'required|string|max:255',
             'requirements' => 'required|string',
             'company_name' => 'required|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:50',
+            'location' => 'nullable|string|max:255',
+            'salary_range' => 'nullable|string|max:100',
+            'employment_type' => 'nullable|string|max:50',
+            'deadline' => 'nullable|date',
+            'primary_color' => 'nullable|string|max:7',
+            'secondary_color' => 'nullable|string|max:7',
         ]);
 
         if ($validator->fails()) {
@@ -67,6 +81,15 @@ class PosterController extends Controller
             'job_title' => $request->job_title,
             'requirements' => $request->requirements,
             'company_name' => $request->company_name,
+            'contact_email' => $request->contact_email,
+            'contact_phone' => $request->contact_phone,
+            'location' => $request->location,
+            'salary_range' => $request->salary_range,
+            'employment_type' => $request->employment_type,
+            'deadline' => $request->deadline,
+            'primary_color' => $request->primary_color,
+            'secondary_color' => $request->secondary_color,
+            'poster_type' => 'admin',
         ]);
 
         // Mark template as used for rotation
@@ -103,6 +126,14 @@ class PosterController extends Controller
             'job_title' => 'required|string|max:255',
             'requirements' => 'required|string',
             'company_name' => 'required|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:50',
+            'location' => 'nullable|string|max:255',
+            'salary_range' => 'nullable|string|max:100',
+            'employment_type' => 'nullable|string|max:50',
+            'deadline' => 'nullable|date',
+            'primary_color' => 'nullable|string|max:7',
+            'secondary_color' => 'nullable|string|max:7',
         ]);
 
         if ($validator->fails()) {
@@ -118,6 +149,14 @@ class PosterController extends Controller
             'job_title' => $request->job_title,
             'requirements' => $request->requirements,
             'company_name' => $request->company_name,
+            'contact_email' => $request->contact_email,
+            'contact_phone' => $request->contact_phone,
+            'location' => $request->location,
+            'salary_range' => $request->salary_range,
+            'employment_type' => $request->employment_type,
+            'deadline' => $request->deadline,
+            'primary_color' => $request->primary_color,
+            'secondary_color' => $request->secondary_color,
         ]);
 
         session()->flash('success', 'Poster updated successfully!');
@@ -136,16 +175,17 @@ class PosterController extends Controller
     {
         $poster = Poster::with('template')->findOrFail($id);
         $templateSlug = $poster->template->slug;
+        $isEmployer = false;
 
         // Try to load template-specific view
         $templateView = "admin.posters.templates.{$templateSlug}";
 
         if (view()->exists($templateView)) {
-            return view($templateView, compact('poster'));
+            return view($templateView, compact('poster', 'isEmployer'));
         }
 
         // Fallback to default preview
-        return view('admin.posters.preview', compact('poster'));
+        return view('admin.posters.preview', compact('poster', 'isEmployer'));
     }
 
     /**
@@ -156,24 +196,24 @@ class PosterController extends Controller
         $poster = Poster::with('template')->findOrFail($id);
         $templateSlug = $poster->template->slug;
         $isPdf = true; // Flag to hide action buttons in PDF
+        $isEmployer = false;
 
         // Try to load template-specific view
         $templateView = "admin.posters.templates.{$templateSlug}";
 
         if (view()->exists($templateView)) {
-            $pdf = Pdf::loadView($templateView, compact('poster', 'isPdf'));
+            $pdf = Pdf::loadView($templateView, compact('poster', 'isPdf', 'isEmployer'));
         } else {
-            $pdf = Pdf::loadView('admin.posters.preview', compact('poster', 'isPdf'));
+            $pdf = Pdf::loadView('admin.posters.preview', compact('poster', 'isPdf', 'isEmployer'));
         }
 
-        // Set paper size to 4:5 portrait ratio for social media (Facebook/Instagram)
-        // 432x540 points (6x7.5 inches) - perfect 4:5 ratio like the reference design
-        $pdf->setPaper([0, 0, 432, 540], 'portrait');
+        // Set paper size - 4:5 ratio (8x10 inches at 72 DPI = 576x720 points)
+        $pdf->setPaper([0, 0, 576, 720], 'portrait');
         $pdf->setOptions([
             'defaultFont' => 'Helvetica',
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => false,
-            'dpi' => 150,
+            'dpi' => 72,
         ]);
 
         $filename = 'hiring-poster-' . str_replace(' ', '-', strtolower($poster->job_title)) . '-' . date('Y-m-d') . '.pdf';

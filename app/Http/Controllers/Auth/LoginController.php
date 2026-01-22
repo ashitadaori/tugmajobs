@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\LoginCodeMail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -39,24 +41,32 @@ class LoginController extends Controller
                 'password' => ['required', 'min:5'],
             ]);
 
-            if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->has('remember'))) {
-                $request->session()->regenerate();
-                $user = Auth::user();
+            // Find the user first to check 2FA before logging in
+            $user = User::where('email', $request->email)->first();
 
-                // Admin can login from any login page
-                // Redirect based on user role
-                if ($user->role === 'admin') {
-                    return redirect()->intended(route('admin.dashboard'));
-                } elseif ($user->role === 'employer') {
-                    return redirect()->intended(route('employer.dashboard'));
-                } else {
-                    return redirect()->intended(route('account.dashboard'));
-                }
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return back()->withErrors([
+                    'email' => 'The provided credentials do not match our records.',
+                ])->withInput($request->only('email'));
             }
 
-            return back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
-            ])->withInput($request->only('email'));
+            // Check if 2FA is enabled
+            if ($user->two_factor_enabled) {
+                // Store user ID and remember preference in session for 2FA verification
+                session([
+                    '2fa_user_id' => $user->id,
+                    '2fa_remember' => $request->has('remember'),
+                ]);
+
+                return redirect()->route('two-factor.challenge');
+            }
+
+            // No 2FA, proceed with normal login
+            Auth::login($user, $request->has('remember'));
+            $request->session()->regenerate();
+
+            // Redirect based on user role
+            return $this->redirectBasedOnRole($user);
 
         } else {
             // Magic link login
@@ -95,6 +105,20 @@ class LoginController extends Controller
     }
 
     /**
+     * Redirect based on user role
+     */
+    protected function redirectBasedOnRole(User $user)
+    {
+        if ($user->role === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        } elseif ($user->role === 'employer') {
+            return redirect()->intended(route('employer.dashboard'));
+        } else {
+            return redirect()->intended(route('account.dashboard'));
+        }
+    }
+
+    /**
      * Log the user out of the application.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -116,4 +140,4 @@ class LoginController extends Controller
 
         return redirect()->route('home')->with('success', 'You have been successfully logged out.');
     }
-} 
+}

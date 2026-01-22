@@ -494,10 +494,8 @@ body {
    SIDEBAR STYLES
    ======================================== */
 
-.sticky-sidebar {
-    position: sticky;
-    top: 2rem;
-}
+/* Removed sticky behavior to fix overlap issues */
+/* Cards now use flex gap for proper spacing */
 
 /* Quick Apply Content */
 .quick-apply-content {
@@ -649,6 +647,89 @@ body {
 }
 
 /* ========================================
+   COMPANY STAR RATING
+   ======================================== */
+
+.company-rating-item .detail-icon {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.company-rating-item.no-rating .detail-icon {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
+.company-rating-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.star-rating-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stars-container {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+}
+
+.stars-container i {
+    font-size: 1rem;
+}
+
+.stars-container .star-filled {
+    color: #f59e0b;
+}
+
+.stars-container .star-empty {
+    color: #d1d5db;
+}
+
+.stars-container.no-reviews .star-empty {
+    color: #d1d5db;
+}
+
+.rating-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+}
+
+.review-count {
+    font-size: 0.8125rem;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+
+.no-reviews-text {
+    font-size: 0.875rem;
+    color: var(--text-gray);
+    font-style: italic;
+}
+
+/* Star Rating Hover Effect */
+.company-rating-item:hover .star-filled {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.company-rating-item:hover .stars-container i {
+    animation: starPulse 0.3s ease-in-out;
+}
+
+@keyframes starPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* ========================================
    RESPONSIVE DESIGN
    ======================================== */
 
@@ -669,10 +750,6 @@ body {
 
     .overview-grid {
         grid-template-columns: repeat(2, 1fr);
-    }
-
-    .sticky-sidebar {
-        position: static;
     }
 }
 

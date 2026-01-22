@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\TwoFactorAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class TwoFactorAuthController extends Controller
 {
@@ -28,7 +29,7 @@ class TwoFactorAuthController extends Controller
     }
 
     /**
-     * Verify the 2FA code
+     * Verify the 2FA code (Google Authenticator)
      */
     public function verify(Request $request)
     {
@@ -60,7 +61,7 @@ class TwoFactorAuthController extends Controller
             return redirect()->intended($this->redirectPath($user));
         }
 
-        return back()->withErrors(['code' => 'The verification code is invalid or expired.']);
+        return back()->withErrors(['code' => 'The verification code is invalid. Please check your authenticator app.']);
     }
 
     /**
@@ -93,82 +94,92 @@ class TwoFactorAuthController extends Controller
             // Regenerate session
             $request->session()->regenerate();
 
+            $remainingCodes = $this->twoFactorService->getRemainingRecoveryCodesCount($user);
+
             return redirect()->intended($this->redirectPath($user))
-                ->with('warning', 'You used a recovery code. Please regenerate new recovery codes.');
+                ->with('warning', "You used a recovery code. You have {$remainingCodes} recovery codes remaining. Please regenerate new recovery codes if needed.");
         }
 
         return back()->withErrors(['recovery_code' => 'The recovery code is invalid.']);
     }
 
     /**
-     * Resend 2FA code
+     * Show the 2FA setup page (for enabling Google Authenticator)
      */
-    public function resend()
-    {
-        $userId = session('2fa_user_id');
-        if (!$userId) {
-            return redirect()->route('login')->with('error', 'Session expired. Please login again.');
-        }
-
-        $user = \App\Models\User::find($userId);
-        if (!$user) {
-            return redirect()->route('login')->with('error', 'User not found.');
-        }
-
-        if ($this->twoFactorService->generateAndSendCode($user)) {
-            return back()->with('success', 'A new verification code has been sent to your email.');
-        }
-
-        return back()->with('error', 'Failed to send verification code. Please try again.');
-    }
-
-    /**
-     * Enable 2FA for the authenticated user
-     */
-    public function enable(Request $request)
+    public function showSetup()
     {
         $user = Auth::user();
 
-        // Send initial verification code
-        if ($this->twoFactorService->generateAndSendCode($user)) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Verification code sent to your email.',
-            ]);
+        if ($this->twoFactorService->isEnabled($user)) {
+            return redirect()->back()->with('info', 'Two-factor authentication is already enabled.');
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to send verification code.',
-        ], 500);
+        // Generate a new secret key
+        $secret = $this->twoFactorService->generateSecretKey();
+
+        // Store it in session temporarily
+        session(['2fa_setup_secret' => $secret]);
+
+        // Generate QR code SVG
+        $qrCodeSvg = $this->twoFactorService->getQRCodeSvg($user, $secret);
+
+        return view('auth.two-factor-setup', [
+            'secret' => $secret,
+            'qrCodeSvg' => $qrCodeSvg,
+        ]);
     }
 
     /**
-     * Confirm 2FA enablement
+     * Confirm 2FA setup and enable it
      */
-    public function confirmEnable(Request $request)
+    public function confirmSetup(Request $request)
     {
         $request->validate([
             'code' => 'required|string|size:6',
         ]);
 
         $user = Auth::user();
+        $secret = session('2fa_setup_secret');
 
-        if ($this->twoFactorService->verifyCode($user, $request->code)) {
-            $this->twoFactorService->enable($user);
-            $recoveryCodes = $this->twoFactorService->generateRecoveryCodes($user);
-
+        if (!$secret) {
             return response()->json([
-                'success' => true,
-                'message' => 'Two-factor authentication has been enabled.',
-                'recovery_codes' => $recoveryCodes,
-            ]);
+                'success' => false,
+                'message' => 'Session expired. Please start the setup process again.',
+            ], 422);
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid verification code.',
-        ], 422);
+        // Verify the code with the temporary secret
+        if ($this->twoFactorService->verifySetupCode($secret, $request->code)) {
+            // Enable 2FA with the secret
+            $this->twoFactorService->enable($user, $secret);
+
+            // Generate recovery codes
+            $recoveryCodes = $this->twoFactorService->generateRecoveryCodes($user);
+
+            // Clear the setup session
+            session()->forget('2fa_setup_secret');
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Two-factor authentication has been enabled.',
+                    'recovery_codes' => $recoveryCodes,
+                ]);
+            }
+
+            return redirect()->route('employer.settings.security')
+                ->with('success', 'Two-factor authentication has been enabled.')
+                ->with('recovery_codes', $recoveryCodes);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid verification code. Please try again.',
+            ], 422);
+        }
+
+        return back()->withErrors(['code' => 'Invalid verification code. Please try again.']);
     }
 
     /**
@@ -177,16 +188,33 @@ class TwoFactorAuthController extends Controller
     public function disable(Request $request)
     {
         $request->validate([
-            'password' => 'required|current_password',
+            'password' => 'required|string',
         ]);
 
         $user = Auth::user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The password is incorrect.',
+                ], 422);
+            }
+
+            return back()->withErrors(['password' => 'The password is incorrect.']);
+        }
+
         $this->twoFactorService->disable($user);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Two-factor authentication has been disabled.',
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Two-factor authentication has been disabled.',
+            ]);
+        }
+
+        return redirect()->route('employer.settings.security')
+            ->with('success', 'Two-factor authentication has been disabled.');
     }
 
     /**
@@ -195,17 +223,75 @@ class TwoFactorAuthController extends Controller
     public function regenerateRecoveryCodes(Request $request)
     {
         $request->validate([
-            'password' => 'required|current_password',
+            'password' => 'required|string',
         ]);
 
         $user = Auth::user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The password is incorrect.',
+                ], 422);
+            }
+
+            return back()->withErrors(['password' => 'The password is incorrect.']);
+        }
+
         $recoveryCodes = $this->twoFactorService->generateRecoveryCodes($user);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Recovery codes have been regenerated.',
-            'recovery_codes' => $recoveryCodes,
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Recovery codes have been regenerated.',
+                'recovery_codes' => $recoveryCodes,
+            ]);
+        }
+
+        return redirect()->route('employer.settings.security')
+            ->with('success', 'Recovery codes have been regenerated.')
+            ->with('recovery_codes', $recoveryCodes);
+    }
+
+    /**
+     * Show recovery codes
+     */
+    public function showRecoveryCodes(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
         ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The password is incorrect.',
+            ], 422);
+        }
+
+        if (!$user->two_factor_recovery_codes) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No recovery codes found.',
+            ], 404);
+        }
+
+        try {
+            $codes = json_decode(decrypt($user->two_factor_recovery_codes), true);
+
+            return response()->json([
+                'success' => true,
+                'recovery_codes' => $codes,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to retrieve recovery codes.',
+            ], 500);
+        }
     }
 
     /**

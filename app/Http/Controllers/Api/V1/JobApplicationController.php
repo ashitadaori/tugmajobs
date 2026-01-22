@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreJobApplicationRequest;
 use App\Models\Job;
 use App\Models\JobApplication;
+use App\Models\User;
 use App\Repositories\JobApplicationRepository;
+use App\Notifications\NewApplicationReceived;
+use App\Notifications\AdminNewApplicationNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class JobApplicationController extends Controller
 {
@@ -76,6 +80,88 @@ class JobApplicationController extends Controller
         }
 
         $application = $this->applicationRepository->create($data);
+
+        // Send notifications to employer (in-app + email)
+        try {
+            $applicant = auth()->user();
+
+            // Create in-app notification in custom notifications table
+            \App\Models\Notification::create([
+                'user_id' => $job->employer_id,
+                'title' => 'New Application Received',
+                'message' => $applicant->name . ' has applied for "' . $job->title . '"',
+                'type' => 'new_application',
+                'data' => [
+                    'message' => $applicant->name . ' has applied for "' . $job->title . '"',
+                    'type' => 'new_application',
+                    'job_application_id' => $application->id,
+                    'job_id' => $job->id,
+                    'job_title' => $job->title,
+                    'applicant_name' => $applicant->name,
+                    'applicant_id' => $applicant->id,
+                ],
+                'action_url' => route('employer.applications.show', $application->id),
+                'read_at' => null
+            ]);
+
+            // Send email notification
+            $job->employer->notify(new NewApplicationReceived($application));
+
+            Log::info('API: Employer notification sent', [
+                'employer_id' => $job->employer_id,
+                'application_id' => $application->id
+            ]);
+        } catch (\Exception $e) {
+            Log::error('API: Failed to send employer notification: ' . $e->getMessage());
+        }
+
+        // Send notifications to all admins (in-app + email)
+        try {
+            $admins = User::where('role', 'admin')
+                ->orWhere('role', 'superadmin')
+                ->get();
+
+            // Get company name for notification
+            $companyName = 'Unknown Company';
+            if ($job->employer) {
+                $employerProfile = \App\Models\Employer::where('user_id', $job->employer->id)->first();
+                $companyName = $employerProfile->company_name ?? $job->employer->name;
+            }
+
+            $applicant = $application->user;
+
+            foreach ($admins as $admin) {
+                // Create in-app notification in custom notifications table
+                \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => 'New Job Application Received',
+                    'message' => $applicant->name . ' has applied for "' . $job->title . '" at ' . $companyName,
+                    'type' => 'admin_new_application',
+                    'data' => [
+                        'job_application_id' => $application->id,
+                        'job_id' => $job->id,
+                        'job_title' => $job->title,
+                        'applicant_name' => $applicant->name,
+                        'applicant_id' => $applicant->id,
+                        'company_name' => $companyName,
+                        'icon' => 'user-plus',
+                        'color' => 'info'
+                    ],
+                    'action_url' => route('admin.jobs.applicants', $job->id),
+                    'read_at' => null
+                ]);
+
+                // Send email notification
+                $admin->notify(new AdminNewApplicationNotification($application));
+            }
+
+            Log::info('API: Admin notifications sent', [
+                'admins_notified' => $admins->count(),
+                'application_id' => $application->id
+            ]);
+        } catch (\Exception $e) {
+            Log::error('API: Failed to send admin notifications: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,

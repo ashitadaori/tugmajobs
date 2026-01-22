@@ -21,17 +21,20 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Models\JobAlert;
+use App\Models\ProfileView;
 
 class AccountController extends Controller
 {
     // This method will show user registration page
-    public function registration(){
+    public function registration()
+    {
         return view('front.account.registration');
     }
 
     // This method will save a user
-    public function processRegistration(Request $request){
-        $validator = Validator::make($request->all(),[
+    public function processRegistration(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:5|same:confirm_password',
@@ -41,7 +44,7 @@ class AccountController extends Controller
             'email.unique' => 'The email is already in use.'
         ]);
 
-        if($validator->passes()){
+        if ($validator->passes()) {
             try {
                 // Use database transaction to ensure both user and profile are created
                 DB::beginTransaction();
@@ -91,7 +94,7 @@ class AccountController extends Controller
                     'errors' => ['general' => ['Registration failed. Please try again later.']],
                 ]);
             }
-        }else{
+        } else {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors(),
@@ -100,17 +103,19 @@ class AccountController extends Controller
     }
 
     // This method will show user login page
-    public function login(){
+    public function login()
+    {
         return view('front.account.login');
     }
 
-    public function authenticate(Request $request){
-        $validator = Validator::make($request->all(),[
+    public function authenticate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|min:5',
         ]);
-        if($validator->passes()){
-            if(Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->has('remember'))){
+        if ($validator->passes()) {
+            if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->has('remember'))) {
                 $user = Auth::user();
 
                 // Admin can login from any login page
@@ -122,19 +127,20 @@ class AccountController extends Controller
                 } else {
                     return redirect()->route('account.profile');
                 }
-            }else{
+            } else {
                 return redirect()->route('account.login')
                     ->withInput($request->only('email'))
-                    ->with('error','Either email/password is incorrect');
+                    ->with('error', 'Either email/password is incorrect');
             }
-        }else{
+        } else {
             return redirect()->route('account.login')
                 ->withErrors($validator)
                 ->withInput($request->only('email'));
         }
     }
 
-    public function profile(){
+    public function profile()
+    {
         $id = Auth::user()->id;
         $user = User::where('id', $id)->with('jobSeekerProfile')->first();
 
@@ -173,7 +179,7 @@ class AccountController extends Controller
 
             $rules = [
                 'name' => 'required|min:2|max:100',
-                'email' => 'required|email|unique:users,email,'.$id.',id',
+                'email' => 'required|email|unique:users,email,' . $id . ',id',
                 'mobile' => 'nullable|string|max:20',
                 'phone' => 'nullable|string|max:20',
                 'designation' => 'nullable|string|max:100'
@@ -253,7 +259,7 @@ class AccountController extends Controller
 
             try {
                 $user->save();
-                
+
                 // Also update jobseeker profile if user is a job seeker
                 $jobseekerProfile = $user->jobSeekerProfile ?? $user->jobseeker;
 
@@ -291,18 +297,23 @@ class AccountController extends Controller
                         $jobseekerData['skills'] = [];
                     }
 
-                    // Handle preferred_categories and preferred_job_types
+                    // Handle preferred_categories
                     if (isset($jobseekerFields['preferred_categories'])) {
                         $jobseekerData['preferred_categories'] = $jobseekerFields['preferred_categories'];
+                    } elseif ($request->has('is_job_preferences_form')) {
+                        // If it's the preferences form but categories are missing, it means user deselected all
+                        $jobseekerData['preferred_categories'] = [];
                     } elseif ($request->has('preferred_categories')) {
-                        // Explicitly set to empty array if present but empty
                         $jobseekerData['preferred_categories'] = [];
                     }
 
+                    // Handle preferred_job_types
                     if (isset($jobseekerFields['preferred_job_types'])) {
                         $jobseekerData['preferred_job_types'] = $jobseekerFields['preferred_job_types'];
+                    } elseif ($request->has('is_job_preferences_form')) {
+                        // If it's the preferences form but job types are missing, it means user deselected all
+                        $jobseekerData['preferred_job_types'] = [];
                     } elseif ($request->has('preferred_job_types')) {
-                        // Explicitly set to empty array if present but empty
                         $jobseekerData['preferred_job_types'] = [];
                     }
 
@@ -343,7 +354,7 @@ class AccountController extends Controller
                         'has_profile' => !is_null($jobseekerProfile)
                     ]);
                 }
-                
+
                 \Log::info('Profile Update Successful', ['user_id' => $user->id]);
 
                 if ($request->wantsJson() || $request->ajax()) {
@@ -381,23 +392,24 @@ class AccountController extends Controller
     }
 
     // /upload/change image from profile
-    public function updateProfileImg(Request $request){
+    public function updateProfileImg(Request $request)
+    {
         $id = Auth::user()->id;
 
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120' // 5MB max
         ]);
 
-        if($validator->passes()){
+        if ($validator->passes()) {
             try {
                 $image = $request->file('image');
                 $ext = $image->getClientOriginalExtension();
-                $imageName = $id.'-'.time().'.'.$ext;
+                $imageName = $id . '-' . time() . '.' . $ext;
 
                 // Create directories if they don't exist
                 $profilePath = public_path('profile_img');
                 $thumbPath = public_path('profile_img/thumb');
-                
+
                 if (!File::exists($profilePath)) {
                     File::makeDirectory($profilePath, 0777, true);
                 }
@@ -415,22 +427,22 @@ class AccountController extends Controller
 
                 // Move original image
                 $image->move($profilePath, $imageName);
-                \Log::info('Original image moved successfully', ['path' => $profilePath.'/'.$imageName]);
+                \Log::info('Original image moved successfully', ['path' => $profilePath . '/' . $imageName]);
 
                 // Create thumbnail using Intervention Image v2
-                $sourcePath = $profilePath.'/'.$imageName;
+                $sourcePath = $profilePath . '/' . $imageName;
                 $img = Image::make($sourcePath);
                 $img->fit(150, 150, function ($constraint) {
                     $constraint->upsize();
                 });
-                $img->save($thumbPath.'/'.$imageName);
+                $img->save($thumbPath . '/' . $imageName);
 
                 // Delete old images if they exist
                 $oldImage = Auth::user()->image;
                 if ($oldImage) {
-                    $oldImagePath = $profilePath.'/'.$oldImage;
-                    $oldThumbPath = $thumbPath.'/'.$oldImage;
-                    
+                    $oldImagePath = $profilePath . '/' . $oldImage;
+                    $oldThumbPath = $thumbPath . '/' . $oldImage;
+
                     if (File::exists($oldImagePath)) {
                         File::delete($oldImagePath);
                     }
@@ -447,7 +459,7 @@ class AccountController extends Controller
                     'status' => true,
                     'message' => 'Profile image updated successfully',
                     'image_name' => $imageName,
-                    'image_path' => asset('profile_img/thumb/'.$imageName)
+                    'image_path' => asset('profile_img/thumb/' . $imageName)
                 ]);
 
             } catch (\Exception $e) {
@@ -457,7 +469,7 @@ class AccountController extends Controller
                     'line' => $e->getLine(),
                     'trace' => $e->getTraceAsString()
                 ]);
-                
+
                 return response()->json([
                     'status' => false,
                     'errors' => ['image' => ['Error processing image: ' . $e->getMessage()]]
@@ -472,7 +484,8 @@ class AccountController extends Controller
     }
 
     // Remove profile image
-    public function removeProfileImage(Request $request) {
+    public function removeProfileImage(Request $request)
+    {
         try {
             $user = Auth::user();
             $oldImage = $user->image;
@@ -481,8 +494,8 @@ class AccountController extends Controller
                 // Define paths
                 $profilePath = public_path('profile_img');
                 $thumbPath = public_path('profile_img/thumb');
-                $oldImagePath = $profilePath.'/'.$oldImage;
-                $oldThumbPath = $thumbPath.'/'.$oldImage;
+                $oldImagePath = $profilePath . '/' . $oldImage;
+                $oldThumbPath = $thumbPath . '/' . $oldImage;
 
                 // Delete old images if they exist
                 if (File::exists($oldImagePath)) {
@@ -516,7 +529,8 @@ class AccountController extends Controller
         }
     }
 
-    public function logout(Request $request){
+    public function logout(Request $request)
+    {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -524,7 +538,8 @@ class AccountController extends Controller
     }
 
 
-    public function createJob(Request $request) {
+    public function createJob(Request $request)
+    {
         try {
             $validator = Validator::make($request->all(), [
                 'title' => 'required|min:5|max:200',
@@ -570,7 +585,8 @@ class AccountController extends Controller
         }
     }
 
-    public function updateJob(Request $request, $id) {
+    public function updateJob(Request $request, $id)
+    {
         try {
             $validator = Validator::make($request->all(), [
                 'title' => 'required|min:5|max:200',
@@ -590,8 +606,8 @@ class AccountController extends Controller
             }
 
             $job = Job::where('id', $id)
-                      ->where('employer_id', Auth::user()->id)
-                      ->firstOrFail();
+                ->where('employer_id', Auth::user()->id)
+                ->firstOrFail();
 
             $job->title = $request->title;
             $job->description = $request->description;
@@ -620,7 +636,8 @@ class AccountController extends Controller
     }
 
     // Method for job seekers to save jobs they're interested in
-    public function saveJobToFavorites(Request $request) {
+    public function saveJobToFavorites(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'job_id' => 'required|integer'
         ]);
@@ -678,26 +695,28 @@ class AccountController extends Controller
     }
 
     // Show all jobs
-    public function myJobs(){
+    public function myJobs()
+    {
         //metioned the code of the paginator in AppServiceProvider Class otherwise your paginator will not work perfectly
         $jobs = Job::where('employer_id', Auth::user()->id)
             ->with('jobType')
-            ->orderBy('created_at','DESC')
+            ->orderBy('created_at', 'DESC')
             ->paginate(10);
-            
-        return view('front.account.job.my-jobs',[
+
+        return view('front.account.job.my-jobs', [
             'jobs' => $jobs,
         ]);
     }
 
     // edit Job page
-    public function editJob($id){
+    public function editJob($id)
+    {
         $job = Job::where([
             'employer_id' => Auth::user()->id,
             'id' => $id
         ])->first();
 
-        if($job == null){
+        if ($job == null) {
             abort(404);
         }
 
@@ -705,12 +724,12 @@ class AccountController extends Controller
         $categories = Category::where('status', 1)
             ->orderBy('name', 'ASC')
             ->get();
-            
+
         $job_types = JobType::where('status', 1)
             ->orderBy('name', 'ASC')
             ->get();
 
-        return view('front.account.job.edit',[
+        return view('front.account.job.edit', [
             'job' => $job,
             'categories' => $categories,
             'job_types' => $job_types
@@ -740,11 +759,12 @@ class AccountController extends Controller
         }
     }
 
-    public function myJobApplications(){
+    public function myJobApplications()
+    {
 
-        $jobApplications = JobApplication::where('user_id',Auth::user()->id)->with(['job','job.jobType','job.applications'])->orderBy('created_at','DESC')->paginate(10);
+        $jobApplications = JobApplication::where('user_id', Auth::user()->id)->with(['job', 'job.jobType', 'job.applications'])->orderBy('created_at', 'DESC')->paginate(10);
 
-        return view('front.account.job.my-job-application',[
+        return view('front.account.job.my-job-application', [
             'jobApplications' => $jobApplications,
         ]);
     }
@@ -763,7 +783,7 @@ class AccountController extends Controller
                 'job.company',
                 'job.employer.employerProfile',
                 'job.jobRequirements',
-                'statusHistory' => function($query) {
+                'statusHistory' => function ($query) {
                     $query->orderBy('created_at', 'desc');
                 },
                 'statusHistory.updatedByUser'
@@ -776,20 +796,23 @@ class AccountController extends Controller
     }
 
     // remove applied jobs
-    public function removeJobs(Request $request){
+    public function removeJobs(Request $request)
+    {
 
-        $jobApplication = JobApplication::where([
-                                    'id' => $request->id,
-                                    'user_id' => Auth::user()->id,]
-                                )->first();
-        if($jobApplication == null){
-            Session()->flash('error','Job application not found');
+        $jobApplication = JobApplication::where(
+            [
+                'id' => $request->id,
+                'user_id' => Auth::user()->id,
+            ]
+        )->first();
+        if ($jobApplication == null) {
+            Session()->flash('error', 'Job application not found');
             return response()->json([
                 'status' => false,
             ]);
         }
         JobApplication::find($request->id)->delete();
-        Session()->flash('success','Job application removed successfully.');
+        Session()->flash('success', 'Job application removed successfully.');
         return response()->json([
             'status' => true,
         ]);
@@ -811,7 +834,7 @@ class AccountController extends Controller
     {
         $user = auth()->user();
         $job = Job::findOrFail($request->job_id);
-        
+
         $user->savedJobs()->detach($job->id);
 
         return response()->json([
@@ -820,7 +843,8 @@ class AccountController extends Controller
         ]);
     }
 
-    public function applyJob(Request $request) {
+    public function applyJob(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'job_id' => 'required|integer',
             'cover_letter' => 'required|min:50',
@@ -863,7 +887,7 @@ class AccountController extends Controller
 
             // Send notification to employer
             $job = Job::with('employer')->find($request->job_id);
-            
+
             \Log::info('Job application notification debug', [
                 'job_id' => $request->job_id,
                 'job_found' => $job ? 'yes' : 'no',
@@ -871,7 +895,7 @@ class AccountController extends Controller
                 'employer_loaded' => ($job && $job->employer) ? 'yes' : 'no',
                 'employer_id' => ($job && $job->employer) ? $job->employer->id : 'N/A',
             ]);
-            
+
             if ($job && $job->employer_id) {
                 $notification = \App\Models\Notification::create([
                     'user_id' => $job->employer_id,
@@ -890,7 +914,7 @@ class AccountController extends Controller
                     'action_url' => route('employer.applications.show', $application->id),
                     'read_at' => null
                 ]);
-                
+
                 \Log::info('Notification created successfully', [
                     'notification_id' => $notification->id,
                     'employer_id' => $job->employer_id,
@@ -925,17 +949,19 @@ class AccountController extends Controller
 
     // Forgot passowrd
 
-    public function forgotPassword(){
+    public function forgotPassword()
+    {
         return view('front.account.forgot-password');
     }
 
-    public function processForgotPassword(Request $request){
+    public function processForgotPassword(Request $request)
+    {
 
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return redirect()->route('account.forgotPassword')->withInput()->withErrors($validator);
         }
 
@@ -945,70 +971,90 @@ class AccountController extends Controller
             \DB::table('password_resets')->where('email', $request->email)->delete();
 
             \DB::table('password_resets')->insert([
-              'email' => $request->email,
-              'token' => $token,
-              'created_at' => now(),
+                'email' => $request->email,
+                'token' => $token,
+                'created_at' => now(),
             ]);
 
             // Send Email here
-            $user = User::where('email',$request->email)->first();
+            $user = User::where('email', $request->email)->first();
             $mailData = [
                 'token' => $token,
                 'user' => $user,
                 'subject' => 'You have requested to change your password.',
             ];
-            
+
             Mail::to($request->email)->send(new ResetPasswordEmail($mailData));
 
-            return redirect()->route('account.forgotPassword')->with('success','Reset password email has been sent to your inbox');
-            
+            return redirect()->route('account.forgotPassword')->with('success', 'Reset password email has been sent to your inbox');
+
         } catch (\Exception $e) {
             \Log::error('Password Reset Email Error: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
-            
+
             return redirect()->route('account.forgotPassword')
                 ->with('error', 'There was an error sending the password reset email. Please try again later.');
         }
     }
 
-    public function resetPassword($tokenString){
+    public function resetPassword($tokenString)
+    {
 
-        $token = \DB::table('password_resets')->where('token',$tokenString)->first();
-        if($token == null){
-            return redirect()->route('account.forgotPassword')->with('error','Invalid token.');
+        $token = \DB::table('password_resets')->where('token', $tokenString)->first();
+        if ($token == null) {
+            return redirect()->route('account.forgotPassword')->with('error', 'Invalid token.');
         }
 
-        return view('front.account.reset-password',[
+        // Check if token is expired (tokens expire after 60 minutes)
+        $tokenCreatedAt = \Carbon\Carbon::parse($token->created_at);
+        if ($tokenCreatedAt->addMinutes(60)->isPast()) {
+            \DB::table('password_resets')->where('token', $tokenString)->delete();
+            return redirect()->route('account.forgotPassword')->with('error', 'This password reset link has expired. Please request a new one.');
+        }
+
+        return view('front.account.reset-password', [
             'tokenString' => $tokenString,
         ]);
     }
 
-    public function processResetPassword(Request $request){
+    public function processResetPassword(Request $request)
+    {
 
-        $token = \DB::table('password_resets')->where('token',$request->token)->first();
-        if($token == null){
-            return redirect()->route('account.forgotPassword')->with('error','Invalid token.');
+        $token = \DB::table('password_resets')->where('token', $request->token)->first();
+        if ($token == null) {
+            return redirect()->route('account.forgotPassword')->with('error', 'Invalid token.');
         }
 
-        $validator = Validator::make($request->all(),[
+        // Check if token is expired (tokens expire after 60 minutes)
+        $tokenCreatedAt = \Carbon\Carbon::parse($token->created_at);
+        if ($tokenCreatedAt->addMinutes(60)->isPast()) {
+            \DB::table('password_resets')->where('token', $request->token)->delete();
+            return redirect()->route('account.forgotPassword')->with('error', 'This password reset link has expired. Please request a new one.');
+        }
+
+        $validator = Validator::make($request->all(), [
             'new_password' => 'required|min:5',
             'confirm_password' => 'required|min:5|same:new_password',
         ]);
-        if($validator->fails()){
-            return redirect()->route('account.resetPassword',$request->token)->withErrors($validator);
+        if ($validator->fails()) {
+            return redirect()->route('account.resetPassword', $request->token)->withErrors($validator);
         }
 
         User::where('email', $token->email)->update([
             'password' => Hash::make($request->new_password),
         ]);
 
-        return redirect()->route('account.login',$request->token)->with('success','You have successfully changed your password.');
+        // Delete the token after successful password reset
+        \DB::table('password_resets')->where('email', $token->email)->delete();
+
+        return redirect()->route('login')->with('success', 'You have successfully changed your password.');
 
 
     }
 
     // My Profile page
-    public function myProfile() {
+    public function myProfile()
+    {
         $id = Auth::user()->id;
         $user = User::where('id', $id)->with('jobSeekerProfile')->first();
 
@@ -1022,7 +1068,8 @@ class AccountController extends Controller
     }
 
     // Settings page
-    public function settings() {
+    public function settings()
+    {
         $user = Auth::user();
         return view('front.account.settings', [
             'user' => $user
@@ -1030,7 +1077,8 @@ class AccountController extends Controller
     }
 
     // Update notification preferences
-    public function updateNotifications(Request $request) {
+    public function updateNotifications(Request $request)
+    {
         $user = Auth::user();
         $user->notification_preferences = $request->notifications;
         $user->save();
@@ -1042,7 +1090,8 @@ class AccountController extends Controller
     }
 
     // Update privacy settings
-    public function updatePrivacy(Request $request) {
+    public function updatePrivacy(Request $request)
+    {
         $user = Auth::user();
         $user->privacy_settings = $request->privacy;
         $user->save();
@@ -1054,7 +1103,8 @@ class AccountController extends Controller
     }
 
     // Handle work experience
-    public function addExperience(Request $request) {
+    public function addExperience(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string',
             'company' => 'required|string',
@@ -1072,10 +1122,10 @@ class AccountController extends Controller
 
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
-        
+
         // Get existing experiences (already cast as array)
         $experiences = $profile->work_experience ?? [];
-        
+
         // Add new experience entry
         $experiences[] = [
             'title' => $request->title,
@@ -1086,7 +1136,7 @@ class AccountController extends Controller
             'currently_working' => $request->currently_working ?? 0,
             'description' => $request->description
         ];
-        
+
         $profile->work_experience = $experiences;
         $profile->save();
 
@@ -1096,7 +1146,8 @@ class AccountController extends Controller
         ]);
     }
 
-    public function updateExperience(Request $request) {
+    public function updateExperience(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'index' => 'required|integer',
             'title' => 'required|string',
@@ -1115,10 +1166,10 @@ class AccountController extends Controller
 
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
-        
+
         // Get existing experiences (already cast as array)
         $experiences = $profile->work_experience ?? [];
-        
+
         if (isset($experiences[$request->index])) {
             // Update the experience at the specified index
             $experiences[$request->index] = [
@@ -1130,7 +1181,7 @@ class AccountController extends Controller
                 'currently_working' => $request->currently_working ?? 0,
                 'description' => $request->description
             ];
-            
+
             $profile->work_experience = $experiences;
             $profile->save();
 
@@ -1146,7 +1197,8 @@ class AccountController extends Controller
         ]);
     }
 
-    public function deleteExperience(Request $request) {
+    public function deleteExperience(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'index' => 'required|integer'
         ]);
@@ -1160,13 +1212,13 @@ class AccountController extends Controller
 
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
-        
+
         // Get existing experiences (already cast as array)
         $experiences = $profile->work_experience ?? [];
-        
+
         if (isset($experiences[$request->index])) {
             array_splice($experiences, $request->index, 1);
-            
+
             $profile->work_experience = $experiences;
             $profile->save();
 
@@ -1183,7 +1235,8 @@ class AccountController extends Controller
     }
 
     // Handle education
-    public function addEducation(Request $request) {
+    public function addEducation(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'school' => 'required|string',
             'degree' => 'required|string',
@@ -1201,10 +1254,10 @@ class AccountController extends Controller
 
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
-        
+
         // Get existing education (already cast as array)
         $education = $profile->education ?? [];
-        
+
         // Add new education entry
         $education[] = [
             'school' => $request->school,
@@ -1214,7 +1267,7 @@ class AccountController extends Controller
             'end_date' => $request->end_date,
             'currently_studying' => $request->currently_studying ?? 0
         ];
-        
+
         $profile->education = $education;
         $profile->save();
 
@@ -1224,7 +1277,8 @@ class AccountController extends Controller
         ]);
     }
 
-    public function updateEducation(Request $request) {
+    public function updateEducation(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'index' => 'required|integer',
             'school' => 'required|string',
@@ -1243,10 +1297,10 @@ class AccountController extends Controller
 
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
-        
+
         // Get existing education (already cast as array)
         $education = $profile->education ?? [];
-        
+
         if (isset($education[$request->index])) {
             $education[$request->index] = [
                 'school' => $request->school,
@@ -1256,7 +1310,7 @@ class AccountController extends Controller
                 'end_date' => $request->end_date,
                 'currently_studying' => $request->currently_studying ?? 0
             ];
-            
+
             $profile->education = $education;
             $profile->save();
 
@@ -1272,7 +1326,8 @@ class AccountController extends Controller
         ]);
     }
 
-    public function deleteEducation(Request $request) {
+    public function deleteEducation(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'index' => 'required|integer'
         ]);
@@ -1286,13 +1341,13 @@ class AccountController extends Controller
 
         $user = Auth::user();
         $profile = $user->jobSeekerProfile;
-        
+
         // Get existing education (already cast as array)
         $education = $profile->education ?? [];
-        
+
         if (isset($education[$request->index])) {
             array_splice($education, $request->index, 1);
-            
+
             $profile->education = $education;
             $profile->save();
 
@@ -1309,7 +1364,8 @@ class AccountController extends Controller
     }
 
     // Handle resume upload
-    public function uploadResume(Request $request) {
+    public function uploadResume(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'resume' => 'required|mimes:pdf,doc,docx|max:5120' // 5MB max
         ]);
@@ -1323,11 +1379,11 @@ class AccountController extends Controller
         try {
             $user = Auth::user();
             $profile = $user->jobSeekerProfile;
-            
+
             if (!$profile) {
                 return redirect()->back()->with('error', 'Profile not found. Please complete your profile first.');
             }
-            
+
             // Delete old resume if exists
             if ($profile->resume_file) {
                 Storage::disk('public')->delete($profile->resume_file);
@@ -1351,7 +1407,8 @@ class AccountController extends Controller
     }
 
     // Handle social links
-    public function updateSocialLinks(Request $request) {
+    public function updateSocialLinks(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'social_links.linkedin' => 'nullable|url',
             'social_links.github' => 'nullable|url',
@@ -1425,7 +1482,8 @@ class AccountController extends Controller
     }
 
     // Delete account
-    public function deleteAccount(Request $request) {
+    public function deleteAccount(Request $request)
+    {
         $user = Auth::user();
 
         // Optional: Store reason for deletion
@@ -1438,13 +1496,13 @@ class AccountController extends Controller
         $user->jobSeekerProfile()->delete();
         $user->jobApplications()->delete();
         $user->savedJobs()->delete();
-        
+
         // Finally delete the user
         $user->delete();
 
         Auth::logout();
         Session::flash('success', 'Your account has been permanently deleted.');
-        
+
         return response()->json([
             'status' => true,
             'redirect' => route('home')
@@ -1452,13 +1510,13 @@ class AccountController extends Controller
     }
 
     // Deactivate account
-    public function deactivateAccount(Request $request) {
+    public function deactivateAccount(Request $request)
+    {
         $user = Auth::user();
 
         try {
             // Deactivate the account
-            $user->status = 0;
-            $user->deactivated_at = now();
+            $user->is_active = false;
             $user->save();
 
             Auth::logout();
@@ -1473,7 +1531,8 @@ class AccountController extends Controller
     }
 
     // Helper method to calculate profile completion
-    private function calculateProfileCompletion($user) {
+    private function calculateProfileCompletion($user)
+    {
         if (!$user->isJobSeeker()) {
             return 0;
         }
@@ -1543,6 +1602,14 @@ class AccountController extends Controller
                 continue;
             }
 
+            // Special handling for resume: check either uploaded file OR builder resumes
+            if ($field === 'resume_file') {
+                if (!empty($value) || $user->resumes()->exists()) {
+                    $completedWeight += $check['weight'];
+                }
+                continue;
+            }
+
             // Default: check if value exists
             if (!empty($value)) {
                 $completedWeight += $check['weight'];
@@ -1566,7 +1633,7 @@ class AccountController extends Controller
         $stats = [
             'applications' => $user->jobApplications()->count(),
             'saved_jobs' => $user->savedJobs()->count(),
-            'profile_views' => ($user->jobSeekerProfile && isset($user->jobSeekerProfile->profile_views)) ? $user->jobSeekerProfile->profile_views : 0
+            'profile_views' => ProfileView::where('jobseeker_id', $user->id)->count()
         ];
 
         // Get recent applications (last 5)
@@ -1603,9 +1670,9 @@ class AccountController extends Controller
 
         // Query jobs based on user preferences
         $query = Job::where('status', 1)
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereNull('deadline')
-                  ->orWhere('deadline', '>=', now());
+                    ->orWhere('deadline', '>=', now());
             });
 
         // Filter by category if set
@@ -1621,7 +1688,7 @@ class AccountController extends Controller
         // Get jobs that match user's skills
         // Note: Skills matching disabled - required_skills column doesn't exist
         // TODO: Implement skills matching using meta_data or requirements column
-        
+
         return $query->with('jobType')
             ->orderBy('created_at', 'desc')
             ->take(4)
@@ -1651,20 +1718,20 @@ class AccountController extends Controller
     public function jobAlerts()
     {
         $user = Auth::user();
-        
+
         // Get all categories and job types for the form
         $categories = Category::where('status', 1)->get();
         $jobTypes = JobType::where('status', 1)->get();
-        
+
         // Get user's current alert preferences
         $alertPreferences = JobAlert::where('user_id', $user->id)->first();
-        
+
         // Get active alerts
         $activeAlerts = JobAlert::where('user_id', $user->id)
             ->with(['categories', 'jobTypes'])
             ->get()
-            ->map(function($alert) {
-                return (object)[
+            ->map(function ($alert) {
+                return (object) [
                     'id' => $alert->id,
                     'categories' => $alert->categories->pluck('name')->join(', '),
                     'job_types' => $alert->jobTypes->pluck('name')->join(', '),
@@ -1726,7 +1793,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error updating job alerts: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error updating job alert preferences'
@@ -1739,7 +1806,7 @@ class AccountController extends Controller
         try {
             $alert = JobAlert::where('user_id', Auth::id())
                 ->findOrFail($id);
-            
+
             $alert->delete();
 
             return response()->json([
@@ -1748,7 +1815,7 @@ class AccountController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Error deleting job alert: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting job alert'
@@ -1802,7 +1869,7 @@ class AccountController extends Controller
     {
         // Accept both old_password and current_password for compatibility
         $oldPasswordField = $request->has('current_password') ? 'current_password' : 'old_password';
-        
+
         $validator = Validator::make($request->all(), [
             $oldPasswordField => 'required',
             'new_password' => 'required|min:8|confirmed',
@@ -1856,7 +1923,7 @@ class AccountController extends Controller
     public function notifications()
     {
         $notifications = Auth::user()->notifications()->paginate(20);
-        
+
         return view('front.account.jobseeker.notifications', [
             'notifications' => $notifications
         ]);
@@ -1867,13 +1934,13 @@ class AccountController extends Controller
         try {
             $notification = Auth::user()->notifications()->findOrFail($id);
             $notification->markAsRead();
-            
+
             \Log::info('Notification marked as read', [
                 'notification_id' => $id,
                 'user_id' => Auth::id(),
                 'read_at' => $notification->read_at
             ]);
-            
+
             return response()->json([
                 'status' => true,
                 'message' => 'Notification marked as read',
@@ -1884,7 +1951,7 @@ class AccountController extends Controller
                 'notification_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            
+
             return response()->json([
                 'status' => false,
                 'message' => 'Failed to mark notification as read'
@@ -1897,17 +1964,17 @@ class AccountController extends Controller
         try {
             $user = Auth::user();
             $count = $user->unreadNotifications->count();
-            
+
             // Mark each unread notification as read
             foreach ($user->unreadNotifications as $notification) {
                 $notification->markAsRead();
             }
-            
+
             \Log::info('All notifications marked as read', [
                 'user_id' => Auth::id(),
                 'count' => $count
             ]);
-            
+
             return response()->json([
                 'status' => true,
                 'message' => 'All notifications marked as read',
@@ -1919,7 +1986,7 @@ class AccountController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'status' => false,
                 'message' => 'Failed to mark all notifications as read'

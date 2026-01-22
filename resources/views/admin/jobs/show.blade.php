@@ -9,12 +9,6 @@
                     <h3 class="card-title">Review Job: {{ $job->title }}</h3>
                 </div>
                 <div class="card-body">
-                    @if(session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <h5>Job Details</h5>
@@ -79,8 +73,22 @@
                                 <tr>
                                     <th>Status:</th>
                                     <td>
-                                        <span class="badge bg-{{ $job->status === 'active' ? 'success' : ($job->status === 'pending' ? 'warning' : 'danger') }}">
-                                            {{ ucfirst($job->status) }}
+                                        @php
+                                            $statusClass = 'secondary';
+                                            $statusText = 'Unknown';
+                                            if ($job->status == \App\Models\Job::STATUS_PENDING) {
+                                                $statusClass = 'warning';
+                                                $statusText = 'Pending';
+                                            } elseif ($job->status == \App\Models\Job::STATUS_APPROVED) {
+                                                $statusClass = 'success';
+                                                $statusText = 'Approved';
+                                            } elseif ($job->status == \App\Models\Job::STATUS_REJECTED) {
+                                                $statusClass = 'danger';
+                                                $statusText = 'Rejected';
+                                            }
+                                        @endphp
+                                        <span class="badge bg-{{ $statusClass }}">
+                                            {{ $statusText }}
                                         </span>
                                     </td>
                                 </tr>
@@ -128,21 +136,34 @@
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a href="{{ route('admin.jobs.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('admin.jobs.pending') }}" class="btn btn-secondary">
                             Back to List
                         </a>
                         <div>
-                            <form action="{{ route('admin.jobs.approve', $job) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="btn btn-success">
-                                    Approve Job
-                                </button>
-                            </form>
+                            @if($job->status == \App\Models\Job::STATUS_PENDING)
+                                {{-- Only show Approve/Reject buttons for pending jobs --}}
+                                <form action="{{ route('admin.jobs.approve', $job) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check me-1"></i> Approve Job
+                                    </button>
+                                </form>
 
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
-                                Reject Job
-                            </button>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                    <i class="fas fa-times me-1"></i> Reject Job
+                                </button>
+                            @elseif($job->status == \App\Models\Job::STATUS_APPROVED)
+                                {{-- Show approved status indicator --}}
+                                <span class="btn btn-success disabled">
+                                    <i class="fas fa-check-circle me-1"></i> Job Approved
+                                </span>
+                            @elseif($job->status == \App\Models\Job::STATUS_REJECTED)
+                                {{-- Show rejected status indicator --}}
+                                <span class="btn btn-danger disabled">
+                                    <i class="fas fa-times-circle me-1"></i> Job Rejected
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -151,6 +172,7 @@
     </div>
 </div>
 
+@if($job->status == \App\Models\Job::STATUS_PENDING)
 <!-- Reject Modal -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
     <div class="modal-dialog">
@@ -165,11 +187,12 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="rejection_reason" class="form-label">Rejection Reason</label>
-                        <textarea id="rejection_reason" 
-                                name="rejection_reason" 
-                                class="form-control @error('rejection_reason') is-invalid @enderror" 
-                                rows="3" 
-                                required></textarea>
+                        <textarea id="rejection_reason"
+                                name="rejection_reason"
+                                class="form-control @error('rejection_reason') is-invalid @enderror"
+                                rows="3"
+                                required
+                                placeholder="Please provide a reason for rejecting this job posting..."></textarea>
                         @error('rejection_reason')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -186,4 +209,5 @@
         </div>
     </div>
 </div>
+@endif
 @endsection 

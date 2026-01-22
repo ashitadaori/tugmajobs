@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\JobApplicationController;
 use App\Http\Controllers\Api\V1\EmployerController;
 use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\EnhancedRecommendationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -125,3 +126,64 @@ Route::prefix('locations')->group(function () {
 // KYC Webhook Routes (No authentication required - external service)
 Route::post('/kyc/webhook', App\Http\Controllers\KycWebhookController::class)->name('kyc.webhook');
 Route::get('/kyc/webhook', [App\Http\Controllers\KycController::class, 'handleUserRedirect'])->name('kyc.webhook.redirect');
+
+/*
+|--------------------------------------------------------------------------
+| Enhanced Recommendation API Routes (K-Means with Content Analysis)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('enhanced-recommendations')->name('enhanced.')->group(function () {
+    // Public route - Analyze job content (no auth required)
+    Route::get('/analyze-job/{jobId}', [EnhancedRecommendationController::class, 'analyzeJob'])
+        ->name('analyze-job');
+
+    // Authenticated routes for jobseekers
+    Route::middleware(['auth:sanctum'])->group(function () {
+        // Get personalized job recommendations
+        Route::get('/recommendations', [EnhancedRecommendationController::class, 'getRecommendations'])
+            ->name('recommendations');
+
+        // Get skill match for a specific job
+        Route::get('/skill-match/{jobId}', [EnhancedRecommendationController::class, 'getSkillMatch'])
+            ->name('skill-match');
+
+        // Get comprehensive skill gap analysis for a job
+        Route::get('/skill-gap/{jobId}', [EnhancedRecommendationController::class, 'getSkillGapAnalysis'])
+            ->name('skill-gap');
+
+        // Get career path suggestions
+        Route::get('/career-paths', [EnhancedRecommendationController::class, 'getCareerPaths'])
+            ->name('career-paths');
+    });
+
+    // Admin/Analytics routes
+    Route::middleware(['auth:sanctum'])->prefix('admin')->name('admin.')->group(function () {
+        // Clustering analysis
+        Route::get('/clustering', [EnhancedRecommendationController::class, 'runClustering'])
+            ->name('clustering');
+
+        // Find optimal K value
+        Route::get('/optimal-k', [EnhancedRecommendationController::class, 'findOptimalK'])
+            ->name('optimal-k');
+
+        // Labor market insights
+        Route::get('/market-insights', [EnhancedRecommendationController::class, 'getMarketInsights'])
+            ->name('market-insights');
+
+        // Category mismatch detection
+        Route::get('/category-mismatches', [EnhancedRecommendationController::class, 'getCategoryMismatches'])
+            ->name('category-mismatches');
+
+        // Trigger job content analysis
+        Route::post('/analyze-jobs', [EnhancedRecommendationController::class, 'triggerJobAnalysis'])
+            ->name('analyze-jobs');
+
+        // Analyze and update single job
+        Route::post('/analyze-job/{jobId}', [EnhancedRecommendationController::class, 'analyzeAndUpdateJob'])
+            ->name('analyze-update-job');
+
+        // Clear caches
+        Route::post('/clear-cache', [EnhancedRecommendationController::class, 'clearCache'])
+            ->name('clear-cache');
+    });
+});

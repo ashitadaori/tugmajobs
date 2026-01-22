@@ -49,7 +49,15 @@ class Job extends Model
         'job_type_id',
         'company_id',
         'company_name',
-        'company_website'
+        'company_website',
+        // Content analysis fields
+        'inferred_categories',
+        'primary_inferred_category',
+        'primary_inferred_score',
+        'has_category_mismatch',
+        'extracted_skills',
+        'detected_role_type',
+        'content_analyzed_at'
     ];
 
     protected $casts = [
@@ -65,6 +73,12 @@ class Job extends Model
         'longitude' => 'decimal:8',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
+        // Content analysis fields
+        'inferred_categories' => 'array',
+        'extracted_skills' => 'array',
+        'has_category_mismatch' => 'boolean',
+        'primary_inferred_score' => 'float',
+        'content_analyzed_at' => 'datetime',
     ];
 
     // Status constants (integer values to match database tinyint column)
@@ -167,42 +181,42 @@ class Job extends Model
         return $this->hasMany(JobView::class);
     }
 
-    public function savedByUsers(): HasMany
+    public function bookmarkedByUsers(): HasMany
     {
-        return $this->hasMany(SavedJob::class);
+        return $this->hasMany(BookmarkedJob::class);
     }
 
     /**
-     * Check if job is saved by a specific user
+     * Check if job is bookmarked by a specific user
      */
-    public function isSavedByUser($userId): bool
+    public function isBookmarkedByUser($userId): bool
     {
-        return $this->savedByUsers()->where('user_id', $userId)->exists();
+        return $this->bookmarkedByUsers()->where('user_id', $userId)->exists();
     }
 
     /**
-     * Get saved count for this job
+     * Get bookmarked count for this job
      */
-    public function getSavedCountAttribute(): int
+    public function getBookmarkedCountAttribute(): int
     {
-        return $this->savedByUsers()->count();
+        return $this->bookmarkedByUsers()->count();
     }
 
     /**
-     * Get the users who saved this job.
+     * Get the users who bookmarked this job.
      */
-    public function savedBy()
+    public function bookmarkedBy()
     {
-        return $this->belongsToMany(User::class, 'saved_jobs')
+        return $this->belongsToMany(User::class, 'bookmarked_jobs')
             ->withTimestamps();
     }
 
     /**
-     * Check if a user has saved this job.
+     * Check if a user has bookmarked this job.
      */
-    public function savedByUser($userId): bool
+    public function bookmarkedByUser($userId): bool
     {
-        return $this->savedBy()->where('user_id', $userId)->exists();
+        return $this->bookmarkedBy()->where('user_id', $userId)->exists();
     }
 
     /**
@@ -414,5 +428,63 @@ class Job extends Model
                         $q->whereNull('vacancy')
                           ->orWhereRaw('vacancy > (SELECT COUNT(*) FROM job_applications WHERE job_applications.job_id = jobs.id AND job_applications.status = ?)', [JobApplication::STATUS_APPROVED]);
                     });
+    }
+
+    /**
+     * Get the saved jobs for this job
+     */
+    public function savedJobs(): HasMany
+    {
+        return $this->hasMany(SavedJob::class);
+    }
+
+    /**
+     * Check if this job is saved by a specific user
+     */
+    public function isSavedByUser($userId): bool
+    {
+        return SavedJob::isJobSavedByUser($this->id, $userId);
+    }
+
+    /**
+     * Get formatted salary range in Philippine Peso
+     */
+    public function getSalaryRangeAttribute($value): ?string
+    {
+        // If salary_range is already set in the database with peso sign, return it
+        if (!empty($value) && str_contains($value, '₱')) {
+            return $value;
+        }
+
+        // Generate from salary_min and salary_max
+        if ($this->salary_min && $this->salary_max) {
+            return '₱' . number_format($this->salary_min) . ' - ₱' . number_format($this->salary_max);
+        } elseif ($this->salary_min) {
+            return 'From ₱' . number_format($this->salary_min);
+        } elseif ($this->salary_max) {
+            return 'Up to ₱' . number_format($this->salary_max);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get formatted salary display (short format with k)
+     */
+    public function getFormattedSalaryAttribute(): ?string
+    {
+        if ($this->salary_min && $this->salary_max) {
+            $minK = number_format($this->salary_min / 1000);
+            $maxK = number_format($this->salary_max / 1000);
+            return "₱{$minK}k - ₱{$maxK}k";
+        } elseif ($this->salary_min) {
+            $minK = number_format($this->salary_min / 1000);
+            return "From ₱{$minK}k";
+        } elseif ($this->salary_max) {
+            $maxK = number_format($this->salary_max / 1000);
+            return "Up to ₱{$maxK}k";
+        }
+
+        return null;
     }
 }

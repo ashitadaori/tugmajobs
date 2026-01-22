@@ -8,6 +8,7 @@ use App\Models\ResumeTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\APILayerService;
 
 class ResumeBuilderController extends Controller
 {
@@ -16,7 +17,7 @@ class ResumeBuilderController extends Controller
         $user = Auth::user();
         $resumes = Resume::where('user_id', $user->id)->with('template')->latest()->get();
         $templates = ResumeTemplate::where('is_active', true)->orderBy('display_order')->get();
-        
+
         return view('front.account.resume-builder.index', compact('resumes', 'templates'));
     }
 
@@ -79,6 +80,57 @@ class ResumeBuilderController extends Controller
         return view('front.account.resume-builder.create', compact('template', 'personalInfo', 'education', 'skills', 'professionalSummary'));
     }
 
+    public function importResume(Request $request, APILayerService $apiLayerService)
+    {
+        try {
+            $request->validate([
+                'resume_file' => 'required|file|mimes:pdf,doc,docx|max:30720' // 30MB limit
+            ]);
+
+            $file = $request->file('resume_file');
+            $data = $apiLayerService->parseResume($file);
+
+            if (!$data) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to parse resume. Please try again or check the file format.'
+                ], 422);
+            }
+
+            // Map APILayer response to our structure
+            // Note: The actual structure depends on APILayer's response. 
+            // Based on their docs, it returns a JSON with fields like 'name', 'email', 'skills', etc.
+            // I'll try to map common fields safely.
+
+            $mappedData = [
+                'name' => $data['name'] ?? '',
+                'email' => $data['email'] ?? '',
+                'phone' => $data['phone'] ?? '',
+                'skills' => isset($data['skills']) ? explode(',', $data['skills']) : [], // Assuming comma-separated or array
+                // Add more mappings as needed based on actual API response debug
+                'education' => $data['education'] ?? [],
+                'experience' => $data['experience'] ?? [],
+            ];
+
+            // Clean up skills if it's already an array from API
+            if (isset($data['skills']) && is_array($data['skills'])) {
+                $mappedData['skills'] = $data['skills'];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $mappedData
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Resume Import Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while importing the resume.'
+            ], 500);
+        }
+    }
+
     public function store(Request $request)
     {
         // DEBUG: Log what we're receiving
@@ -88,7 +140,7 @@ class ResumeBuilderController extends Controller
             'skills' => $request->skills,
             'languages' => $request->languages,
         ]);
-        
+
         $validated = $request->validate([
             'template_id' => 'required|exists:resume_templates,id',
             'title' => 'required|string|max:255',
@@ -120,7 +172,7 @@ class ResumeBuilderController extends Controller
             if ($request->hasFile('photo')) {
                 $photoPath = $request->file('photo')->store('resume-photos', 'public');
             }
-            
+
             // Decode JSON data safely
             $workExperience = $request->work_experience ? json_decode($request->work_experience, true) : [];
             $education = $request->education ? json_decode($request->education, true) : [];
@@ -128,7 +180,7 @@ class ResumeBuilderController extends Controller
             $certifications = $request->certifications ? json_decode($request->certifications, true) : [];
             $languages = $request->languages ? json_decode($request->languages, true) : [];
             $projects = $request->projects ? json_decode($request->projects, true) : [];
-            
+
             ResumeData::create([
                 'resume_id' => $resume->id,
                 'personal_info' => [
@@ -151,7 +203,7 @@ class ResumeBuilderController extends Controller
 
             return redirect()->route('account.resume-builder.index')
                 ->with('success', 'Resume created successfully!');
-                
+
         } catch (\Exception $e) {
             \Log::error('Resume creation failed', ['error' => $e->getMessage()]);
             return back()->with('error', 'Failed to create resume. Please try again.');
@@ -163,7 +215,7 @@ class ResumeBuilderController extends Controller
         $resume = Resume::where('user_id', Auth::id())
             ->with(['template', 'data'])
             ->findOrFail($id);
-        
+
         return view('front.account.resume-builder.edit', compact('resume'));
     }
 
@@ -177,7 +229,7 @@ class ResumeBuilderController extends Controller
             'skills' => $request->skills,
             'languages' => $request->languages,
         ]);
-        
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'name' => 'required|string|max:255',
@@ -195,10 +247,10 @@ class ResumeBuilderController extends Controller
             'languages' => 'nullable|string',
             'projects' => 'nullable|string',
         ]);
-        
+
         try {
             $resume = Resume::where('user_id', Auth::id())->findOrFail($id);
-            
+
             $resume->update([
                 'title' => $validated['title'],
             ]);
@@ -249,7 +301,7 @@ class ResumeBuilderController extends Controller
 
             return redirect()->route('account.resume-builder.index')
                 ->with('success', 'Resume updated successfully!');
-                
+
         } catch (\Exception $e) {
             \Log::error('Resume update failed', ['error' => $e->getMessage()]);
             return back()->with('error', 'Failed to update resume. Please try again.');
@@ -261,15 +313,15 @@ class ResumeBuilderController extends Controller
         $resume = Resume::where('user_id', Auth::id())
             ->with(['template', 'data'])
             ->findOrFail($id);
-        
+
         // Use template-specific view
         $templateView = 'front.account.resume-builder.templates.' . $resume->template->slug;
-        
+
         // Check if template view exists, fallback to default
         if (!view()->exists($templateView)) {
             $templateView = 'front.account.resume-builder.preview';
         }
-        
+
         return view($templateView, compact('resume'));
     }
 
@@ -277,26 +329,26 @@ class ResumeBuilderController extends Controller
     {
         try {
             \Log::info('PDF Download Started', ['resume_id' => $id]);
-            
+
             $resume = Resume::where('user_id', Auth::id())
                 ->with(['template', 'data'])
                 ->findOrFail($id);
-            
+
             \Log::info('Resume Loaded', ['title' => $resume->title]);
-            
+
             // Use template-specific view
             $templateView = 'front.account.resume-builder.templates.' . $resume->template->slug;
-            
+
             // Check if template view exists, fallback to default
             if (!view()->exists($templateView)) {
                 $templateView = 'front.account.resume-builder.preview';
             }
-            
+
             \Log::info('Using template', ['view' => $templateView]);
-            
+
             // Pass flag to template to indicate PDF generation
             $isPdfDownload = true;
-            
+
             // Generate PDF with optimized settings
             $pdf = Pdf::loadView($templateView, compact('resume', 'isPdfDownload'))
                 ->setPaper('a4', 'portrait')
@@ -308,26 +360,26 @@ class ResumeBuilderController extends Controller
                     'enable_php' => false,
                     'chroot' => public_path(), // Set root for local files
                 ]);
-            
+
             \Log::info('PDF Generated Successfully');
-            
+
             $filename = str_replace(' ', '_', $resume->title) . '_' . date('Y-m-d') . '.pdf';
-            
+
             \Log::info('Attempting download', ['filename' => $filename]);
-            
+
             // Use stream instead of download for better compatibility
-            return response()->streamDownload(function() use ($pdf) {
+            return response()->streamDownload(function () use ($pdf) {
                 echo $pdf->output();
             }, $filename, [
                 'Content-Type' => 'application/pdf',
             ]);
-            
+
         } catch (\Exception $e) {
             \Log::error('PDF Generation Failed', [
                 'resume_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            
+
             return back()->with('error', 'Failed to generate PDF. Please try again.');
         }
     }
@@ -336,7 +388,7 @@ class ResumeBuilderController extends Controller
     {
         $resume = Resume::where('user_id', Auth::id())->findOrFail($id);
         $resume->delete();
-        
+
         return redirect()->route('account.resume-builder.index')
             ->with('success', 'Resume deleted successfully!');
     }

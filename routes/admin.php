@@ -19,7 +19,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats'])->name('dashboard.stats');
     Route::get('/dashboard/export', [DashboardController::class, 'exportStatistics'])->name('dashboard.export');
     Route::post('/dashboard/clear-cache', [DashboardController::class, 'clearCache'])->name('dashboard.clear-cache');
-    
+
     // Profile Management
     Route::prefix('profile')->group(function () {
         Route::get('/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -27,10 +27,11 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::get('/password', [ProfileController::class, 'password'])->name('profile.password');
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
     });
-    
+
     // User Management
     Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('users.index');
+        Route::get('/search', [UserController::class, 'search'])->name('users.search');
         Route::get('/export', [UserController::class, 'export'])->name('users.export');
         Route::post('/bulk-action', [UserController::class, 'bulkAction'])->name('users.bulk-action');
         Route::get('/{user}', [UserController::class, 'show'])->name('users.show');
@@ -38,7 +39,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
-    
+
     // Admin Management
     Route::prefix('admins')->group(function () {
         Route::get('/', [AdminManagementController::class, 'index'])->name('admins.index');
@@ -48,14 +49,17 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::put('/{admin}', [AdminManagementController::class, 'update'])->name('admins.update');
         Route::delete('/{admin}', [AdminManagementController::class, 'destroy'])->name('admins.destroy');
     });
-    
+
     // KYC Management
     Route::prefix('kyc')->group(function () {
-        // Legacy document-based KYC (commented out)
-        // Route::get('/', [KycController::class, 'index'])->name('kyc.index');
-        // Route::put('/{document}/verify', [KycController::class, 'verify'])->name('kyc.verify');
-        // Route::put('/{document}/reject', [KycController::class, 'reject'])->name('kyc.reject');
-        
+        // Manual KYC Document Review (for Philippine IDs and documents not supported by DiDit)
+        Route::get('/manual-documents', [KycController::class, 'manualDocuments'])->name('kyc.manual-documents');
+        Route::get('/manual-documents/{document}', [KycController::class, 'showManualDocument'])->name('kyc.show-manual-document');
+        Route::patch('/manual-documents/{document}/verify', [KycController::class, 'verifyManualDocument'])->name('kyc.verify-manual-document');
+        Route::patch('/manual-documents/{document}/reject', [KycController::class, 'rejectManualDocument'])->name('kyc.reject-manual-document');
+        Route::get('/manual-documents/{document}/download', [KycController::class, 'downloadManualDocument'])->name('kyc.download-manual-document');
+        Route::get('/manual-documents/{document}/view-image/{type}', [KycController::class, 'viewManualDocumentImage'])->name('kyc.view-manual-document-image');
+
         // DiDit KYC Management
         Route::get('/didit-verifications', [KycController::class, 'diditVerifications'])->name('kyc.didit-verifications');
         Route::get('/user/{user}/verification', [KycController::class, 'showDiditVerification'])->name('kyc.show-didit-verification');
@@ -64,10 +68,12 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::post('/refresh-verification/{user}', [KycController::class, 'refreshVerification'])->name('kyc.refresh-verification');
         Route::delete('/user/{user}/reset', [KycController::class, 'resetKyc'])->name('kyc.reset');
     });
-    
+
     // Job Management Routes
     Route::prefix('jobs')->name('jobs.')->group(function () {
         Route::get('/', [JobController::class, 'index'])->name('index');
+        Route::get('/search', [JobController::class, 'search'])->name('search');
+        Route::get('/my-posted', [JobController::class, 'myPostedJobs'])->name('my-posted');
         Route::get('/pending', [JobController::class, 'pending'])->name('pending');
         Route::get('/create', [JobController::class, 'create'])->name('create');
         Route::post('/', [JobController::class, 'store'])->name('store');
@@ -90,7 +96,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::patch('/{job}/reject', [JobController::class, 'reject'])->name('reject');
         Route::get('/{job}/applicants', [JobController::class, 'viewApplicants'])->name('applicants');
     });
-    
+
     // Categories Management
     Route::resource('categories', CategoryController::class);
 
@@ -122,7 +128,13 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::get('/export', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'exportClusterReport'])->name('export');
         Route::post('/clear-cache', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'clearCache'])->name('clear-cache');
     });
-    
+
+    // Audit Reports
+    Route::prefix('audit-reports')->name('audit-reports.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AuditReportController::class, 'index'])->name('index');
+        Route::get('/export', [\App\Http\Controllers\Admin\AuditReportController::class, 'export'])->name('export');
+    });
+
     // Settings
     Route::prefix('settings')->group(function () {
         Route::get('/', [AdminSettingsController::class, 'index'])->name('settings.index');
@@ -131,7 +143,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::get('/security-log', [AdminSettingsController::class, 'securityLog'])->name('settings.security-log');
         Route::get('/audit-log', [AdminSettingsController::class, 'auditLog'])->name('settings.audit-log');
     });
-    
+
     // Maintenance Mode
     Route::prefix('maintenance')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\MaintenanceController::class, 'index'])->name('maintenance.index');

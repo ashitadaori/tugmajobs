@@ -513,8 +513,8 @@
                                     </span>
                                     @if($savedJob->job->salary_min && $savedJob->job->salary_max)
                                         <span>
-                                            <i class="fas fa-dollar-sign" style="color: #10b981;"></i>
-                                            ${{ number_format($savedJob->job->salary_min) }} - ${{ number_format($savedJob->job->salary_max) }}
+                                            <i class="fas fa-peso-sign" style="color: #10b981;"></i>
+                                            ₱{{ number_format($savedJob->job->salary_min) }} - ₱{{ number_format($savedJob->job->salary_max) }}
                                         </span>
                                     @endif
                                     <span>

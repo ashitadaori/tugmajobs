@@ -192,11 +192,11 @@ function startInlineVerification(e) {
                 const retryTime = new Date(data.can_retry_at);
                 const now = new Date();
                 const minutesLeft = Math.ceil((retryTime - now) / (1000 * 60));
-                
+
                 if (minutesLeft > 0) {
-                    showVerificationError(`${data.error} You can try again in ${minutesLeft} minutes.`);
+                    showVerificationErrorWithReset(`${data.error} You can try again in ${minutesLeft} minutes, or reset your verification to start over.`);
                 } else {
-                    showVerificationError(`${data.error} Please refresh the page and try again.`);
+                    showVerificationErrorWithReset(`${data.error} Please refresh the page and try again, or reset your verification to start over.`);
                 }
             } else {
                 showVerificationError(data.error);
@@ -625,10 +625,10 @@ function showVerificationError(message) {
 function showVerificationErrorWithRetry(message) {
     // Remove any existing alerts
     removeExistingAlerts();
-    
+
     // Create error alert with retry button
     const alertHtml = `
-        <div class="alert alert-warning alert-dismissible fade show position-fixed kyc-alert" 
+        <div class="alert alert-warning alert-dismissible fade show position-fixed kyc-alert"
              style="top: 20px; right: 20px; z-index: 9999; min-width: 350px; max-width: 400px;" role="alert">
             <div class="d-flex align-items-start">
                 <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
@@ -649,7 +649,7 @@ function showVerificationErrorWithRetry(message) {
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', alertHtml);
-    
+
     // Auto-dismiss after 15 seconds if user doesn't interact
     setTimeout(() => {
         const alert = document.querySelector('.kyc-alert');
@@ -658,6 +658,52 @@ function showVerificationErrorWithRetry(message) {
             bootstrapAlert.close();
         }
     }, 15000);
+}
+
+function showVerificationErrorWithReset(message) {
+    // Remove any existing alerts
+    removeExistingAlerts();
+
+    // Create error alert with reset button
+    const alertHtml = `
+        <div class="alert alert-danger alert-dismissible fade show position-fixed kyc-alert"
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 350px; max-width: 450px;" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                <div class="flex-grow-1">
+                    <strong>Verification Error</strong>
+                    <div class="mt-1">${message}</div>
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-danger btn-sm me-2" onclick="openResetKycModal()">
+                            <i class="fas fa-redo me-1"></i>Reset KYC
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="alert">
+                            <i class="fas fa-times me-1"></i>Close
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+}
+
+function openResetKycModal() {
+    // Close the error alert
+    removeExistingAlerts();
+
+    // Try to open the reset modal if it exists
+    const resetModal = document.getElementById('resetKycModal');
+    if (resetModal) {
+        const modal = new bootstrap.Modal(resetModal);
+        modal.show();
+    } else {
+        // If modal doesn't exist, redirect to settings page
+        if (confirm('Would you like to go to the settings page to reset your KYC verification?')) {
+            window.location.href = '/employer/settings/security';
+        }
+    }
 }
 
 function removeExistingAlerts() {

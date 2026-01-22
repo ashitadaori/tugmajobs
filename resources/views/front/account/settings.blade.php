@@ -4,63 +4,37 @@
 
 @section('jobseeker-content')
 <style>
-/* Settings Professional Styles */
+/* Settings Professional Styles - Using Modern Design System */
 .settings-pro {
-    padding: 0;
+    padding: 0 1rem;
+    max-width: 900px;
 }
 
-/* Page Header */
-.page-header-settings {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.page-header-settings h1 {
-    font-size: 1.375rem;
-    font-weight: 700;
-    color: #111827;
-    margin: 0 0 0.375rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-}
-
-.page-header-settings h1 i {
-    color: #4f46e5;
-    font-size: 1.25rem;
-}
-
-.page-header-settings p {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0;
-}
-
-/* Settings Card */
+/* Settings Card - Uses modern-card from design system */
 .settings-card {
     background: white;
-    border-radius: 0.875rem;
-    border: 1px solid #e5e7eb;
-    margin-bottom: 1.25rem;
+    border-radius: var(--radius-lg, 16px);
+    border: 1px solid var(--modern-gray-100, #f1f5f9);
+    margin-bottom: 1.75rem;
     overflow: hidden;
-    transition: box-shadow 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .settings-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .settings-card-header {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #f3f4f6;
-    background: #f9fafb;
+    padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid var(--modern-gray-100, #f1f5f9);
+    background: var(--modern-gray-50, #f8fafc);
 }
 
 .settings-card-header h3 {
     font-size: 1rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--modern-gray-800, #1e293b);
     margin: 0 0 0.25rem 0;
     display: flex;
     align-items: center;
@@ -68,18 +42,18 @@
 }
 
 .settings-card-header h3 i {
-    color: #4f46e5;
+    color: var(--modern-primary, #6366f1);
     font-size: 0.9375rem;
 }
 
 .settings-card-header p {
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--modern-gray-500, #64748b);
     margin: 0;
 }
 
 .settings-card-body {
-    padding: 1.5rem;
+    padding: 1.75rem;
 }
 
 /* Profile Picture Section */
@@ -96,26 +70,28 @@
 .profile-image-wrapper .avatar {
     width: 100px;
     height: 100px;
-    border-radius: 0.75rem;
+    border-radius: var(--radius-lg, 16px);
     object-fit: cover;
-    border: 3px solid #e5e7eb;
-    transition: border-color 0.2s ease;
+    border: 3px solid var(--modern-gray-200, #e2e8f0);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .profile-image-wrapper:hover .avatar {
-    border-color: #4f46e5;
+    border-color: var(--modern-primary, #6366f1);
+    transform: scale(1.02);
 }
 
 .profile-image-info h4 {
     font-size: 0.9375rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--modern-gray-800, #1e293b);
     margin: 0 0 0.375rem 0;
 }
 
 .profile-image-info p {
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--modern-gray-500, #64748b);
     margin: 0 0 1rem 0;
 }
 
@@ -132,48 +108,51 @@
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     background: white;
-    color: #4f46e5;
-    border: 1px solid #e0e7ff;
-    border-radius: 0.5rem;
+    color: var(--modern-primary, #6366f1);
+    border: 1px solid var(--modern-primary-100, #e0e7ff);
+    border-radius: var(--radius-md, 12px);
     font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .btn-upload:hover {
-    background: #eef2ff;
-    border-color: #c7d2fe;
+    background: var(--modern-primary-50, #eef2ff);
+    border-color: var(--modern-primary-light, #818cf8);
+    transform: translateY(-1px);
 }
 
 .btn-upload-submit {
     display: none;
     padding: 0.5rem 1rem;
-    background: #4f46e5;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md, 12px);
     font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 .btn-upload-submit:hover {
-    background: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
 }
 
 .file-name-display {
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--modern-gray-500, #64748b);
 }
 
-/* Form Styling */
+/* Form Styling - Using modern-form design system */
 .settings-form .form-row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-    margin-bottom: 1.25rem;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .settings-form .form-row:last-child {
@@ -181,7 +160,7 @@
 }
 
 .settings-form .form-group {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
 .settings-form .form-group.full-width {
@@ -192,12 +171,12 @@
     display: block;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--modern-gray-700, #334155);
     margin-bottom: 0.5rem;
 }
 
 .settings-form label .required {
-    color: #ef4444;
+    color: var(--modern-danger, #ef4444);
     margin-left: 0.125rem;
 }
 
@@ -205,38 +184,43 @@
     width: 100%;
     padding: 0.75rem 1rem;
     font-size: 0.9375rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
+    border: 1px solid var(--modern-gray-300, #cbd5e1);
+    border-radius: var(--radius-md, 12px);
+    transition: all 0.25s ease;
     background: white;
+    color: var(--modern-gray-800, #1e293b);
 }
 
 .settings-form .form-control:focus {
     outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    border-color: var(--modern-primary, #6366f1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .settings-form .form-hint {
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--modern-gray-500, #64748b);
     margin-top: 0.375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
 }
 
 .settings-form .error-message {
     font-size: 0.8125rem;
-    color: #ef4444;
+    color: var(--modern-danger, #ef4444);
     margin-top: 0.375rem;
     display: block;
 }
 
-/* Checkbox Settings */
+/* Checkbox Settings - Using modern toggle design */
 .settings-checkbox {
     padding: 1rem 1.25rem;
-    border: 1px solid #f3f4f6;
-    border-radius: 0.625rem;
+    border: 1px solid var(--modern-gray-100, #f1f5f9);
+    border-radius: var(--radius-md, 12px);
     margin-bottom: 0.75rem;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    background: white;
 }
 
 .settings-checkbox:last-child {
@@ -244,8 +228,9 @@
 }
 
 .settings-checkbox:hover {
-    background: #f9fafb;
-    border-color: #e5e7eb;
+    background: var(--modern-gray-50, #f8fafc);
+    border-color: var(--modern-gray-200, #e2e8f0);
+    transform: translateX(4px);
 }
 
 .settings-checkbox label {
@@ -259,12 +244,12 @@
 .settings-checkbox input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    border: 2px solid #d1d5db;
-    border-radius: 4px;
+    border: 2px solid var(--modern-gray-300, #cbd5e1);
+    border-radius: 5px;
     cursor: pointer;
     flex-shrink: 0;
     margin-top: 2px;
-    accent-color: #4f46e5;
+    accent-color: var(--modern-primary, #6366f1);
 }
 
 .settings-checkbox .checkbox-content {
@@ -274,41 +259,43 @@
 .settings-checkbox .checkbox-title {
     font-size: 0.9375rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--modern-gray-800, #1e293b);
     margin-bottom: 0.25rem;
 }
 
 .settings-checkbox .checkbox-desc {
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--modern-gray-500, #64748b);
     line-height: 1.5;
 }
 
-/* Buttons */
+/* Buttons - Using btn-modern design system */
 .btn-primary-settings {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    background: #4f46e5;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md, 12px);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
 }
 
 .btn-primary-settings:hover {
-    background: #4338ca;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
 }
 
 .btn-primary-settings:disabled {
-    background: #9ca3af;
+    background: var(--modern-gray-300, #cbd5e1);
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 .btn-secondary-settings {
@@ -317,19 +304,20 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     background: white;
-    color: #374151;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
+    color: var(--modern-gray-700, #334155);
+    border: 1px solid var(--modern-gray-300, #cbd5e1);
+    border-radius: var(--radius-md, 12px);
     font-size: 0.875rem;
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .btn-secondary-settings:hover {
-    background: #f3f4f6;
-    color: #374151;
+    background: var(--modern-gray-50, #f8fafc);
+    border-color: var(--modern-gray-400, #94a3b8);
+    color: var(--modern-gray-800, #1e293b);
 }
 
 .form-actions {
@@ -339,14 +327,14 @@
     flex-wrap: wrap;
 }
 
-/* Danger Zone */
+/* Danger Zone - Using danger-zone-card design system */
 .settings-card.danger {
-    border-color: #fecaca;
+    border-color: var(--modern-danger-light, #fee2e2);
 }
 
 .settings-card.danger .settings-card-header {
-    background: #fef2f2;
-    border-bottom-color: #fecaca;
+    background: var(--modern-danger-light, #fee2e2);
+    border-bottom-color: rgba(239, 68, 68, 0.2);
 }
 
 .settings-card.danger .settings-card-header h3 {
@@ -354,7 +342,7 @@
 }
 
 .settings-card.danger .settings-card-header h3 i {
-    color: #ef4444;
+    color: var(--modern-danger, #ef4444);
 }
 
 .btn-danger-settings {
@@ -363,23 +351,25 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     background: white;
-    color: #ef4444;
-    border: 1px solid #fecaca;
-    border-radius: 0.5rem;
+    color: var(--modern-danger, #ef4444);
+    border: 1px solid var(--modern-danger, #ef4444);
+    border-radius: var(--radius-md, 12px);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .btn-danger-settings:hover {
-    background: #fef2f2;
-    border-color: #ef4444;
+    background: var(--modern-danger, #ef4444);
+    color: white;
+    transform: translateY(-1px);
 }
 
 .btn-danger-settings:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
 }
 
 /* Invalid Input Styling */
@@ -461,8 +451,8 @@
 </style>
 
 <div class="settings-pro">
-    <!-- Page Header -->
-    <div class="page-header-settings">
+    <!-- Page Header - Using modern design system -->
+    <div class="simple-page-header">
         <h1><i class="fas fa-cog"></i> Account Settings</h1>
         <p>Manage your account preferences and security settings</p>
     </div>
