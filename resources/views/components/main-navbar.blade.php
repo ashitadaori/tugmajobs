@@ -14,6 +14,20 @@
         display: flex !important;
     }
 
+    /* Ensure navbar is visible on homepage */
+    body.homepage .main-navbar-wrapper>.navbar,
+    body.homepage .main-navbar-wrapper>.modern-navbar,
+    body.force-home .main-navbar-wrapper>.navbar,
+    body.force-home .main-navbar-wrapper>.modern-navbar {
+        position: fixed !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: flex !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+    }
+
     /* Modern Navbar Styles */
     .modern-navbar {
         background: rgba(255, 255, 255, 0.95) !important;
@@ -458,6 +472,61 @@
                     </div>
                 </div>
             </nav>
+        @else
+            {{-- Fallback Navbar for authenticated users with unknown role --}}
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="{{ route('home') }}">
+                        <i class="fas fa-briefcase text-primary"></i>
+                        <strong class="text-primary">TugmaJobs</strong>
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
+                                    <i class="fas fa-home"></i> Home
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('jobs*') ? 'active' : '' }}"
+                                    href="{{ route('jobs') }}">
+                                    <i class="fas fa-search"></i> Find Jobs
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('companies*') ? 'active' : '' }}"
+                                    href="{{ route('companies') }}">
+                                    <i class="fas fa-building"></i> Companies
+                                </a>
+                            </li>
+                        </ul>
+
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                                    data-bs-toggle="dropdown">
+                                    {{ Auth::user()->name }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <form action="{{ route('logout') }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fas fa-sign-out-alt"></i> Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
         @endif
     @else
         {{-- Guest Navbar --}}
@@ -522,9 +591,5 @@
                 </div>
             </div>
         </nav>
-
-        {{-- Include Auth Modals --}}
-        @include('components.auth-modal')
-        @include('components.employer-auth-modal')
     @endauth
 </div>{{-- End main-navbar-wrapper --}}

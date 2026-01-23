@@ -127,6 +127,12 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::get('/jobfair', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'getJobFairPlanningData'])->name('jobfair');
         Route::get('/export', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'exportClusterReport'])->name('export');
         Route::post('/clear-cache', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'clearCache'])->name('clear-cache');
+
+        // Azure ML K-Means Clustering Visualization
+        Route::get('/kmeans', [\App\Http\Controllers\Admin\KMeansVisualizationController::class, 'index'])->name('kmeans');
+        Route::get('/kmeans/data', [\App\Http\Controllers\Admin\KMeansVisualizationController::class, 'getData'])->name('kmeans.data');
+        Route::get('/kmeans/health', [\App\Http\Controllers\Admin\KMeansVisualizationController::class, 'healthCheck'])->name('kmeans.health');
+        Route::post('/kmeans/refresh', [\App\Http\Controllers\Admin\KMeansVisualizationController::class, 'refreshClusters'])->name('kmeans.refresh');
     });
 
     // Audit Reports

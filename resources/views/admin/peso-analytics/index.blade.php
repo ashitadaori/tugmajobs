@@ -358,6 +358,198 @@
                 height: 350px;
             }
         }
+
+        /* K-Means Explanation Styles */
+        .kmeans-explanation {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .explanation-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+
+        .explanation-header h6 {
+            margin: 0;
+            color: #0369a1;
+            font-weight: 600;
+        }
+
+        .explanation-icon {
+            width: 40px;
+            height: 40px;
+            background: #0ea5e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .explanation-content {
+            font-size: 0.9rem;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .explanation-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .explanation-step {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background: #0ea5e9;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #0369a1;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        /* Calculation Breakdown Styles */
+        .calculation-card {
+            background: #fefce8;
+            border: 1px solid #fde047;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .calculation-card h6 {
+            color: #a16207;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .formula-box {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #fde68a;
+        }
+
+        .formula-explanation {
+            font-size: 0.8rem;
+            color: #78716c;
+            margin-top: 0.25rem;
+        }
+
+        /* Chart Legend Explanation */
+        .chart-legend-guide {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .legend-guide-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .legend-guide-item:last-child {
+            border-bottom: none;
+        }
+
+        .legend-guide-symbol {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .legend-guide-text {
+            flex: 1;
+        }
+
+        .legend-guide-text strong {
+            display: block;
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+
+        .legend-guide-text span {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Metric Explanation Tooltip */
+        .metric-explain {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .metric-explain .help-icon {
+            width: 16px;
+            height: 16px;
+            background: #e0f2fe;
+            color: #0284c7;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: help;
+        }
+
+        /* Collapsible section */
+        .collapsible-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible-trigger .bi-chevron-down {
+            transition: transform 0.3s ease;
+        }
+
+        .collapsible-trigger.collapsed .bi-chevron-down {
+            transform: rotate(-90deg);
+        }
     </style>
 @endsection
 
@@ -465,6 +657,85 @@
         <!-- Tab Contents -->
         <!-- K-Means Clusters Tab -->
         <div id="clusters-tab" class="tab-content active">
+            <!-- How K-Means Works - Beginner-Friendly Explanation -->
+            <div class="kmeans-explanation mb-4">
+                <div class="explanation-header collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#kmeansExplainContent">
+                    <div class="explanation-icon">
+                        <i class="bi bi-lightbulb"></i>
+                    </div>
+                    <div>
+                        <h6>What is K-Means Clustering? <small class="text-muted fw-normal">(Click to expand/collapse)</small></h6>
+                        <p class="mb-0 small text-muted">A simple guide to understanding this chart</p>
+                    </div>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <div class="collapse show" id="kmeansExplainContent">
+                    <div class="explanation-content">
+                        <p><strong>In simple terms:</strong> K-Means is like sorting your closet! Imagine you have many different jobs, and you want to organize them into groups based on how similar they are. Jobs with similar salaries and popularity get grouped together.</p>
+
+                        <div class="explanation-steps">
+                            <div class="explanation-step">
+                                <div class="step-title"><span class="step-number">1</span> Collect Data</div>
+                                <div class="step-description">We gather information about each job: salary offered and how many people applied (popularity).</div>
+                            </div>
+                            <div class="explanation-step">
+                                <div class="step-title"><span class="step-number">2</span> Place on Chart</div>
+                                <div class="step-description">Each job becomes a dot on the chart. Left-to-right shows salary (low to high). Bottom-to-top shows popularity.</div>
+                            </div>
+                            <div class="explanation-step">
+                                <div class="step-title"><span class="step-number">3</span> Find Groups</div>
+                                <div class="step-description">The algorithm finds jobs that are close together and colors them the same. Each color = one job category/cluster.</div>
+                            </div>
+                            <div class="explanation-step">
+                                <div class="step-title"><span class="step-number">4</span> Mark Centers</div>
+                                <div class="step-description">The star (★) shows the "center" of each group - the average position of all jobs in that cluster.</div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Reading Guide -->
+                        <div class="chart-legend-guide mt-3">
+                            <h6 class="mb-3"><i class="bi bi-book me-2"></i>How to Read the Chart</h6>
+                            <div class="legend-guide-item">
+                                <div class="legend-guide-symbol">
+                                    <span style="color: #3b82f6;">●</span>
+                                </div>
+                                <div class="legend-guide-text">
+                                    <strong>Colored Dots = Individual Jobs</strong>
+                                    <span>Each dot represents one job posting. Same color means same job category.</span>
+                                </div>
+                            </div>
+                            <div class="legend-guide-item">
+                                <div class="legend-guide-symbol">
+                                    <span style="color: #f59e0b; font-size: 1.5rem;">★</span>
+                                </div>
+                                <div class="legend-guide-text">
+                                    <strong>Stars = Cluster Centers (Centroids)</strong>
+                                    <span>The "average" position of all jobs in that group. Think of it as the typical job in that category.</span>
+                                </div>
+                            </div>
+                            <div class="legend-guide-item">
+                                <div class="legend-guide-symbol">
+                                    <i class="bi bi-arrow-right text-secondary"></i>
+                                </div>
+                                <div class="legend-guide-text">
+                                    <strong>X-Axis (Horizontal) = Salary Level</strong>
+                                    <span>Jobs on the right pay more than jobs on the left.</span>
+                                </div>
+                            </div>
+                            <div class="legend-guide-item">
+                                <div class="legend-guide-symbol">
+                                    <i class="bi bi-arrow-up text-secondary"></i>
+                                </div>
+                                <div class="legend-guide-text">
+                                    <strong>Y-Axis (Vertical) = Popularity</strong>
+                                    <span>Jobs at the top received more applications (more popular with job seekers).</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row g-4">
                 <div class="col-lg-8">
                     <div class="analytics-card">
@@ -475,8 +746,8 @@
                                     <i class="bi bi-info-circle-fill text-primary ms-1"
                                         style="font-size: 0.9em; cursor: help;" data-bs-toggle="popover"
                                         data-bs-trigger="hover focus" data-bs-placement="right" data-bs-html="true"
-                                        title="How to read this chart"
-                                        data-bs-content="<ul class='mb-0 ps-3 small'><li><strong>Scatter Plot:</strong> Each dot is a job position</li><li><strong>X-axis:</strong> Salary level (normalized)</li><li><strong>Y-axis:</strong> Application attractiveness</li><li><strong>Colors:</strong> Different job categories (clusters)</li><li><strong>Large markers (★):</strong> Cluster centroids</li><li>Click legend items to show/hide clusters</li></ul>">
+                                        title="Quick Guide"
+                                        data-bs-content="<div class='small'><p class='mb-2'><strong>What you're seeing:</strong> Jobs organized into groups based on salary and popularity.</p><ul class='mb-0 ps-3'><li><strong>Dots:</strong> Each dot = 1 job posting</li><li><strong>Colors:</strong> Same color = same job category</li><li><strong>Stars (★):</strong> The 'center' of each group</li><li><strong>Position:</strong> Right = higher salary, Top = more popular</li><li><strong>Tip:</strong> Click on dots or stars to see details!</li></ul></div>">
                                     </i>
                                 </h5>
                                 <p class="text-muted small mb-0">Jobs plotted by salary and demand, grouped into clusters by category</p>
@@ -524,21 +795,54 @@
                     <div class="analytics-card mt-4">
                         <div class="analytics-card-header">
                             <h5 class="mb-0">
-                                <i class="bi bi-table me-2"></i>Cluster Distribution & Metrics
+                                <i class="bi bi-table me-2"></i>Job Categories Summary
                             </h5>
+                            <small class="text-muted">Click any row to see detailed information</small>
                         </div>
                         <div class="analytics-card-body">
+                            <p class="small text-muted mb-3">
+                                <i class="bi bi-info-circle me-1"></i>
+                                This table shows key statistics for each job category. Higher demand scores and compactness indicate stronger, more defined job markets.
+                            </p>
                             <div class="table-responsive">
                                 <table class="table table-hover cluster-metrics-table mb-0">
                                     <thead>
                                         <tr>
-                                            <th>Cluster</th>
-                                            <th class="text-center">Jobs</th>
-                                            <th class="text-center">Applications</th>
-                                            <th class="text-center">Jobseekers</th>
-                                            <th class="text-center">Avg Salary</th>
-                                            <th class="text-center">Demand Score</th>
-                                            <th style="width: 120px;">Compactness</th>
+                                            <th>
+                                                Job Category
+                                                <i class="bi bi-question-circle ms-1 text-muted" style="font-size: 0.75rem; cursor: help;"
+                                                   data-bs-toggle="tooltip" title="The name of the job group/category"></i>
+                                            </th>
+                                            <th class="text-center">
+                                                Jobs
+                                                <i class="bi bi-question-circle ms-1 text-muted" style="font-size: 0.75rem; cursor: help;"
+                                                   data-bs-toggle="tooltip" title="Total number of job openings in this category"></i>
+                                            </th>
+                                            <th class="text-center">
+                                                Applications
+                                                <i class="bi bi-question-circle ms-1 text-muted" style="font-size: 0.75rem; cursor: help;"
+                                                   data-bs-toggle="tooltip" title="How many people have applied to jobs in this category"></i>
+                                            </th>
+                                            <th class="text-center">
+                                                Interested
+                                                <i class="bi bi-question-circle ms-1 text-muted" style="font-size: 0.75rem; cursor: help;"
+                                                   data-bs-toggle="tooltip" title="Number of job seekers who prefer this category"></i>
+                                            </th>
+                                            <th class="text-center">
+                                                Avg Salary
+                                                <i class="bi bi-question-circle ms-1 text-muted" style="font-size: 0.75rem; cursor: help;"
+                                                   data-bs-toggle="tooltip" title="Average salary offered for jobs in this category"></i>
+                                            </th>
+                                            <th class="text-center">
+                                                Demand
+                                                <i class="bi bi-question-circle ms-1 text-muted" style="font-size: 0.75rem; cursor: help;"
+                                                   data-bs-toggle="tooltip" title="How 'hot' is this category? Higher score = more demand from both employers and job seekers"></i>
+                                            </th>
+                                            <th style="width: 130px;">
+                                                Similarity
+                                                <i class="bi bi-question-circle ms-1 text-muted" style="font-size: 0.75rem; cursor: help;"
+                                                   data-bs-toggle="tooltip" title="How similar are jobs within this category? Higher % = jobs in this group have similar salaries and popularity"></i>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody id="clusterMetricsTable">
@@ -561,7 +865,7 @@
                                         Silhouette Score
                                         <i class="bi bi-question-circle ms-1" style="cursor: help;"
                                            data-bs-toggle="tooltip"
-                                           title="Measures how similar jobs are within clusters vs between clusters. Range: -1 to 1. Higher is better. >0.5 = Good, >0.7 = Excellent"></i>
+                                           title="How well-separated are the groups? Higher score = cleaner, more distinct groups. Think of it like asking: Are jobs in the same category really similar to each other?"></i>
                                     </span>
                                     <span id="silhouetteScore" class="fw-bold">-</span>
                                 </div>
@@ -569,28 +873,29 @@
                                     <div id="silhouetteFill" class="silhouette-fill bg-success" style="width: 0%"></div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-1">
-                                    <small class="text-muted">Poor</small>
-                                    <small class="text-muted">Excellent</small>
+                                    <small class="text-muted">Groups overlap</small>
+                                    <small class="text-muted">Groups distinct</small>
                                 </div>
                             </div>
 
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="text-muted">
-                                        Inertia (WCSS)
+                                        Inertia (Spread)
                                         <i class="bi bi-question-circle ms-1" style="cursor: help;"
                                            data-bs-toggle="tooltip"
-                                           title="Within-Cluster Sum of Squares. Lower values indicate tighter, more cohesive clusters."></i>
+                                           title="How spread out are jobs within each group? Lower number = jobs in each group are tightly packed together (more similar). Higher number = jobs are spread out."></i>
                                     </span>
                                     <span id="inertiaScore" class="fw-bold">-</span>
                                 </div>
+                                <small class="text-muted d-block mt-1">Lower = tighter groups</small>
                             </div>
 
                             <hr>
                             <div class="row text-center">
                                 <div class="col-4">
                                     <h4 id="totalClusters" class="mb-0 text-primary">-</h4>
-                                    <small class="text-muted">Clusters (K)</small>
+                                    <small class="text-muted">Groups (K)</small>
                                 </div>
                                 <div class="col-4">
                                     <h4 id="totalClusterJobs" class="mb-0 text-success">-</h4>
@@ -604,21 +909,87 @@
 
                             <hr>
                             <div class="small text-muted">
-                                <strong>Interpretation Guide:</strong>
+                                <strong>What do these scores mean?</strong>
                                 <ul class="mb-0 mt-2 ps-3">
-                                    <li><span class="text-success">●</span> Silhouette > 0.5: Good clustering</li>
-                                    <li><span class="text-warning">●</span> Silhouette 0.25-0.5: Fair clustering</li>
-                                    <li><span class="text-danger">●</span> Silhouette < 0.25: Weak clustering</li>
+                                    <li><span class="text-success">●</span> <strong>Good (>0.5):</strong> Job categories are clearly different from each other</li>
+                                    <li><span class="text-warning">●</span> <strong>Fair (0.25-0.5):</strong> Some overlap between categories</li>
+                                    <li><span class="text-danger">●</span> <strong>Weak (<0.25):</strong> Categories are mixed - try changing K value</li>
                                 </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculation Breakdown Section -->
+                    <div class="analytics-card mb-4">
+                        <div class="analytics-card-header collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#calculationBreakdown">
+                            <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>How We Calculate Results</h5>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="collapse" id="calculationBreakdown">
+                            <div class="analytics-card-body">
+                                <div class="calculation-card mb-3">
+                                    <h6><i class="bi bi-geo-alt"></i> Finding the Center (Centroid)</h6>
+                                    <div class="formula-box">
+                                        Center X = (Sum of all job X positions) ÷ (Number of jobs)<br>
+                                        Center Y = (Sum of all job Y positions) ÷ (Number of jobs)
+                                    </div>
+                                    <p class="formula-explanation">
+                                        <strong>In simple terms:</strong> We add up where all jobs in a group are positioned, then divide by how many jobs there are. This gives us the "average" location - the center of the group.
+                                    </p>
+                                </div>
+
+                                <div class="calculation-card mb-3">
+                                    <h6><i class="bi bi-arrows-angle-contract"></i> Measuring Spread (Inertia)</h6>
+                                    <div class="formula-box">
+                                        Inertia = Sum of (distance from each job to its group center)²
+                                    </div>
+                                    <p class="formula-explanation">
+                                        <strong>In simple terms:</strong> For each job, we measure how far it is from the center of its group. We square these distances (to make bigger gaps count more) and add them all up. A smaller number means jobs are closer to their group's center = better grouping!
+                                    </p>
+                                </div>
+
+                                <div class="calculation-card mb-3">
+                                    <h6><i class="bi bi-bullseye"></i> Compactness Score</h6>
+                                    <div class="formula-box">
+                                        Average Distance = (Sum of all distances to center) ÷ (Number of jobs)<br>
+                                        Compactness = 1 - (Average Distance ÷ 100)
+                                    </div>
+                                    <p class="formula-explanation">
+                                        <strong>In simple terms:</strong> This tells us how "tight" each group is. A compactness of 80% means jobs in that category are very similar to each other. A lower percentage means the jobs in that group vary a lot.
+                                    </p>
+                                </div>
+
+                                <div class="calculation-card mb-3">
+                                    <h6><i class="bi bi-graph-up"></i> Demand Score</h6>
+                                    <div class="formula-box">
+                                        Demand Score = (Applications per Job × 10) + (Jobseekers per Job × 5) + (Job Count × 2)
+                                    </div>
+                                    <p class="formula-explanation">
+                                        <strong>In simple terms:</strong> This measures how "hot" a job category is. More applications, more interested jobseekers, and more job openings all increase the score. A score of 50+ means high demand!
+                                    </p>
+                                </div>
+
+                                <div class="calculation-card">
+                                    <h6><i class="bi bi-bar-chart"></i> Silhouette Score</h6>
+                                    <div class="formula-box">
+                                        For each job: Compare distance to own group vs. distance to nearest other group
+                                    </div>
+                                    <p class="formula-explanation">
+                                        <strong>In simple terms:</strong> For each job, we ask: "Is this job closer to others in its own group, or to jobs in different groups?" If most jobs are much closer to their own group, the score is high (good!). If jobs could belong to multiple groups, the score is low.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="analytics-card">
                         <div class="analytics-card-header">
-                            <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Key Insights</h5>
+                            <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>What This Means For You</h5>
                         </div>
                         <div class="analytics-card-body">
+                            <p class="small text-muted mb-3">
+                                Actionable insights based on the clustering analysis:
+                            </p>
                             <div id="clusterInsights">
                                 <!-- Insights will be rendered here -->
                             </div>
@@ -1067,6 +1438,25 @@
 
             // Initialize Bootstrap Tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+
+            // Handle collapsible section toggle states
+            document.querySelectorAll('.collapsible-trigger').forEach(function(trigger) {
+                const targetId = trigger.getAttribute('data-bs-target');
+                const targetEl = document.querySelector(targetId);
+
+                if (targetEl) {
+                    targetEl.addEventListener('show.bs.collapse', function () {
+                        trigger.classList.remove('collapsed');
+                    });
+                    targetEl.addEventListener('hide.bs.collapse', function () {
+                        trigger.classList.add('collapsed');
+                    });
+                    // Set initial state
+                    if (!targetEl.classList.contains('show')) {
+                        trigger.classList.add('collapsed');
+                    }
+                }
+            });
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
@@ -1241,26 +1631,38 @@
                         },
                         tooltip: {
                             callbacks: {
+                                title: function(context) {
+                                    const point = context[0].raw;
+                                    if (point.isCentroid) {
+                                        return `★ ${point.clusterName} - Category Center`;
+                                    }
+                                    return point.title || context[0].dataset.label;
+                                },
                                 label: function(context) {
                                     const point = context.raw;
                                     if (point.isCentroid) {
                                         return [
-                                            `★ ${point.clusterName} Centroid`,
-                                            `Jobs in cluster: ${point.jobCount}`,
-                                            `Position: (${point.x.toFixed(1)}, ${point.y.toFixed(1)})`
+                                            `This is the "average" job in ${point.clusterName}`,
+                                            `Total jobs in this category: ${point.jobCount}`,
+                                            ``,
+                                            `💡 The star shows where a typical`,
+                                            `   job in this category would be.`
                                         ];
                                     }
                                     return [
-                                        point.title || context.dataset.label,
-                                        `Salary: ₱${(point.salary || 0).toLocaleString()}`,
-                                        `Applications: ${point.applications || 0}`
+                                        `💰 Salary: ₱${(point.salary || 0).toLocaleString()}`,
+                                        `📝 Applications: ${point.applications || 0} people applied`,
+                                        ``,
+                                        `Click for more details about this category`
                                     ];
                                 }
                             },
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            titleFont: { size: 13, weight: 'bold' },
-                            bodyFont: { size: 12 }
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            padding: 14,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            cornerRadius: 8,
+                            displayColors: false
                         },
                         title: {
                             display: false
@@ -1274,19 +1676,21 @@
                             max: 100,
                             title: {
                                 display: true,
-                                text: data.axis_labels?.x || 'Salary Level (Normalized)',
-                                font: { size: 12, weight: '600' }
+                                text: 'Salary Level →  (Low to High)',
+                                font: { size: 12, weight: '600' },
+                                color: '#374151'
                             },
                             grid: {
                                 color: '#e5e7eb'
                             },
                             ticks: {
                                 callback: function(value) {
-                                    if (value === 0) return 'Low';
-                                    if (value === 50) return 'Medium';
-                                    if (value === 100) return 'High';
+                                    if (value === 0) return 'Lower Pay';
+                                    if (value === 50) return 'Average';
+                                    if (value === 100) return 'Higher Pay';
                                     return '';
-                                }
+                                },
+                                color: '#6b7280'
                             }
                         },
                         y: {
@@ -1294,19 +1698,21 @@
                             max: 100,
                             title: {
                                 display: true,
-                                text: data.axis_labels?.y || 'Application Attractiveness',
-                                font: { size: 12, weight: '600' }
+                                text: 'Popularity ↑  (Few to Many Applications)',
+                                font: { size: 12, weight: '600' },
+                                color: '#374151'
                             },
                             grid: {
                                 color: '#e5e7eb'
                             },
                             ticks: {
                                 callback: function(value) {
-                                    if (value === 0) return 'Low';
-                                    if (value === 50) return 'Medium';
-                                    if (value === 100) return 'High';
+                                    if (value === 0) return 'Less Popular';
+                                    if (value === 50) return 'Moderate';
+                                    if (value === 100) return 'Very Popular';
                                     return '';
-                                }
+                                },
+                                color: '#6b7280'
                             }
                         }
                     },
@@ -1423,26 +1829,95 @@
             const insightsContainer = document.getElementById('clusterInsights');
             let insightsHtml = '';
 
+            // Find top and bottom performing categories
+            const sortedClusters = [...data.clusters].sort((a, b) => b.demand_score - a.demand_score);
+            const topCategory = sortedClusters[0];
+            const lowCategory = sortedClusters[sortedClusters.length - 1];
+
+            // Top category insight
+            if (topCategory && topCategory.demand_score >= 50) {
+                insightsHtml += `
+                    <div class="insight-item success">
+                        <strong><i class="bi bi-trophy me-1"></i> Hot Job Market:</strong>
+                        <em>${topCategory.name}</em> is the most in-demand category with ${topCategory.job_count} jobs
+                        and ${topCategory.application_count} applications.
+                        <span class="d-block mt-1 small">Consider focusing job fair efforts here!</span>
+                    </div>
+                `;
+            }
+
+            // Supply-demand analysis
+            const oversupplied = data.clusters.filter(c => c.jobseeker_count > c.job_count * 2);
+            const undersupplied = data.clusters.filter(c => c.job_count > c.jobseeker_count * 2);
+
+            if (oversupplied.length > 0) {
+                insightsHtml += `
+                    <div class="insight-item warning">
+                        <strong><i class="bi bi-people me-1"></i> More Seekers Than Jobs:</strong>
+                        ${oversupplied.map(c => c.name).join(', ')} ${oversupplied.length === 1 ? 'has' : 'have'} more job seekers than available positions.
+                        <span class="d-block mt-1 small">These seekers may need skill training or career counseling.</span>
+                    </div>
+                `;
+            }
+
+            if (undersupplied.length > 0) {
+                insightsHtml += `
+                    <div class="insight-item success">
+                        <strong><i class="bi bi-briefcase me-1"></i> Job Opportunities:</strong>
+                        ${undersupplied.map(c => c.name).join(', ')} ${undersupplied.length === 1 ? 'has' : 'have'} more openings than interested seekers.
+                        <span class="d-block mt-1 small">Good opportunity to encourage job seekers to explore these fields!</span>
+                    </div>
+                `;
+            }
+
             if (data.cluster_summary && data.cluster_summary.insights) {
                 data.cluster_summary.insights.forEach((insight, i) => {
-                    const className = i === 0 ? 'success' : (insight.toLowerCase().includes('gap') ? 'warning' : '');
+                    const className = insight.toLowerCase().includes('gap') || insight.toLowerCase().includes('low') ? 'warning' : '';
                     insightsHtml += `<div class="insight-item ${className}">${insight}</div>`;
                 });
             }
 
-            // Add clustering quality interpretation
+            // Add clustering quality interpretation in plain language
             const silhouette = data.silhouette_score || 0;
             let qualityInsight = '';
             if (silhouette >= 0.7) {
-                qualityInsight = '<div class="insight-item success"><strong>Excellent clustering:</strong> Job categories are well-separated and distinct.</div>';
+                qualityInsight = `
+                    <div class="insight-item success">
+                        <strong><i class="bi bi-check-circle me-1"></i> Clear Categories:</strong>
+                        The job categories are very distinct from each other (score: ${silhouette.toFixed(2)}).
+                        Jobs in each category share similar characteristics - the grouping makes sense!
+                    </div>`;
             } else if (silhouette >= 0.5) {
-                qualityInsight = '<div class="insight-item success"><strong>Good clustering:</strong> Reasonable structure found in job categories.</div>';
+                qualityInsight = `
+                    <div class="insight-item success">
+                        <strong><i class="bi bi-check-circle me-1"></i> Good Grouping:</strong>
+                        Job categories are reasonably distinct (score: ${silhouette.toFixed(2)}).
+                        Most jobs fit well into their assigned categories.
+                    </div>`;
             } else if (silhouette >= 0.25) {
-                qualityInsight = '<div class="insight-item warning"><strong>Fair clustering:</strong> Some overlap between job categories. Consider adjusting K value.</div>';
+                qualityInsight = `
+                    <div class="insight-item warning">
+                        <strong><i class="bi bi-exclamation-triangle me-1"></i> Some Overlap:</strong>
+                        Some job categories overlap (score: ${silhouette.toFixed(2)}).
+                        Some jobs might fit into multiple categories. Try changing the number of groups (K value) to see if grouping improves.
+                    </div>`;
             } else {
-                qualityInsight = '<div class="insight-item warning"><strong>Weak clustering:</strong> Job categories have significant overlap. Try different K values.</div>';
+                qualityInsight = `
+                    <div class="insight-item warning">
+                        <strong><i class="bi bi-exclamation-triangle me-1"></i> Categories Mixed:</strong>
+                        Job categories have significant overlap (score: ${silhouette.toFixed(2)}).
+                        This could mean jobs are very diverse, or try adjusting the K value for better grouping.
+                    </div>`;
             }
             insightsHtml += qualityInsight;
+
+            // Tip about K value
+            insightsHtml += `
+                <div class="insight-item" style="background: #f0f9ff; border-left-color: #0ea5e9;">
+                    <strong><i class="bi bi-lightbulb me-1"></i> Tip:</strong>
+                    Try different K values (3, 5, 7, 10) using the dropdown above to see which grouping makes the most sense for your data!
+                </div>
+            `;
 
             insightsContainer.innerHTML = insightsHtml || '<p class="text-muted">No insights available</p>';
         }
@@ -1456,33 +1931,51 @@
                 const metrics = data.cluster_metrics?.find(m => m.name === cluster.name) || {};
                 const compactness = metrics.compactness || 0;
                 const compactnessColor = compactness >= 0.7 ? '#22c55e' : (compactness >= 0.4 ? '#f59e0b' : '#ef4444');
+                const compactnessLabel = compactness >= 0.7 ? 'Very Similar' : (compactness >= 0.4 ? 'Somewhat Similar' : 'Varied');
+
+                // Determine row highlight based on demand
+                const rowClass = cluster.demand_score >= 70 ? 'table-success' : (cluster.demand_score >= 50 ? 'table-info' : '');
 
                 html += `
-                    <tr onclick="showClusterDetails(${index})" style="cursor: pointer;">
+                    <tr onclick="showClusterDetails(${index})" style="cursor: pointer;" class="${rowClass}" title="Click for detailed analysis">
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="legend-color me-2" style="background: ${cluster.color}"></div>
-                                <span class="fw-medium">${cluster.name}</span>
+                                <div>
+                                    <span class="fw-medium">${cluster.name}</span>
+                                    ${cluster.demand_score >= 70 ? '<span class="badge bg-success ms-2" style="font-size: 0.65rem;">Hot!</span>' : ''}
+                                </div>
                             </div>
                         </td>
                         <td class="text-center fw-bold">${cluster.job_count}</td>
                         <td class="text-center">${cluster.application_count}</td>
-                        <td class="text-center">${cluster.jobseeker_count}</td>
-                        <td class="text-center">₱${(cluster.avg_salary || 0).toLocaleString()}</td>
                         <td class="text-center">
-                            <span class="badge ${cluster.demand_score >= 50 ? 'bg-success' : 'bg-secondary'}">${cluster.demand_score}/100</span>
+                            ${cluster.jobseeker_count}
+                            ${cluster.jobseeker_count > cluster.job_count * 1.5
+                                ? '<i class="bi bi-arrow-up text-warning ms-1" title="High competition"></i>'
+                                : ''}
+                        </td>
+                        <td class="text-center text-success">₱${(cluster.avg_salary || 0).toLocaleString()}</td>
+                        <td class="text-center">
+                            <span class="badge ${cluster.demand_score >= 50 ? 'bg-success' : 'bg-secondary'}"
+                                  title="${cluster.demand_score >= 50 ? 'High demand - lots of activity!' : 'Moderate demand'}">
+                                ${cluster.demand_score}/100
+                            </span>
                         </td>
                         <td>
-                            <div class="compactness-bar">
-                                <div class="compactness-fill" style="width: ${compactness * 100}%; background: ${compactnessColor}"></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="compactness-bar flex-grow-1">
+                                    <div class="compactness-fill" style="width: ${compactness * 100}%; background: ${compactnessColor}"></div>
+                                </div>
+                                <small class="text-muted text-nowrap" style="min-width: 40px;">${(compactness * 100).toFixed(0)}%</small>
                             </div>
-                            <small class="text-muted">${(compactness * 100).toFixed(0)}%</small>
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">${compactnessLabel}</small>
                         </td>
                     </tr>
                 `;
             });
 
-            tableBody.innerHTML = html || '<tr><td colspan="7" class="text-center text-muted">No cluster data available</td></tr>';
+            tableBody.innerHTML = html || '<tr><td colspan="7" class="text-center text-muted py-4">No job category data available. Make sure there are approved jobs in the system.</td></tr>';
         }
 
         // Show cluster details modal
@@ -1517,35 +2010,59 @@
             const helpText = "Demand Score measures the relative demand for jobs in this category based on job count, applications, and interested jobseekers.";
 
             document.getElementById('clusterModalBody').innerHTML = `
+                <!-- Quick Summary Banner -->
+                <div class="alert ${cluster.demand_score >= 50 ? 'alert-success' : 'alert-info'} mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi ${cluster.demand_score >= 50 ? 'bi-graph-up-arrow' : 'bi-info-circle'} fs-4 me-3"></i>
+                        <div>
+                            <strong>Quick Summary:</strong>
+                            This category has <strong>${cluster.job_count} jobs</strong> available with
+                            <strong>${cluster.application_count} applications</strong> received.
+                            ${cluster.demand_score >= 50
+                                ? 'This is a <span class="badge bg-success">High Demand</span> category!'
+                                : 'This category has moderate activity.'}
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-md-6">
-                        <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-bar-chart me-2"></i>Cluster Statistics</h6>
+                        <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-clipboard-data me-2"></i>Category Numbers</h6>
                         <table class="table table-sm">
                             <tr>
-                                <td class="text-muted">Total Jobs</td>
+                                <td class="text-muted">
+                                    <i class="bi bi-briefcase me-1"></i> Total Job Openings
+                                </td>
                                 <td class="fw-bold text-end">${cluster.job_count}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted">Applications</td>
+                                <td class="text-muted">
+                                    <i class="bi bi-file-earmark-text me-1"></i> Applications Received
+                                </td>
                                 <td class="fw-bold text-end">${cluster.application_count}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted">Interested Jobseekers</td>
+                                <td class="text-muted">
+                                    <i class="bi bi-people me-1"></i> Interested Job Seekers
+                                </td>
                                 <td class="fw-bold text-end">${cluster.jobseeker_count}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted">Application Rate</td>
-                                <td class="fw-bold text-end">${cluster.application_rate || 0} per job</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">Average Salary</td>
-                                <td class="fw-bold text-end">₱${(cluster.avg_salary || 0).toLocaleString()}</td>
+                                <td class="text-muted">
+                                    <i class="bi bi-calculator me-1"></i> Avg. Applications per Job
+                                </td>
+                                <td class="fw-bold text-end">${cluster.application_rate || 0}</td>
                             </tr>
                             <tr>
                                 <td class="text-muted">
-                                    Demand Score
-                                    <i class="bi bi-question-circle text-primary ms-1" style="cursor: help;"
-                                       data-bs-toggle="tooltip" title="${helpText}"></i>
+                                    <i class="bi bi-cash me-1"></i> Average Salary
+                                </td>
+                                <td class="fw-bold text-end text-success">₱${(cluster.avg_salary || 0).toLocaleString()}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">
+                                    <i class="bi bi-fire me-1"></i> Demand Score
+                                    <small class="d-block text-muted" style="font-size: 0.7rem;">How "hot" is this category?</small>
                                 </td>
                                 <td class="fw-bold text-end">
                                     <span class="badge ${cluster.demand_score >= 50 ? 'bg-success' : 'bg-secondary'} fs-6">${cluster.demand_score}/100</span>
@@ -1553,58 +2070,81 @@
                             </tr>
                         </table>
 
-                        <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-bullseye me-2"></i>Cluster Quality</h6>
-                        <table class="table table-sm">
-                            <tr>
-                                <td class="text-muted">Centroid Position</td>
-                                <td class="text-end"><code>(${cluster.centroid?.x?.toFixed(1) || 0}, ${cluster.centroid?.y?.toFixed(1) || 0})</code></td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">Compactness</td>
-                                <td class="text-end">
-                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                        <div class="compactness-bar" style="width: 60px;">
-                                            <div class="compactness-fill" style="width: ${compactness * 100}%; background: ${compactness >= 0.7 ? '#22c55e' : (compactness >= 0.4 ? '#f59e0b' : '#ef4444')}"></div>
-                                        </div>
-                                        <span>${(compactness * 100).toFixed(0)}%</span>
-                                    </div>
-                                    <small class="text-muted">${compactnessLabel}</small>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">Data Points</td>
-                                <td class="text-end">${cluster.points?.length || 0} jobs</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-lightbulb me-2"></i>Labor Market Analysis</h6>
-                        <div class="alert ${cluster.jobseeker_count > cluster.job_count ? 'alert-warning' : 'alert-success'} py-2">
-                            <strong>Supply-Demand Ratio:</strong> ${supplyDemandRatio} jobseekers per job<br>
-                            <small>Status: ${ratioStatus}</small>
+                        <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-bar-chart me-2"></i>How Similar Are Jobs Here?</h6>
+                        <div class="p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Similarity Score:</span>
+                                <strong>${(compactness * 100).toFixed(0)}%</strong>
+                            </div>
+                            <div class="progress mb-2" style="height: 10px;">
+                                <div class="progress-bar ${compactness >= 0.7 ? 'bg-success' : (compactness >= 0.4 ? 'bg-warning' : 'bg-danger')}"
+                                     style="width: ${compactness * 100}%"></div>
+                            </div>
+                            <small class="text-muted">
+                                ${compactness >= 0.7
+                                    ? '✅ Jobs in this category are very similar to each other (tight group)'
+                                    : compactness >= 0.4
+                                        ? '⚠️ Jobs vary somewhat within this category'
+                                        : '⚠️ Jobs in this category are quite diverse'}
+                            </small>
                         </div>
 
-                        <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-tools me-2"></i>Top Skills in Demand</h6>
-                        <div class="mb-3">${skillsHtml || '<span class="text-muted">No skills data available</span>'}</div>
+                        <div class="mt-3 p-3 bg-light rounded small">
+                            <strong>📍 Category Center Position:</strong><br>
+                            <span class="text-muted">Salary Level: ${cluster.centroid?.x?.toFixed(0) || 0}/100 | Popularity: ${cluster.centroid?.y?.toFixed(0) || 0}/100</span><br>
+                            <small class="text-muted">This is where the "average" job in this category sits on the chart.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-people me-2"></i>Supply vs Demand</h6>
+                        <div class="alert ${cluster.jobseeker_count > cluster.job_count ? 'alert-warning' : 'alert-success'} py-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi ${cluster.jobseeker_count > cluster.job_count ? 'bi-exclamation-triangle' : 'bi-check-circle'} fs-4 me-2"></i>
+                                <strong>${cluster.jobseeker_count > cluster.job_count ? 'More Seekers Than Jobs' : 'More Jobs Than Seekers'}</strong>
+                            </div>
+                            <p class="mb-1"><strong>${supplyDemandRatio}</strong> job seekers for every 1 job opening</p>
+                            <small>
+                                ${cluster.jobseeker_count > cluster.job_count
+                                    ? 'This category is competitive. Job seekers may need to stand out or consider skill training.'
+                                    : 'Good news! There are opportunities available. Employers may need help finding candidates.'}
+                            </small>
+                        </div>
 
-                        <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-geo-alt me-2"></i>Geographic Distribution</h6>
-                        <p class="text-muted small mb-2">${cluster.locations?.length || 0} jobs have location coordinates</p>
-                        ${cluster.locations?.length > 0 ? `
-                            <small class="text-muted">Top locations visible on the Job Vacancies Map tab</small>
-                        ` : '<small class="text-muted">No location data available for this cluster</small>'}
+                        <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-tools me-2"></i>Skills Employers Want</h6>
+                        <div class="mb-3">${skillsHtml || '<span class="text-muted">No skills data extracted from job postings</span>'}</div>
 
-                        <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-graph-up me-2"></i>Recommendations</h6>
-                        <ul class="small mb-0">
+                        <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-lightbulb me-2"></i>What Should You Do?</h6>
+                        <div class="small">
                             ${cluster.jobseeker_count < cluster.job_count
-                                ? '<li class="text-success">Good opportunity area - more jobs than jobseekers</li>'
-                                : '<li class="text-warning">Competitive area - consider skill development programs</li>'}
+                                ? `<div class="d-flex mb-2">
+                                    <span class="badge bg-success me-2">Opportunity</span>
+                                    <span>More jobs than seekers - great area for employment programs!</span>
+                                   </div>`
+                                : `<div class="d-flex mb-2">
+                                    <span class="badge bg-warning text-dark me-2">Action Needed</span>
+                                    <span>Consider skill development or career counseling for job seekers</span>
+                                   </div>`}
                             ${cluster.demand_score >= 50
-                                ? '<li>High demand category - good for job fair focus</li>'
-                                : '<li>Moderate demand - monitor trends</li>'}
-                            ${cluster.application_rate > 5
-                                ? '<li>Popular category with high application rate</li>'
-                                : '<li>Consider promotion to increase visibility</li>'}
-                        </ul>
+                                ? `<div class="d-flex mb-2">
+                                    <span class="badge bg-primary me-2">Job Fair</span>
+                                    <span>This is a great category to feature at job fairs!</span>
+                                   </div>`
+                                : `<div class="d-flex mb-2">
+                                    <span class="badge bg-secondary me-2">Monitor</span>
+                                    <span>Keep an eye on this category for growth</span>
+                                   </div>`}
+                            ${cluster.application_rate < 3
+                                ? `<div class="d-flex mb-2">
+                                    <span class="badge bg-info me-2">Promotion</span>
+                                    <span>Low applications - consider promoting these jobs more</span>
+                                   </div>`
+                                : ''}
+                        </div>
+
+                        ${cluster.locations?.length > 0 ? `
+                        <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-geo-alt me-2"></i>Where Are These Jobs?</h6>
+                        <p class="small text-muted">${cluster.locations.length} jobs have location data. Check the "Job Vacancies Map" tab to see them on a map!</p>
+                        ` : ''}
                     </div>
                 </div>
             `;

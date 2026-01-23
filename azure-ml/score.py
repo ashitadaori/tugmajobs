@@ -73,23 +73,23 @@ def run(raw_data):
         # Parse input
         request = json.loads(raw_data)
 
-        # Extract parameters
+        # Extract parameters with proper type conversion
         data = request.get('data', [])
-        k = request.get('k', 5)
-        max_iterations = request.get('max_iterations', 100)
-        tolerance = request.get('tolerance', 0.0001)
-        algorithm = request.get('algorithm', 'lloyd')
-        init_method = request.get('init_method', 'k-means++')
+        k = int(request.get('k', 5))
+        max_iterations = int(request.get('max_iterations', 100))
+        tolerance = float(request.get('tolerance', 0.0001))
+        algorithm = str(request.get('algorithm', 'lloyd'))
+        init_method = str(request.get('init_method', 'k-means++'))
         scaling_config = request.get('scaling', {'enabled': True, 'method': 'standard'})
-        include_metrics = request.get('include_metrics', False)
+        include_metrics = bool(request.get('include_metrics', False))
 
         if not data:
-            return json.dumps({
+            return {
                 'error': 'No data provided',
                 'labels': [],
                 'centroids': [],
                 'clusters': {}
-            })
+            }
 
         # Convert data to numpy array
         # Handle both list of dicts and list of lists
@@ -181,16 +181,16 @@ def run(raw_data):
 
         logger.info(f"Clustering completed: k={k}, samples={n_samples}, inertia={kmeans.inertia_:.2f}")
 
-        return json.dumps(response)
+        return response
 
     except Exception as e:
         logger.error(f"Clustering error: {str(e)}")
-        return json.dumps({
+        return {
             'error': str(e),
             'labels': [],
             'centroids': [],
             'clusters': {}
-        })
+        }
 
 
 # For local testing
