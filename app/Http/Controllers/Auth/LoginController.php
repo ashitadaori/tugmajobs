@@ -74,6 +74,14 @@ class LoginController extends Controller
                 'email' => ['required', 'email'],
             ]);
 
+            // Check if user exists
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                return back()->withErrors([
+                    'email' => 'No account found with this email address. Please register first.',
+                ])->withInput($request->only('email'));
+            }
+
             // Generate a secure token
             $token = Str::random(64);
             $expiresAt = now()->addMinutes(15);
