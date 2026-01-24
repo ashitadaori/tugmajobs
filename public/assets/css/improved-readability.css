@@ -1,0 +1,219 @@
+/* Improved Readability - Typography and accessibility enhancements */
+/* Ensures optimal reading experience across TugmaJobs */
+
+/* Typography scale */
+h1, .h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+
+h2, .h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: 0.875rem;
+}
+
+h3, .h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+}
+
+h4, .h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 0.625rem;
+}
+
+h5, .h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+h6, .h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.45;
+    margin-bottom: 0.5rem;
+}
+
+/* Paragraph spacing */
+p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+}
+
+/* Improved text colors for better contrast */
+.text-muted {
+    color: #5a6875 !important;
+}
+
+.text-secondary {
+    color: #495057 !important;
+}
+
+/* Better list spacing */
+ul, ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+/* Link readability */
+a {
+    color: #0d6efd;
+}
+
+a:hover {
+    color: #0a58ca;
+}
+
+/* Focus states for accessibility */
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+/* Skip to main content link */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #0d6efd;
+    color: #fff;
+    padding: 8px 16px;
+    z-index: 100;
+    text-decoration: none;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* Better placeholder contrast */
+::placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+/* Selection highlight */
+::selection {
+    background: #0d6efd;
+    color: #fff;
+}
+
+/* Improved form labels */
+label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+    color: #212529;
+}
+
+/* Required field indicator */
+.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+/* Error text styling */
+.text-danger,
+.invalid-feedback {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Table readability */
+table {
+    font-size: 0.9375rem;
+}
+
+th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+}
+
+td {
+    vertical-align: middle;
+}
+
+/* Code readability */
+code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.875em;
+    color: #d63384;
+}
+
+pre {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+/* Blockquote styling */
+blockquote {
+    border-left: 4px solid #0d6efd;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #495057;
+}
+
+/* Reading width optimization */
+.readable-width {
+    max-width: 75ch;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    body {
+        color: #000;
+    }
+
+    .text-muted {
+        color: #333 !important;
+    }
+
+    a {
+        text-decoration: underline;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode text adjustments */
+@media (prefers-color-scheme: dark) {
+    .auto-dark-text {
+        color: #f8f9fa;
+    }
+}
