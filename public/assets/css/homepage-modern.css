@@ -1313,19 +1313,33 @@
     }
 
     .hero-section {
-        padding: 80px 0 60px;
-        min-height: 500px;
+        padding: 100px 0 60px;
+        min-height: auto;
+    }
+
+    .hero-title {
+        font-size: 1.875rem;
+    }
+
+    .typing-container {
+        display: block;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     .toggle-wrapper {
         display: flex;
         flex-direction: column;
         width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
     }
 
     .toggle-btn {
         width: 100%;
         justify-content: center;
+        padding: 10px 20px;
+        font-size: 0.9rem;
     }
 
     .trust-indicators {
@@ -1417,7 +1431,19 @@
 /* Small Mobile */
 @media (max-width: 480px) {
     .hero-section {
-        padding: 60px 0 40px;
+        padding: 100px 0 40px;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+        line-height: 1.3;
+    }
+
+    .typing-container {
+        display: block;
+        font-size: 1.5rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     .trust-indicators {
@@ -1442,6 +1468,23 @@
 
     .btn-cta {
         min-width: 100%;
+    }
+
+    /* Fix toggle buttons on mobile */
+    .toggle-wrapper {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .toggle-btn {
+        padding: 10px 16px;
+        font-size: 0.875rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.9rem;
+        padding: 0 10px;
     }
 }
 

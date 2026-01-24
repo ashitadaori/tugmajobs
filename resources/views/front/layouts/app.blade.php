@@ -148,6 +148,35 @@
             padding: 0;
         }
 
+        /* Mobile navbar and content fixes */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.75rem 0;
+            }
+
+            /* Ensure hero section clears navbar on mobile */
+            body.homepage .hero-section,
+            body.force-home .hero-section {
+                padding-top: 90px !important;
+            }
+
+            .nav-link {
+                font-size: 1rem;
+                padding: 0.625rem 1rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body.homepage .hero-section,
+            body.force-home .hero-section {
+                padding-top: 80px !important;
+            }
+        }
+
         .card {
             background: #fff;
             border: none;
