@@ -637,6 +637,194 @@
         </div>
     </div>
 
+    <!-- Security Settings Section (2FA) -->
+    <div class="settings-card">
+        <div class="settings-card-header">
+            <h3><i class="fas fa-lock"></i> Security Settings</h3>
+            <p>Manage your account security and two-factor authentication</p>
+        </div>
+        <div class="settings-card-body">
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: var(--radius-md, 12px); margin-bottom: 1rem;">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if(session('recovery_codes'))
+                <div class="alert alert-warning" role="alert" style="border-radius: var(--radius-md, 12px); margin-bottom: 1.5rem;">
+                    <h6 style="font-weight: 600; margin-bottom: 0.5rem;"><i class="fas fa-exclamation-triangle me-2"></i>Save Your Recovery Codes</h6>
+                    <p class="small mb-2">Store these codes in a safe place. Each code can only be used once.</p>
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem;">
+                        @foreach(session('recovery_codes') as $code)
+                            <code style="display: block; font-family: monospace;">{{ $code }}</code>
+                        @endforeach
+                    </div>
+                    <button type="button" class="btn-secondary-settings" onclick="copyRecoveryCodes()" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-copy"></i> Copy Codes
+                    </button>
+                </div>
+            @endif
+
+            <!-- Two-Factor Authentication -->
+            <div style="display: flex; align-items: center; gap: 1.5rem; padding: 1.25rem; background: var(--modern-gray-50, #f8fafc); border-radius: var(--radius-md, 12px);">
+                <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-mobile-alt" style="color: white; font-size: 1.25rem;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+                        <h4 style="font-size: 1rem; font-weight: 600; margin: 0;">Two-Factor Authentication</h4>
+                        @if(Auth::user()->two_factor_enabled ?? false)
+                            <span style="background: #dcfce7; color: #166534; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">Enabled</span>
+                        @else
+                            <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">Disabled</span>
+                        @endif
+                    </div>
+                    @if(Auth::user()->two_factor_enabled ?? false)
+                        <p style="font-size: 0.875rem; color: var(--modern-gray-500, #64748b); margin: 0;">Your account is protected with Google Authenticator.</p>
+                    @else
+                        <p style="font-size: 0.875rem; color: var(--modern-gray-500, #64748b); margin: 0;">Add an extra layer of security using Google Authenticator.</p>
+                    @endif
+                </div>
+                <div>
+                    @if(Auth::user()->two_factor_enabled ?? false)
+                        <button type="button" class="btn-danger-settings" data-bs-toggle="modal" data-bs-target="#disable2faModal" style="padding: 0.625rem 1rem;">
+                            <i class="fas fa-times"></i> Disable
+                        </button>
+                    @else
+                        <a href="{{ route('2fa.setup') }}" class="btn-primary-settings" style="text-decoration: none;">
+                            <i class="fas fa-shield-alt"></i> Enable 2FA
+                        </a>
+                    @endif
+                </div>
+            </div>
+
+            @if(Auth::user()->two_factor_enabled ?? false)
+                <!-- Recovery Codes Management -->
+                <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--modern-gray-100, #f1f5f9);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h5 style="font-size: 0.9375rem; font-weight: 600; margin: 0 0 0.25rem 0;">Recovery Codes</h5>
+                            <p style="font-size: 0.8125rem; color: var(--modern-gray-500, #64748b); margin: 0;">Use these codes to access your account if you lose your device.</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn-secondary-settings" data-bs-toggle="modal" data-bs-target="#viewRecoveryCodesModal" style="padding: 0.5rem 0.875rem; font-size: 0.8125rem;">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button type="button" class="btn-secondary-settings" data-bs-toggle="modal" data-bs-target="#regenerateCodesModal" style="padding: 0.5rem 0.875rem; font-size: 0.8125rem;">
+                                <i class="fas fa-sync"></i> Regenerate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Change Password Link -->
+            <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--modern-gray-100, #f1f5f9);">
+                <a href="{{ route('account.changePassword') }}" class="btn-secondary-settings" style="text-decoration: none;">
+                    <i class="fas fa-key"></i> Change Password
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disable 2FA Modal -->
+    <div class="modal fade" id="disable2faModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Disable Two-Factor Authentication</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ route('2fa.disable') }}">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="alert alert-warning d-flex gap-3 align-items-start" role="alert">
+                            <i class="fas fa-exclamation-triangle mt-1"></i>
+                            <div>
+                                <strong>Warning:</strong> Disabling 2FA will make your account less secure. You will only need your password to log in.
+                            </div>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="form-label" style="font-weight: 600;">Enter your password to confirm:</label>
+                            <input type="password" name="password" class="form-control" required placeholder="Your password">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn-secondary-settings" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-danger-settings">Disable 2FA</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Recovery Codes Modal -->
+    <div class="modal fade" id="viewRecoveryCodesModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">View Recovery Codes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Enter your password to view your recovery codes.</p>
+                    <div class="form-group" id="viewCodesPasswordGroup">
+                        <label class="form-label" style="font-weight: 600;">Password</label>
+                        <input type="password" id="viewCodesPassword" class="form-control" placeholder="Your password">
+                    </div>
+                    <div id="recoveryCodesContainer" style="display: none;">
+                        <div class="alert alert-info small">
+                            <i class="fas fa-info-circle me-1"></i> Each code can only be used once.
+                        </div>
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px;" id="recoveryCodesList">
+                            <!-- Codes will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn-secondary-settings" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn-primary-settings" id="viewCodesBtn" onclick="viewRecoveryCodes()">
+                        <i class="fas fa-eye"></i> View Codes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Regenerate Recovery Codes Modal -->
+    <div class="modal fade" id="regenerateCodesModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Regenerate Recovery Codes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ route('2fa.regenerate-recovery-codes') }}">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="alert alert-warning d-flex gap-3 align-items-start" role="alert">
+                            <i class="fas fa-exclamation-triangle mt-1"></i>
+                            <div>
+                                <strong>Warning:</strong> This will invalidate all your existing recovery codes. Make sure to save the new codes.
+                            </div>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="form-label" style="font-weight: 600;">Enter your password to confirm:</label>
+                            <input type="password" name="password" class="form-control" required placeholder="Your password">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn-secondary-settings" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-primary-settings">
+                            <i class="fas fa-sync"></i> Regenerate Codes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Danger Zone -->
     <div class="settings-card danger">
         <div class="settings-card-header">
@@ -832,7 +1020,82 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Reset view codes modal when closed
+    const viewRecoveryCodesModal = document.getElementById('viewRecoveryCodesModal');
+    if (viewRecoveryCodesModal) {
+        viewRecoveryCodesModal.addEventListener('hidden.bs.modal', function () {
+            document.getElementById('viewCodesPassword').value = '';
+            document.getElementById('viewCodesPasswordGroup').style.display = 'block';
+            document.getElementById('recoveryCodesContainer').style.display = 'none';
+            document.getElementById('viewCodesBtn').style.display = 'inline-flex';
+            document.getElementById('viewCodesBtn').disabled = false;
+            document.getElementById('viewCodesBtn').innerHTML = '<i class="fas fa-eye"></i> View Codes';
+        });
+    }
 });
+
+// Copy recovery codes to clipboard
+function copyRecoveryCodes() {
+    const codes = @json(session('recovery_codes', []));
+    const codesText = codes.join('\n');
+    navigator.clipboard.writeText(codesText).then(() => {
+        if (typeof showToast === 'function') {
+            showToast('Recovery codes copied to clipboard!', 'success');
+        } else {
+            alert('Recovery codes copied to clipboard!');
+        }
+    });
+}
+
+// View recovery codes
+function viewRecoveryCodes() {
+    const password = document.getElementById('viewCodesPassword').value;
+    const btn = document.getElementById('viewCodesBtn');
+    const originalText = btn.innerHTML;
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    btn.disabled = true;
+
+    fetch('{{ route("2fa.show-recovery-codes") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ password: password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const container = document.getElementById('recoveryCodesContainer');
+            const list = document.getElementById('recoveryCodesList');
+            list.innerHTML = data.recovery_codes.map(code => `<code style="display: block; font-family: monospace;">${code}</code>`).join('');
+            container.style.display = 'block';
+            btn.style.display = 'none';
+            document.getElementById('viewCodesPasswordGroup').style.display = 'none';
+        } else {
+            if (typeof showToast === 'function') {
+                showToast(data.message || 'Incorrect password.', 'error');
+            } else {
+                alert(data.message || 'Incorrect password.');
+            }
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (typeof showToast === 'function') {
+            showToast('An error occurred. Please try again.', 'error');
+        } else {
+            alert('An error occurred. Please try again.');
+        }
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
 </script>
 @endpush
 @endsection

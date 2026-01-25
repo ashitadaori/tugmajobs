@@ -26,6 +26,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::put('/update', [ProfileController::class, 'update'])->name('profile.update');
         Route::get('/password', [ProfileController::class, 'password'])->name('profile.password');
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+        Route::get('/security', [ProfileController::class, 'security'])->name('profile.security');
     });
 
     // User Management

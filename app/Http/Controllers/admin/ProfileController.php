@@ -84,7 +84,17 @@ class ProfileController extends Controller
         $user->password = Hash::make($validated['password']);
         $user->save();
 
-        return redirect()->route('admin.profile.password')
+        return redirect()->route('admin.profile.security')
             ->with('success', 'Password changed successfully.');
+    }
+
+    /**
+     * Show the security settings page (password + 2FA).
+     *
+     * @return \Illuminate\View\View
+     */
+    public function security()
+    {
+        return view('admin.profile.security');
     }
 } 

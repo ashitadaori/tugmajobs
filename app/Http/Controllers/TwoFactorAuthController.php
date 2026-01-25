@@ -167,7 +167,7 @@ class TwoFactorAuthController extends Controller
                 ]);
             }
 
-            return redirect()->route('employer.settings.security')
+            return redirect()->to($this->securitySettingsPath($user))
                 ->with('success', 'Two-factor authentication has been enabled.')
                 ->with('recovery_codes', $recoveryCodes);
         }
@@ -213,7 +213,7 @@ class TwoFactorAuthController extends Controller
             ]);
         }
 
-        return redirect()->route('employer.settings.security')
+        return redirect()->to($this->securitySettingsPath($user))
             ->with('success', 'Two-factor authentication has been disabled.');
     }
 
@@ -249,7 +249,7 @@ class TwoFactorAuthController extends Controller
             ]);
         }
 
-        return redirect()->route('employer.settings.security')
+        return redirect()->to($this->securitySettingsPath($user))
             ->with('success', 'Recovery codes have been regenerated.')
             ->with('recovery_codes', $recoveryCodes);
     }
@@ -305,6 +305,20 @@ class TwoFactorAuthController extends Controller
             return route('employer.dashboard');
         } else {
             return route('account.dashboard');
+        }
+    }
+
+    /**
+     * Get the security settings path based on user role
+     */
+    protected function securitySettingsPath($user): string
+    {
+        if ($user->isAdmin()) {
+            return route('admin.profile.security');
+        } elseif ($user->isEmployer()) {
+            return route('employer.settings.security');
+        } else {
+            return route('account.settings');
         }
     }
 }

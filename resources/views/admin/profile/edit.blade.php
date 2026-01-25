@@ -77,8 +77,8 @@
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-check me-2"></i>Save Changes
                                     </button>
-                                    <a href="{{ route('admin.profile.password') }}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-lock me-2"></i>Change Password
+                                    <a href="{{ route('admin.profile.security') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-shield-alt me-2"></i>Security Settings
                                     </a>
                                 </div>
                             </div>
