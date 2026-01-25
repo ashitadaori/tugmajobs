@@ -1759,11 +1759,11 @@
                                 </div>
                                 <textarea class="form-control" id="qualifications" name="qualifications" rows="8" required
                                     maxlength="3000" placeholder="- Graduate of a 4-year BUSINESS-related course (preferably Accountancy)
-                    - With experience as an advantage, or without experience as long as trainable
-                    - Knowledge in accounting and business management
-                    - Has keen attention to detail and paperwork
-                    - Good communication skills
-                    - Honest and trustworthy">{{ old('qualifications') }}</textarea>
+                            - With experience as an advantage, or without experience as long as trainable
+                            - Knowledge in accounting and business management
+                            - Has keen attention to detail and paperwork
+                            - Good communication skills
+                            - Honest and trustworthy">{{ old('qualifications') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -1782,8 +1782,8 @@
                                 </div>
                                 <textarea class="form-control" id="requirements" name="requirements" rows="4" maxlength="2000"
                                     placeholder="- Must have own motorcycle (with driver's license)
-                    - Must be willing to be assigned for field work
-                    - With valid professional driver's license">{{ old('requirements') }}</textarea>
+                            - Must be willing to be assigned for field work
+                            - With valid professional driver's license">{{ old('requirements') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -1801,10 +1801,10 @@
                                 </div>
                                 <textarea class="form-control" id="benefits" name="benefits" rows="4" maxlength="2000"
                                     placeholder="- Competitive salary
-                    - Health insurance
-                    - 13th month pay
-                    - Paid leave
-                    - Free lunch/snacks">{{ old('benefits') }}</textarea>
+                            - Health insurance
+                            - 13th month pay
+                            - Paid leave
+                            - Free lunch/snacks">{{ old('benefits') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -2087,267 +2087,267 @@
     <!-- Mapbox JS -->
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
     <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                // Mapbox Location Integration
-                const locationSearch = document.getElementById('locationSearch');
-                const locationSuggestions = document.getElementById('locationSuggestions');
-                const detectLocationBtn = document.getElementById('detectLocationBtn');
-                const locationMapContainer = document.getElementById('locationMap');
-                const latitudeInput = document.getElementById('latitude');
-                const longitudeInput = document.getElementById('longitude');
-                const cityInput = document.getElementById('cityInput');
-                const stateInput = document.getElementById('stateInput');
-                const countryInput = document.getElementById('countryInput');
-                const streetAddress = document.getElementById('streetAddress');
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mapbox Location Integration
+            const locationSearch = document.getElementById('locationSearch');
+            const locationSuggestions = document.getElementById('locationSuggestions');
+            const detectLocationBtn = document.getElementById('detectLocationBtn');
+            const locationMapContainer = document.getElementById('locationMap');
+            const latitudeInput = document.getElementById('latitude');
+            const longitudeInput = document.getElementById('longitude');
+            const cityInput = document.getElementById('cityInput');
+            const stateInput = document.getElementById('stateInput');
+            const countryInput = document.getElementById('countryInput');
+            const streetAddress = document.getElementById('streetAddress');
 
-                let map = null;
-                let marker = null;
-                let searchTimeout = null;
-                let mapboxConfig = null;
+            let map = null;
+            let marker = null;
+            let searchTimeout = null;
+            let mapboxConfig = null;
 
-                // Load Mapbox configuration
-                fetch('/api/location/config')
-                    .then(response => response.json())
-                    .then(config => {
-                        mapboxConfig = config;
-                        initializeMap(config);
-                    })
-                    .catch(error => {
-                        console.error('Failed to load Mapbox config:', error);
-                        locationMapContainer.innerHTML = '<div class="alert alert-warning">Map unavailable</div>';
-                    });
+            // Load Mapbox configuration
+            fetch('/api/location/config')
+                .then(response => response.json())
+                .then(config => {
+                    mapboxConfig = config;
+                    initializeMap(config);
+                })
+                .catch(error => {
+                    console.error('Failed to load Mapbox config:', error);
+                    locationMapContainer.innerHTML = '<div class="alert alert-warning">Map unavailable</div>';
+                });
 
-                function initializeMap(config) {
-                    if (!config.public_token) return;
+            function initializeMap(config) {
+                if (!config.public_token) return;
 
-                    mapboxgl.accessToken = config.public_token;
+                mapboxgl.accessToken = config.public_token;
 
-                    // Get initial coordinates or use default
-                    const initialLat = parseFloat(latitudeInput.value) || config.default_center.lat;
-                    const initialLng = parseFloat(longitudeInput.value) || config.default_center.lng;
+                // Get initial coordinates or use default
+                const initialLat = parseFloat(latitudeInput.value) || config.default_center.lat;
+                const initialLng = parseFloat(longitudeInput.value) || config.default_center.lng;
 
-                    map = new mapboxgl.Map({
-                        container: 'locationMap',
-                        style: 'mapbox://styles/mapbox/streets-v12',
-                        center: [initialLng, initialLat],
-                        zoom: config.default_zoom || 13
-                    });
+                map = new mapboxgl.Map({
+                    container: 'locationMap',
+                    style: 'mapbox://styles/mapbox/streets-v12',
+                    center: [initialLng, initialLat],
+                    zoom: config.default_zoom || 13
+                });
 
-                    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+                map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-                    // Add marker if coordinates exist
-                    if (latitudeInput.value && longitudeInput.value) {
-                        addMarker(parseFloat(longitudeInput.value), parseFloat(latitudeInput.value));
+                // Add marker if coordinates exist
+                if (latitudeInput.value && longitudeInput.value) {
+                    addMarker(parseFloat(longitudeInput.value), parseFloat(latitudeInput.value));
+                }
+
+                // Click map to set location
+                map.on('click', function (e) {
+                    const lng = e.lngLat.lng;
+                    const lat = e.lngLat.lat;
+
+                    if (!isWithinStaCruz(lng, lat)) {
+                        alert('Please select a location within Sta. Cruz, Davao del Sur only.');
+                        return;
                     }
 
-                    // Click map to set location
-                    map.on('click', function (e) {
-                        const lng = e.lngLat.lng;
-                        const lat = e.lngLat.lat;
+                    addMarker(lng, lat);
+                    updateCoordinates(lng, lat);
+                    reverseGeocode(lng, lat);
+                });
+            }
 
-                        if (!isWithinStaCruz(lng, lat)) {
-                            alert('Please select a location within Sta. Cruz, Davao del Sur only.');
-                            return;
-                        }
+            function addMarker(lng, lat) {
+                if (marker) marker.remove();
 
-                        addMarker(lng, lat);
-                        updateCoordinates(lng, lat);
-                        reverseGeocode(lng, lat);
-                    });
-                }
+                marker = new mapboxgl.Marker({ color: '#667eea', draggable: true })
+                    .setLngLat([lng, lat])
+                    .addTo(map);
 
-                function addMarker(lng, lat) {
-                    if (marker) marker.remove();
+                marker.on('dragend', function () {
+                    const lngLat = marker.getLngLat();
+                    if (!isWithinStaCruz(lngLat.lng, lngLat.lat)) {
+                        alert('Please keep the marker within Sta. Cruz, Davao del Sur.');
+                        marker.setLngLat([lng, lat]);
+                        return;
+                    }
+                    updateCoordinates(lngLat.lng, lngLat.lat);
+                    reverseGeocode(lngLat.lng, lngLat.lat);
+                });
 
-                    marker = new mapboxgl.Marker({ color: '#667eea', draggable: true })
-                        .setLngLat([lng, lat])
-                        .addTo(map);
+                map.flyTo({ center: [lng, lat], zoom: 15 });
+            }
 
-                    marker.on('dragend', function () {
-                        const lngLat = marker.getLngLat();
-                        if (!isWithinStaCruz(lngLat.lng, lngLat.lat)) {
-                            alert('Please keep the marker within Sta. Cruz, Davao del Sur.');
-                            marker.setLngLat([lng, lat]);
-                            return;
-                        }
-                        updateCoordinates(lngLat.lng, lngLat.lat);
-             reverseGeocode(lngLat.lng, lngLat.lat);
-                    });
+            function updateCoordinates(lng, lat) {
+                longitudeInput.value = lng.toFixed(8);
+                latitudeInput.value = lat.toFixed(8);
 
-                    map.flyTo({ center: [lng, lat], zoom: 15 });
-                }
+                // Trigger input event for preview updates if any
+                streetAddress.dispatchEvent(new Event('input'));
+            }
 
-                function updateCoordinates(lng, lat) {
-                    longitudeInput.value = lng.toFixed(8);
-                    latitudeInput.value = lat.toFixed(8);
+            function isWithinStaCruz(lng, lat) {
+                if (!mapboxConfig || !mapboxConfig.stacruz_bounds) return true;
+                const bounds = mapboxConfig.stacruz_bounds;
+                return lng >= bounds.southwest[0] && lng <= bounds.northeast[0] &&
+                    lat >= bounds.southwest[1] && lat <= bounds.northeast[1];
+            }
 
-                    // Trigger input event for preview updates if any
-                    streetAddress.dispatchEvent(new Event('input'));
-                }
+            // Search Functionality
+            if (locationSearch) {
+                locationSearch.addEventListener('input', function () {
+                    const query = this.value.trim();
+                    if (query.length < 2) {
+                        locationSuggestions.style.display = 'none';
+                        return;
+                    }
 
-                function isWithinStaCruz(lng, lat) {
-                    if (!mapboxConfig || !mapboxConfig.stacruz_bounds) return true;
-                    const bounds = mapboxConfig.stacruz_bounds;
-                    return lng >= bounds.southwest[0] && lng <= bounds.northeast[0] &&
-                        lat >= bounds.southwest[1] && lat <= bounds.northeast[1];
-                }
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => searchPlaces(query), 300);
+                });
 
-                // Search Functionality
-                if (locationSearch) {
-                    locationSearch.addEventListener('input', function () {
-                        const query = this.value.trim();
-                        if (query.length < 2) {
-                            locationSuggestions.style.display = 'none';
-                            return;
-                        }
-
-                        clearTimeout(searchTimeout);
-                        searchTimeout = setTimeout(() => searchPlaces(query), 300);
-                    });
-
-                    // Hide suggestions on outside click
-                    document.addEventListener('click', function (e) {
-                        if (!locationSearch.contains(e.target) && !locationSuggestions.contains(e.target)) {
-                            locationSuggestions.style.display = 'none';
-                        }
-                    });
-                }
-
-                function searchPlaces(query) {
-                    fetch(`/api/location/search?q=${encodeURIComponent(query)}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.suggestions && data.suggestions.length > 0) {
-                                showSuggestions(data.suggestions);
-                            } else {
-                                locationSuggestions.style.display = 'none';
-                            }
-                        })
-                        .catch(err => console.error(err));
-                }
-
-                function showSuggestions(places) {
-                    locationSuggestions.innerHTML = '';
-                    places.forEach(place => {
-                        const div = document.createElement('div');
-                        div.className = 'location-suggestion-item';
-                        div.innerHTML = `
-                            <div class="location-suggestion-name">${place.name || extractLocationName(place.place_name)}</div>
-                            <div class="location-suggestion-address">${place.place_name || place.full_address}</div>
-                        `;
-                        div.addEventListener('click', () => selectPlace(place));
-                        locationSuggestions.appendChild(div);
-                    });
-                    locationSuggestions.style.display = 'block';
-                }
-
-                function selectPlace(place) {
-                    const coords = place.geometry ? place.geometry.coordinates :
-                        (place.coordinates ? [place.coordinates.longitude, place.coordinates.latitude] : null);
-
-                    if (coords) {
-                        const [lng, lat] = coords;
-                        if (!isWithinStaCruz(lng, lat)) {
-                            alert('Please select a location within Sta. Cruz, Davao del Sur only.');
-                            return;
-                        }
-
-                        locationSearch.value = place.name || extractLocationName(place.place_name);
-                        updateCoordinates(lng, lat);
-                        if (map) addMarker(lng, lat);
-                        fillAddressFields(place);
+                // Hide suggestions on outside click
+                document.addEventListener('click', function (e) {
+                    if (!locationSearch.contains(e.target) && !locationSuggestions.contains(e.target)) {
                         locationSuggestions.style.display = 'none';
                     }
-                }
+                });
+            }
 
-                function fillAddressFields(place) {
-                    const placeName = place.place_name || place.full_address || '';
-                    const streetParts = placeName.split(',');
-                    if (streetParts.length > 0) streetAddress.value = streetParts[0].trim();
-
-                    // Auto-fill context
-                    if (!cityInput.value || !cityInput.value.includes('Sta. Cruz')) cityInput.value = 'Sta. Cruz';
-                    if (!stateInput.value || !stateInput.value.includes('Davao')) stateInput.value = 'Davao del Sur';
-                    countryInput.value = 'Philippines';
-
-                    // Trigger preview update
-                    streetAddress.dispatchEvent(new Event('input'));
-                }
-
-                function reverseGeocode(lng, lat) {
-                    fetch(`/api/location/reverse-geocode?lng=${lng}&lat=${lat}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data && data.features && data.features.length > 0) {
-                                const feature = data.features[0];
-                                locationSearch.value = extractLocationName(feature.place_name);
-                                parseAddressComponents(feature);
-                            }
-                        });
-                }
-
-                function parseAddressComponents(feature) {
-                    const placeName = feature.place_name || '';
-                    const parts = placeName.split(',').map(p => p.trim());
-                    if (parts.length > 0) streetAddress.value = parts[0];
-
-                    if (feature.context) {
-                        feature.context.forEach(ctx => {
-                            if (ctx.id.startsWith('locality') || ctx.id.startsWith('place')) cityInput.value = ctx.text;
-                            if (ctx.id.startsWith('region')) stateInput.value = ctx.text;
-                        });
-                    }
-                    // Fallbacks
-                    if (!cityInput.value) cityInput.value = 'Sta. Cruz';
-                    if (!stateInput.value) stateInput.value = 'Davao del Sur';
-
-                    // Trigger preview update
-                    streetAddress.dispatchEvent(new Event('input'));
-                }
-
-                function extractLocationName(name) {
-                    if (!name) return '';
-                    const parts = name.split(',');
-                    let extracted = parts[0].trim();
-                    if (extracted.length < 3 || /^\d+$/.test(extracted)) {
-                        extracted = parts[1] ? parts[1].trim() : extracted;
-                    }
-                    return extracted;
-                }
-
-                // Detect Location Button
-                if (detectLocationBtn) {
-                    detectLocationBtn.addEventListener('click', function () {
-                        if (!navigator.geolocation) {
-                            alert('Geolocation not supported');
-                            return;
+            function searchPlaces(query) {
+                fetch(`/api/location/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.suggestions && data.suggestions.length > 0) {
+                            showSuggestions(data.suggestions);
+                        } else {
+                            locationSuggestions.style.display = 'none';
                         }
+                    })
+                    .catch(err => console.error(err));
+            }
 
-                        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            function showSuggestions(places) {
+                locationSuggestions.innerHTML = '';
+                places.forEach(place => {
+                    const div = document.createElement('div');
+                    div.className = 'location-suggestion-item';
+                    div.innerHTML = `
+                                <div class="location-suggestion-name">${place.name || extractLocationName(place.place_name)}</div>
+                                <div class="location-suggestion-address">${place.place_name || place.full_address}</div>
+                            `;
+                    div.addEventListener('click', () => selectPlace(place));
+                    locationSuggestions.appendChild(div);
+                });
+                locationSuggestions.style.display = 'block';
+            }
 
-                        navigator.geolocation.getCurrentPosition(
-                            pos => {
-                                const { latitude: lat, longitude: lng } = pos.coords;
-                                if (!isWithinStaCruz(lng, lat)) {
-                                    alert('Location outside Sta. Cruz');
-                                    this.innerHTML = '<i class="bi bi-crosshair"></i>';
-                                    return;
-                                }
-                                updateCoordinates(lng, lat);
-                                if (map) addMarker(lng, lat);
-                                reverseGeocode(lng, lat);
-                                this.innerHTML = '<i class="bi bi-crosshair"></i>';
-                            },
-                            err => {
-                                alert('Location error: ' + err.message);
-                                this.innerHTML = '<i class="bi bi-crosshair"></i>';
-                            },
-                            { enableHighAccuracy: true, timeout: 5000 }
-                        );
+            function selectPlace(place) {
+                const coords = place.geometry ? place.geometry.coordinates :
+                    (place.coordinates ? [place.coordinates.longitude, place.coordinates.latitude] : null);
+
+                if (coords) {
+                    const [lng, lat] = coords;
+                    if (!isWithinStaCruz(lng, lat)) {
+                        alert('Please select a location within Sta. Cruz, Davao del Sur only.');
+                        return;
+                    }
+
+                    locationSearch.value = place.name || extractLocationName(place.place_name);
+                    updateCoordinates(lng, lat);
+                    if (map) addMarker(lng, lat);
+                    fillAddressFields(place);
+                    locationSuggestions.style.display = 'none';
+                }
+            }
+
+            function fillAddressFields(place) {
+                const placeName = place.place_name || place.full_address || '';
+                const streetParts = placeName.split(',');
+                if (streetParts.length > 0) streetAddress.value = streetParts[0].trim();
+
+                // Auto-fill context
+                if (!cityInput.value || !cityInput.value.includes('Sta. Cruz')) cityInput.value = 'Sta. Cruz';
+                if (!stateInput.value || !stateInput.value.includes('Davao')) stateInput.value = 'Davao del Sur';
+                countryInput.value = 'Philippines';
+
+                // Trigger preview update
+                streetAddress.dispatchEvent(new Event('input'));
+            }
+
+            function reverseGeocode(lng, lat) {
+                fetch(`/api/location/reverse-geocode?lng=${lng}&lat=${lat}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.features && data.features.length > 0) {
+                            const feature = data.features[0];
+                            locationSearch.value = extractLocationName(feature.place_name);
+                            parseAddressComponents(feature);
+                        }
+                    });
+            }
+
+            function parseAddressComponents(feature) {
+                const placeName = feature.place_name || '';
+                const parts = placeName.split(',').map(p => p.trim());
+                if (parts.length > 0) streetAddress.value = parts[0];
+
+                if (feature.context) {
+                    feature.context.forEach(ctx => {
+                        if (ctx.id.startsWith('locality') || ctx.id.startsWith('place')) cityInput.value = ctx.text;
+                        if (ctx.id.startsWith('region')) stateInput.value = ctx.text;
                     });
                 }
-            });
-        </script>
+                // Fallbacks
+                if (!cityInput.value) cityInput.value = 'Sta. Cruz';
+                if (!stateInput.value) stateInput.value = 'Davao del Sur';
+
+                // Trigger preview update
+                streetAddress.dispatchEvent(new Event('input'));
+            }
+
+            function extractLocationName(name) {
+                if (!name) return '';
+                const parts = name.split(',');
+                let extracted = parts[0].trim();
+                if (extracted.length < 3 || /^\d+$/.test(extracted)) {
+                    extracted = parts[1] ? parts[1].trim() : extracted;
+                }
+                return extracted;
+            }
+
+            // Detect Location Button
+            if (detectLocationBtn) {
+                detectLocationBtn.addEventListener('click', function () {
+                    if (!navigator.geolocation) {
+                        alert('Geolocation not supported');
+                        return;
+                    }
+
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                    navigator.geolocation.getCurrentPosition(
+                        pos => {
+                            const { latitude: lat, longitude: lng } = pos.coords;
+                            if (!isWithinStaCruz(lng, lat)) {
+                                alert('Location outside Sta. Cruz');
+                                this.innerHTML = '<i class="bi bi-crosshair"></i>';
+                                return;
+                            }
+                            updateCoordinates(lng, lat);
+                            if (map) addMarker(lng, lat);
+                            reverseGeocode(lng, lat);
+                            this.innerHTML = '<i class="bi bi-crosshair"></i>';
+                        },
+                        err => {
+                            alert('Location error: ' + err.message);
+                            this.innerHTML = '<i class="bi bi-crosshair"></i>';
+                        },
+                        { enableHighAccuracy: true, timeout: 5000 }
+                    );
+                });
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/nouislider@14.6.0/distribute/nouislider.min.js"></script>
     <script src="{{ asset('assets/js/job-form-wizard-fixed.js') }}"></script>
     <script src="{{ asset('assets/js/preliminary-questions.js') }}"></script>
@@ -2365,7 +2365,7 @@
                 @if(!$errors->any() && !old('title'))
                     resetJobForm();
                 @endif
-        });
+            });
 
             function resetJobForm() {
                 const form = document.getElementById('jobForm');
@@ -2622,14 +2622,14 @@
                     const address = suggestion.full_address || suggestion.place_name || '';
 
                     html += `
-                    <div class="location-suggestion-item" data-index="${index}">
-                        <i class="fas fa-map-marker-alt suggestion-icon"></i>
-                        <div class="d-inline-block">
-                            <div class="suggestion-name">${name}</div>
-                            <div class="suggestion-address">${address}</div>
+                        <div class="location-suggestion-item" data-index="${index}">
+                            <i class="fas fa-map-marker-alt suggestion-icon"></i>
+                            <div class="d-inline-block">
+                                <div class="suggestion-name">${name}</div>
+                                <div class="suggestion-address">${address}</div>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
                 });
 
                 suggestionsContainer.innerHTML = html;
@@ -2827,7 +2827,18 @@
 
             document.addEventListener('DOMContentLoaded', function () {
                 initJobRequirements();
-            });
+
+                // Repopulate requirements if old input exists
+                @if(old('job_requirements'))
+                    @foreach(old('job_requirements') as $req)
+                        addRequirement(
+                            '{{ $req['name'] ?? '' }}',
+                            '{{ $req['description'] ?? '' }}',
+                            {{ isset($req['is_required']) ? 'true' : 'false' }}
+                        );
+                    @endforeach
+                @endif
+                });
 
             function initJobRequirements() {
                 const container = document.getElementById('job_requirements_container');
@@ -2856,31 +2867,31 @@
                 const index = requirementIndex++;
 
                 const html = `
-                <div class="requirement-item">
-                    <button type="button" class="remove-requirement" title="Remove requirement">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <div class="row">
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label">Document Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="job_requirements[${index}][name]"
-                                   value="${escapeHtml(name)}" placeholder="e.g., 2x2 ID Photo" required>
+                    <div class="requirement-item">
+                        <button type="button" class="remove-requirement" title="Remove requirement">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Document Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="job_requirements[${index}][name]"
+                                       value="${escapeHtml(name)}" placeholder="e.g., 2x2 ID Photo" required>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">Description</label>
+                                <input type="text" class="form-control" name="job_requirements[${index}][description]"
+                                       value="${escapeHtml(description)}" placeholder="e.g., Recent photo with white background">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label">Description</label>
-                            <input type="text" class="form-control" name="job_requirements[${index}][description]"
-                                   value="${escapeHtml(description)}" placeholder="e.g., Recent photo with white background">
+                        <div class="form-check form-switch mt-2">
+                            <input type="checkbox" class="form-check-input" name="job_requirements[${index}][is_required]"
+                                   id="req_required_${index}" ${isRequired ? 'checked' : ''} value="1">
+                            <label class="form-check-label align-middle" for="req_required_${index}">
+                                This document is mandatory
+                            </label>
                         </div>
                     </div>
-                    <div class="form-check mt-2">
-                        <input type="checkbox" class="form-check-input" name="job_requirements[${index}][is_required]"
-                               id="req_required_${index}" ${isRequired ? 'checked' : ''}>
-                        <label class="form-check-label" for="req_required_${index}">
-                            This document is mandatory
-                        </label>
-                    </div>
-                </div>
-            `;
+                `;
 
                 container.insertAdjacentHTML('beforeend', html);
             }

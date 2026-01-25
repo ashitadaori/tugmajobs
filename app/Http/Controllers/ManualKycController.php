@@ -139,20 +139,27 @@ class ManualKycController extends Controller
                 'document_type' => $validated['document_type'],
             ]);
 
-            // Create notification for admin (if notification system exists)
+            // Create notification for ALL admins (not just the user)
             try {
-                \App\Models\Notification::create([
-                    'user_id' => $user->id,
-                    'type' => 'kyc_submission',
-                    'data' => json_encode([
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    \App\Models\Notification::create([
+                        'user_id' => $admin->id,
                         'title' => 'New Manual KYC Submission',
-                        'message' => "User {$user->name} has submitted a manual KYC verification request using {$kycDocument->document_type}.",
-                        'document_id' => $kycDocument->id,
-                    ]),
-                ]);
+                        'message' => "{$user->name} has submitted a manual KYC verification request using {$kycDocument->document_type}. Please review the documents.",
+                        'type' => 'admin_kyc_submission',
+                        'data' => [
+                            'document_id' => $kycDocument->id,
+                            'user_id' => $user->id,
+                            'user_name' => $user->name,
+                            'document_type' => $kycDocument->document_type,
+                        ],
+                        'action_url' => route('admin.kyc.manual-documents'),
+                    ]);
+                }
             } catch (\Exception $e) {
                 // Notification creation is optional
-                Log::warning('Failed to create KYC submission notification', ['error' => $e->getMessage()]);
+                Log::warning('Failed to create KYC submission notification for admins', ['error' => $e->getMessage()]);
             }
 
             if ($request->expectsJson()) {

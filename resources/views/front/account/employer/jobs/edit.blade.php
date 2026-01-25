@@ -435,31 +435,47 @@
 
                     <div class="col-12">
                         <div id="job_requirements_container">
-                            @if($job->jobRequirements && $job->jobRequirements->count() > 0)
-                                @foreach($job->jobRequirements as $index => $requirement)
+                            @php
+                                $requirementsToDisplay = old('job_requirements') ?? ($job->jobRequirements ? $job->jobRequirements->toArray() : []);
+                            @endphp
+
+                            @if(count($requirementsToDisplay) > 0)
+                                @foreach($requirementsToDisplay as $index => $requirement)
+                                    @php
+                                        // Handle both array (old input) and object/model access safely
+                                        $reqName = is_array($requirement) ? ($requirement['name'] ?? '') : $requirement['name'];
+                                        $reqDesc = is_array($requirement) ? ($requirement['description'] ?? '') : $requirement['description'];
+                                        $reqId = is_array($requirement) ? ($requirement['id'] ?? '') : $requirement['id'];
+                                        // Checkbox persistence: check if key exists (for old input) or property is true
+                                        $isRequired = is_array($requirement) 
+                                            ? isset($requirement['is_required']) 
+                                            : $requirement['is_required'];
+                                    @endphp
                                     <div class="requirement-item">
                                         <button type="button" class="remove-requirement" title="Remove requirement">
                                             <i class="fas fa-times"></i>
                                         </button>
-                                        <input type="hidden" name="job_requirements[{{ $index }}][id]" value="{{ $requirement->id }}">
+                                        @if($reqId)
+                                            <input type="hidden" name="job_requirements[{{ $index }}][id]" value="{{ $reqId }}">
+                                        @endif
                                         <div class="row">
                                             <div class="col-md-6 mb-2">
                                                 <label class="form-label">Document Name <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control" name="job_requirements[{{ $index }}][name]"
-                                                       value="{{ old("job_requirements.$index.name", $requirement->name) }}"
+                                                       value="{{ $reqName }}"
                                                        placeholder="e.g., 2x2 ID Photo" required>
                                             </div>
                                             <div class="col-md-6 mb-2">
                                                 <label class="form-label">Description</label>
                                                 <input type="text" class="form-control" name="job_requirements[{{ $index }}][description]"
-                                                       value="{{ old("job_requirements.$index.description", $requirement->description) }}"
+                                                       value="{{ $reqDesc }}"
                                                        placeholder="e.g., Recent photo with white background">
                                             </div>
                                         </div>
-                                        <div class="form-check mt-2">
+                                        <div class="form-check form-switch mt-2">
                                             <input type="checkbox" class="form-check-input" name="job_requirements[{{ $index }}][is_required]"
-                                                   id="req_required_{{ $index }}" {{ old("job_requirements.$index.is_required", $requirement->is_required) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="req_required_{{ $index }}">
+                                                   id="req_required_{{ $index }}" value="1" {{ $isRequired ? 'checked' : '' }}>
+                                            <label class="form-check-label align-middle" for="req_required_{{ $index }}">
                                                 This document is mandatory
                                             </label>
                                         </div>
@@ -786,10 +802,10 @@
                                value="${escapeHtml(description)}" placeholder="e.g., Recent photo with white background">
                     </div>
                 </div>
-                <div class="form-check mt-2">
+                <div class="form-check form-switch mt-2">
                     <input type="checkbox" class="form-check-input" name="job_requirements[${index}][is_required]"
-                           id="req_required_${index}" ${isRequired ? 'checked' : ''}>
-                    <label class="form-check-label" for="req_required_${index}">
+                           id="req_required_${index}" ${isRequired ? 'checked' : ''} value="1">
+                    <label class="form-check-label align-middle" for="req_required_${index}">
                         This document is mandatory
                     </label>
                 </div>

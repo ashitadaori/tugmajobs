@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\KycDocument;
 use App\Models\KycVerification;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
@@ -99,6 +100,25 @@ class KycController extends Controller
                 'kyc_verified_at' => now(),
             ]);
 
+            // Notify the user that they have been verified
+            try {
+                Notification::create([
+                    'user_id' => $document->user_id,
+                    'title' => 'Congratulations! You are now verified',
+                    'message' => 'Your identity has been successfully verified. You now have full access to all features on TugmaJobs. Start exploring job opportunities today!',
+                    'type' => 'kyc_verified',
+                    'data' => [
+                        'document_id' => $document->id,
+                        'verified_at' => now()->toDateTimeString(),
+                    ],
+                    'action_url' => $document->user->role === 'employer'
+                        ? route('employer.dashboard')
+                        : route('account.dashboard'),
+                ]);
+            } catch (\Exception $notifError) {
+                Log::warning('Failed to create KYC verification notification', ['error' => $notifError->getMessage()]);
+            }
+
             Log::info('Manual KYC document verified', [
                 'document_id' => $document->id,
                 'user_id' => $document->user_id,
@@ -106,7 +126,7 @@ class KycController extends Controller
             ]);
 
             return redirect()->route('admin.kyc.manual-documents')
-                ->with('success', 'Document verified successfully. User KYC status updated to verified.');
+                ->with('success', 'Document verified successfully. User has been notified.');
 
         } catch (\Exception $e) {
             Log::error('Failed to verify manual KYC document', [
@@ -143,6 +163,23 @@ class KycController extends Controller
                 'kyc_status' => 'failed',
             ]);
 
+            // Notify the user that their document was rejected
+            try {
+                Notification::create([
+                    'user_id' => $document->user_id,
+                    'title' => 'Verification Document Needs Revision',
+                    'message' => "Your identity verification document requires some changes. Reason: {$request->rejection_reason}. Please submit a new document to complete verification.",
+                    'type' => 'kyc_rejected',
+                    'data' => [
+                        'document_id' => $document->id,
+                        'rejection_reason' => $request->rejection_reason,
+                    ],
+                    'action_url' => route('kyc.manual.upload'),
+                ]);
+            } catch (\Exception $notifError) {
+                Log::warning('Failed to create KYC rejection notification', ['error' => $notifError->getMessage()]);
+            }
+
             Log::info('Manual KYC document rejected', [
                 'document_id' => $document->id,
                 'user_id' => $document->user_id,
@@ -151,7 +188,7 @@ class KycController extends Controller
             ]);
 
             return redirect()->route('admin.kyc.manual-documents')
-                ->with('success', 'Document rejected successfully.');
+                ->with('success', 'Document rejected successfully. User has been notified.');
 
         } catch (\Exception $e) {
             Log::error('Failed to reject manual KYC document', [
@@ -252,9 +289,10 @@ class KycController extends Controller
                 $q->latest();
             }
         ])->where(function($q) {
-            // Show users who have either KYC verifications OR KYC data
+            // Show users who have KYC verifications, KYC data, OR are verified/in_progress
             $q->whereHas('kycVerifications')
-              ->orWhereHas('kycData');
+              ->orWhereHas('kycData')
+              ->orWhereIn('kyc_status', ['verified', 'in_progress', 'failed', 'pending_review']);
         });
         
         // Filter by status if provided

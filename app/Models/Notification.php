@@ -80,6 +80,18 @@ class Notification extends Model
             'profile_view' => 'fas fa-eye text-info',
             'message' => 'fas fa-envelope text-warning',
             'system' => 'fas fa-bell text-secondary',
+            // Admin notifications
+            'admin_kyc_submission' => 'fas fa-id-card text-info',
+            'admin_employer_document' => 'fas fa-file-upload text-warning',
+            'new_job_pending' => 'fas fa-briefcase text-warning',
+            'admin_new_application' => 'fas fa-file-alt text-info',
+            // Employer/User notifications
+            'document_approved' => 'fas fa-check-circle text-success',
+            'document_rejected' => 'fas fa-times-circle text-danger',
+            'kyc_verified' => 'fas fa-shield-alt text-success',
+            'kyc_rejected' => 'fas fa-exclamation-triangle text-danger',
+            'job_approved' => 'fas fa-check-circle text-success',
+            'job_rejected' => 'fas fa-times-circle text-warning',
         ];
 
         return $icons[$this->type] ?? 'fas fa-bell text-secondary';

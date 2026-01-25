@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Employer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\EmployerDocument;
+use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class DocumentController extends Controller
 {
@@ -68,6 +71,31 @@ class DocumentController extends Controller
             'status' => 'pending',
             'submitted_at' => now(),
         ]);
+
+        // Notify all admins about the new document submission
+        try {
+            $user = Auth::user();
+            $documentTypeName = EmployerDocument::getDocumentTypes()[$request->document_type]['label'] ?? $request->document_type;
+            $admins = User::where('role', 'admin')->get();
+
+            foreach ($admins as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => 'New Employer Document Submitted',
+                    'message' => "{$user->name} has submitted a {$documentTypeName} for verification. Please review the document.",
+                    'type' => 'admin_employer_document',
+                    'data' => [
+                        'document_id' => $document->id,
+                        'employer_id' => $user->id,
+                        'employer_name' => $user->name,
+                        'document_type' => $request->document_type,
+                    ],
+                    'action_url' => route('admin.employers.documents.index'),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Failed to create notification for admin', ['error' => $e->getMessage()]);
+        }
 
         // If AJAX request, return JSON response to stay on the same page
         if ($request->expectsJson() || $request->ajax()) {

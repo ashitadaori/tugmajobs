@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\EmployerDocument;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class EmployerDocumentController extends Controller
 {
@@ -82,7 +84,26 @@ class EmployerDocumentController extends Controller
 
         $document->approve(Auth::user());
 
-        return back()->with('success', 'Document approved successfully.');
+        // Notify the employer that their document was approved
+        try {
+            $documentTypeName = EmployerDocument::getDocumentTypes()[$document->document_type]['label'] ?? $document->document_type;
+
+            Notification::create([
+                'user_id' => $document->user_id,
+                'title' => 'Document Approved',
+                'message' => "Great news! Your {$documentTypeName} has been approved. Your account verification is progressing.",
+                'type' => 'document_approved',
+                'data' => [
+                    'document_id' => $document->id,
+                    'document_type' => $document->document_type,
+                ],
+                'action_url' => route('employer.documents.index'),
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Failed to create document approval notification', ['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Document approved successfully. The employer has been notified.');
     }
 
     /**
@@ -105,7 +126,27 @@ class EmployerDocumentController extends Controller
 
         $document->reject(Auth::user(), $request->admin_notes);
 
-        return back()->with('success', 'Document rejected successfully. The employer will be notified.');
+        // Notify the employer that their document was rejected
+        try {
+            $documentTypeName = EmployerDocument::getDocumentTypes()[$document->document_type]['label'] ?? $document->document_type;
+
+            Notification::create([
+                'user_id' => $document->user_id,
+                'title' => 'Document Needs Revision',
+                'message' => "Your {$documentTypeName} requires some changes. Reason: {$request->admin_notes}. Please re-upload the corrected document.",
+                'type' => 'document_rejected',
+                'data' => [
+                    'document_id' => $document->id,
+                    'document_type' => $document->document_type,
+                    'rejection_reason' => $request->admin_notes,
+                ],
+                'action_url' => route('employer.documents.index'),
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Failed to create document rejection notification', ['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Document rejected successfully. The employer has been notified.');
     }
 
     /**
