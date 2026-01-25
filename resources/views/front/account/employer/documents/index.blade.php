@@ -20,7 +20,7 @@
                             <i class="bi bi-check-circle me-1"></i> Verified
                         </span>
                     @else
-                        <button type="button" class="ep-btn ep-btn-sm ep-btn-primary" onclick="startInlineVerification(event)">
+                        <button type="button" class="ep-btn ep-btn-sm ep-btn-primary" data-bs-toggle="modal" data-bs-target="#kycOptionsModal">
                             <i class="bi bi-shield-lock me-1"></i> Complete KYC
                         </button>
                     @endif
@@ -207,6 +207,110 @@
         </div>
     </div>
 </div>
+
+<!-- KYC Options Modal -->
+<div class="modal fade" id="kycOptionsModal" tabindex="-1" aria-labelledby="kycOptionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 py-3" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                <h5 class="modal-title text-white fw-semibold" id="kycOptionsModalLabel">
+                    <i class="bi bi-shield-check me-2"></i>Choose Verification Method
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted text-center mb-4">Select your preferred method to verify your identity</p>
+
+                <div class="row g-4">
+                    <!-- Instant Verification (Didit) -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-2 kyc-option-card" style="border-color: #6366f1; border-radius: 12px; cursor: pointer;" onclick="selectKycOption('didit')">
+                            <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 10px 10px 0 0;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-lightning-charge-fill me-2 fs-5"></i>
+                                    <span class="fw-semibold">Instant Verification</span>
+                                    <span class="badge bg-white text-primary ms-auto">Recommended</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">Automated verification using Didit - get results in minutes!</p>
+                                <h6 class="fw-semibold small mb-2">Supported IDs:</h6>
+                                <ul class="small text-muted ps-3 mb-3">
+                                    <li>Passport</li>
+                                    <li>Driver's License</li>
+                                    <li>National ID / Identity Card</li>
+                                    <li>Residence Permit</li>
+                                </ul>
+                                <div class="d-flex align-items-center text-muted small" style="background: #f1f5f9; padding: 8px 12px; border-radius: 8px;">
+                                    <i class="bi bi-clock me-2"></i>
+                                    <span>Takes only 2-5 minutes</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light border-0 p-3">
+                                <button type="button" class="btn w-100 text-white fw-semibold" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 8px;" onclick="event.stopPropagation(); startDigitalKyc();">
+                                    <i class="bi bi-play-fill me-1"></i> Start Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Verification -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-2 kyc-option-card" style="border-color: #64748b; border-radius: 12px; cursor: pointer;" onclick="selectKycOption('manual')">
+                            <div class="card-header text-white py-3" style="background: #64748b; border-radius: 10px 10px 0 0;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-upload me-2 fs-5"></i>
+                                    <span class="fw-semibold">Manual Verification</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">For Philippine IDs not supported by automated verification.</p>
+                                <h6 class="fw-semibold small mb-2">Supported IDs:</h6>
+                                <ul class="small text-muted ps-3 mb-3">
+                                    <li>PhilHealth ID / UMID</li>
+                                    <li>SSS ID / Postal ID</li>
+                                    <li>Voter's ID / PRC ID</li>
+                                    <li>And many more...</li>
+                                </ul>
+                                <div class="d-flex align-items-center text-muted small" style="background: #f1f5f9; padding: 8px 12px; border-radius: 8px;">
+                                    <i class="bi bi-person-badge me-2"></i>
+                                    <span>Review takes 1-3 business days</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light border-0 p-3">
+                                <a href="{{ route('kyc.manual.form') }}" class="btn w-100 text-white fw-semibold" style="background: #64748b; border-radius: 8px;" onclick="event.stopPropagation();">
+                                    <i class="bi bi-upload me-1"></i> Upload Documents
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips -->
+                <div class="mt-4 p-3" style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;">
+                    <h6 class="fw-semibold small mb-2" style="color: #92400e;">
+                        <i class="bi bi-lightbulb me-1"></i> Important Tips
+                    </h6>
+                    <ul class="small mb-0 ps-3" style="color: #a16207;">
+                        <li>Make sure your documents are not expired</li>
+                        <li>Ensure photos are clear and readable</li>
+                        <li>Complete the process in one session</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.kyc-option-card {
+    transition: all 0.2s ease;
+}
+.kyc-option-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+</style>
 @endsection
 
 @push('scripts')
@@ -223,6 +327,39 @@ function deleteDocument(documentId) {
     form.action = `/employer/documents/${documentId}`;
     const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
     modal.show();
+}
+
+function selectKycOption(option) {
+    if (option === 'didit') {
+        startDigitalKyc();
+    } else if (option === 'manual') {
+        window.location.href = '{{ route("kyc.manual.form") }}';
+    }
+}
+
+function startDigitalKyc() {
+    // Close the options modal
+    const optionsModal = bootstrap.Modal.getInstance(document.getElementById('kycOptionsModal'));
+    if (optionsModal) {
+        optionsModal.hide();
+    }
+
+    // Wait for modal to close, then start Didit verification
+    setTimeout(() => {
+        if (typeof startInlineVerification === 'function') {
+            // Create a fake event for the function
+            const fakeEvent = {
+                target: document.createElement('button'),
+                preventDefault: function() {}
+            };
+            fakeEvent.target.innerHTML = '<i class="bi bi-shield-lock me-1"></i> Complete KYC';
+            fakeEvent.target.disabled = false;
+            startInlineVerification(fakeEvent);
+        } else {
+            console.error('startInlineVerification function not available');
+            alert('Unable to start verification. Please refresh the page and try again.');
+        }
+    }, 300);
 }
 </script>
 @endpush

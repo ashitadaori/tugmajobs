@@ -512,13 +512,13 @@ Route::group(['prefix' => 'employer', 'middleware' => ['auth', 'role:employer'],
     Route::prefix('jobs')->name('jobs.')->group(function () {
         Route::get('/', [EmployerController::class, 'jobs'])->name('index');
 
-        // Routes that require KYC verification for unverified employers - TEMPORARILY DISABLED
-        // Route::middleware(['employer.kyc'])->group(function () {
-        Route::get('/create', [EmployerController::class, 'createJob'])->name('create');
-        Route::post('/', [EmployerController::class, 'storeJob'])->name('store');
-        Route::get('/{job}/edit', [EmployerController::class, 'editJob'])->name('edit');
-        Route::put('/{job}', [EmployerController::class, 'updateJob'])->name('update');
-        // });
+        // Routes that require KYC verification (automatic or manual) for employers
+        Route::middleware(['employer.kyc'])->group(function () {
+            Route::get('/create', [EmployerController::class, 'createJob'])->name('create');
+            Route::post('/', [EmployerController::class, 'storeJob'])->name('store');
+            Route::get('/{job}/edit', [EmployerController::class, 'editJob'])->name('edit');
+            Route::put('/{job}', [EmployerController::class, 'updateJob'])->name('update');
+        });
 
         // Routes that don't require KYC verification
         Route::get('/{job}', [EmployerController::class, 'showJob'])->name('show');
