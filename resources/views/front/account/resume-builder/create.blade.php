@@ -41,16 +41,10 @@
 
                     <!-- 2. Personal Information -->
                     <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-white py-3">
                             <h5 class="card-title mb-0"><i class="fas fa-user-edit me-2 text-primary"></i>Personal Information</h5>
-                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                onclick="document.getElementById('importResumeInput').click()">
-                                <i class="fas fa-file-upload me-1"></i> Autofill from PDF/DOCX
-                            </button>
                         </div>
                         <div class="card-body">
-                            <input type="file" id="importResumeInput" class="d-none" accept=".pdf,.doc,.docx"
-                                onchange="importResume(this)">
                             
                             <!-- Check user type to determine which profile photo to show -->
                             <div class="row mb-4 align-items-center">
@@ -640,66 +634,6 @@
                     reader.readAsDataURL(file);
                 }
             });
-
-            // --- Import Logic ---
-            function importResume(input) {
-                if (input.files && input.files[0]) {
-                    const file = input.files[0];
-                    const formData = new FormData();
-                    formData.append('resume_file', file);
-                    formData.append('_token', '{{ csrf_token() }}');
-
-                    // Show loading state
-                    const btn = input.previousElementSibling;
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                    btn.disabled = true;
-
-                    $.ajax({
-                        url: '{{ route("account.resume-builder.import") }}',
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function (response) {
-                            if (response.success) {
-                                const data = response.data;
-
-                                // Helper to update field if new value is present
-                                function updateField(name, value) {
-                                    if(value) $('input[name="'+name+'"]').val(value);
-                                }
-
-                                updateField('name', data.name);
-                                updateField('email', data.email);
-                                updateField('phone', data.phone);
-
-                                // Append new skills
-                                if (data.skills && Array.isArray(data.skills)) {
-                                    let newSkillsCount = 0;
-                                    data.skills.forEach(skill => {
-                                        if (skill && !skills.includes(skill)) {
-                                            skills.push(skill);
-                                            newSkillsCount++;
-                                        }
-                                    });
-                                    if(newSkillsCount > 0) renderSkills();
-                                }
-
-                                alert('Resume imported! Fields updated.');
-                            }
-                        },
-                        error: function (xhr) {
-                            alert(xhr.responseJSON?.message || 'Failed to import resume.');
-                        },
-                        complete: function () {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                            input.value = ''; // Reset
-                        }
-                    });
-                }
-            }
 
             // --- Form Submission ---
             function submitForm() {
