@@ -96,15 +96,46 @@ class Employer extends Model
 
         static::creating(function ($employer) {
             if (empty($employer->company_slug)) {
-                $employer->company_slug = Str::slug($employer->company_name);
+                $employer->company_slug = static::generateUniqueSlug($employer->company_name);
             }
         });
 
         static::updating(function ($employer) {
             if ($employer->isDirty('company_name') && empty($employer->company_slug)) {
-                $employer->company_slug = Str::slug($employer->company_name);
+                $employer->company_slug = static::generateUniqueSlug($employer->company_name, $employer->id);
             }
         });
+    }
+
+    /**
+     * Generate a unique company slug.
+     */
+    protected static function generateUniqueSlug(string $name, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (static::slugExists($slug, $excludeId)) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Check if a slug already exists.
+     */
+    protected static function slugExists(string $slug, ?int $excludeId = null): bool
+    {
+        $query = static::where('company_slug', $slug);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
     }
 
     /**

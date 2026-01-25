@@ -155,67 +155,96 @@ class EmployerAuthController extends Controller
                 'password' => 'required|min:5|same:confirm_password',
                 'confirm_password' => 'required',
             ], [
-                'email.unique' => 'The email is already in use.'
+                'email.unique' => 'The email is already in use.',
+                'name.required' => 'Please enter your company name.',
+                'name.min' => 'Company name must be at least 3 characters.',
+                'password.required' => 'Please enter a password.',
+                'password.min' => 'Password must be at least 5 characters.',
+                'password.same' => 'Passwords do not match.',
+                'confirm_password.required' => 'Please confirm your password.',
             ]);
 
             if ($validator->fails()) {
-                return back()->withErrors($validator)->withInput($request->only('email', 'name'));
+                $firstError = $validator->errors()->first();
+                return back()->withErrors($validator)->withInput($request->only('email', 'name'))->with('error', $firstError);
             }
 
-            // Create the user
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => 'employer',
-                'email_verified_at' => now(),
-            ]);
+            try {
+                // Create the user
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'role' => 'employer',
+                    'email_verified_at' => now(),
+                ]);
 
-            // Create employer profile
-            Employer::create([
-                'user_id' => $user->id,
-                'company_name' => $request->name, // Use name as default company name
-                'status' => 'pending',
-            ]);
+                // Create employer profile
+                Employer::create([
+                    'user_id' => $user->id,
+                    'company_name' => $request->name, // Use name as default company name
+                    'status' => 'pending',
+                ]);
 
-            // Log the user in
-            Auth::login($user, true);
+                // Log the user in
+                Auth::login($user, true);
 
-            return redirect()->route('employer.dashboard')->with('success', 'Welcome! Your employer account has been created successfully.');
+                return redirect()->route('employer.dashboard')->with('success', 'Welcome! Your employer account has been created successfully.');
+
+            } catch (\Exception $e) {
+                // Log the error for debugging
+                \Log::error('Employer registration failed: ' . $e->getMessage());
+
+                return back()->withInput($request->only('email', 'name'))->with('error', 'Registration failed. Please try again or contact support.');
+            }
 
         } else {
             // Magic link registration
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'email' => 'required|email',
+            ], [
+                'email.required' => 'Please enter your email address.',
+                'email.email' => 'Please enter a valid email address.',
             ]);
 
-            // Generate a secure token
-            $token = Str::random(64);
-            $expiresAt = now()->addMinutes(15);
+            if ($validator->fails()) {
+                $firstError = $validator->errors()->first();
+                return back()->withErrors($validator)->withInput()->with('error', $firstError);
+            }
 
-            // Delete any existing unused tokens for this email
-            DB::table('login_tokens')
-                ->where('email', $request->email)
-                ->where('used', false)
-                ->delete();
+            try {
+                // Generate a secure token
+                $token = Str::random(64);
+                $expiresAt = now()->addMinutes(15);
 
-            // Create new login token for registration
-            DB::table('login_tokens')->insert([
-                'email' => $request->email,
-                'token' => hash('sha256', $token),
-                'role' => 'employer',
-                'expires_at' => $expiresAt,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                // Delete any existing unused tokens for this email
+                DB::table('login_tokens')
+                    ->where('email', $request->email)
+                    ->where('used', false)
+                    ->delete();
 
-            // Generate the login URL
-            $loginUrl = route('auth.verify-token', ['token' => $token]);
+                // Create new login token for registration
+                DB::table('login_tokens')->insert([
+                    'email' => $request->email,
+                    'token' => hash('sha256', $token),
+                    'role' => 'employer',
+                    'expires_at' => $expiresAt,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
-            // Send the email
-            Mail::to($request->email)->send(new LoginCodeMail($loginUrl, 15));
+                // Generate the login URL
+                $loginUrl = route('auth.verify-token', ['token' => $token]);
 
-            return redirect()->route('home')->with('success', 'Check your email! We sent you a sign-in link.');
+                // Send the email
+                Mail::to($request->email)->send(new LoginCodeMail($loginUrl, 15));
+
+                return redirect()->route('home')->with('success', 'Check your email! We sent you a sign-in link.');
+
+            } catch (\Exception $e) {
+                \Log::error('Magic link registration failed: ' . $e->getMessage());
+                return back()->withInput()->with('error', 'Failed to send sign-in link. Please try again.');
+            }
         }
     }
 }
