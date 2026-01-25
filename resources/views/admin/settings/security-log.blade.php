@@ -94,7 +94,6 @@
                             <th>Time</th>
                             <th>User</th>
                             <th>Event</th>
-                            <th>IP Address</th>
                             <th>Status</th>
                             <th>Details</th>
                         </tr>
@@ -107,7 +106,6 @@
                                 <td>
                                     <span class="badge bg-secondary">{{ ucwords(str_replace('_', ' ', $log->event_type)) }}</span>
                                 </td>
-                                <td><code>{{ $log->ip_address }}</code></td>
                                 <td>
                                     @if($log->status === 'success')
                                         <span class="badge bg-success">Success</span>
@@ -121,7 +119,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="5" class="text-center py-4">
                                     <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
                                     <p class="text-muted mt-2">No security logs yet</p>
                                 </td>
