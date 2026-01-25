@@ -164,14 +164,16 @@
                                         <span>Full Name</span>
                                     </label>
                                     <input type="text"
-                                           class="form-control form-control-lg"
+                                           class="form-control form-control-lg @error('name') is-invalid @enderror"
                                            id="registerName"
                                            name="name"
                                            placeholder="Enter your full name"
                                            value="{{ old('name') }}">
-                                    <div class="invalid-feedback">
-                                        Please provide your name.
-                                    </div>
+                                    @error('name')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @else
+                                        <div class="invalid-feedback">Please provide your name.</div>
+                                    @enderror
                                 </div>
 
                                 <!-- Email Input -->
@@ -183,15 +185,17 @@
                                         </a>
                                     </label>
                                     <input type="email"
-                                           class="form-control form-control-lg"
+                                           class="form-control form-control-lg @error('email') is-invalid @enderror"
                                            id="registerEmail"
                                            name="email"
                                            placeholder="you@example.com"
                                            value="{{ old('email') }}"
                                            required>
-                                    <div class="invalid-feedback">
-                                        Please provide a valid email.
-                                    </div>
+                                    @error('email')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @else
+                                        <div class="invalid-feedback">Please provide a valid email.</div>
+                                    @enderror
                                 </div>
 
                                 <!-- Password Input (hidden by default) -->
@@ -201,7 +205,7 @@
                                     </label>
                                     <div class="input-group">
                                         <input type="password"
-                                               class="form-control form-control-lg"
+                                               class="form-control form-control-lg @error('password') is-invalid @enderror"
                                                id="registerPassword"
                                                name="password"
                                                placeholder="Create a strong password">
@@ -209,9 +213,11 @@
                                             <i class="fas fa-eye-slash" id="registerPasswordIcon"></i>
                                         </button>
                                     </div>
-                                    <div class="invalid-feedback">
-                                        Password must be at least 8 characters.
-                                    </div>
+                                    @error('password')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @else
+                                        <div class="invalid-feedback">Password must be at least 8 characters.</div>
+                                    @enderror
                                     <div class="form-text small text-muted">
                                         Must be at least 8 characters long
                                     </div>
@@ -730,9 +736,37 @@ document.addEventListener('DOMContentLoaded', function() {
     var authModal = new bootstrap.Modal(document.getElementById('authModal'));
     authModal.show();
 
-    @if($errors->has('name') || $errors->has('password_confirmation') || $errors->has('role'))
+    @if($errors->has('name') || $errors->has('password') || $errors->has('password_confirmation') || $errors->has('role'))
         switchToRegister();
+        // If password fields had errors, show password registration mode
+        @if($errors->has('password') || $errors->has('password_confirmation') || $errors->has('name'))
+            toggleRegisterPasswordOnLoad();
+        @endif
     @endif
 });
+
+// Function to toggle password fields on page load (without event)
+function toggleRegisterPasswordOnLoad() {
+    const nameField = document.getElementById('registerNameField');
+    const passwordField = document.getElementById('registerPasswordField');
+    const passwordConfirmField = document.getElementById('registerPasswordConfirmField');
+    const registrationMethodInput = document.getElementById('registrationMethod');
+    const toggleLink = document.getElementById('toggleRegisterMethod');
+    const submitBtn = document.getElementById('registerSubmitBtn');
+    const nameInput = document.getElementById('registerName');
+    const passwordInput = document.getElementById('registerPassword');
+    const passwordConfirmInput = document.getElementById('registerPasswordConfirm');
+
+    nameField.style.display = 'block';
+    passwordField.style.display = 'block';
+    passwordConfirmField.style.display = 'block';
+    registrationMethodInput.value = 'password';
+    toggleLink.innerHTML = '<i class="fas fa-envelope me-1"></i>Sign up with email code instead';
+    submitBtn.textContent = 'Create Account';
+    nameInput.setAttribute('required', 'required');
+    passwordInput.setAttribute('required', 'required');
+    passwordInput.setAttribute('minlength', '8');
+    passwordConfirmInput.setAttribute('required', 'required');
+}
 @endif
 </script>
