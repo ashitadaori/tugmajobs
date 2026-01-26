@@ -188,3 +188,220 @@ h6 {
         min-width: max-content;
     }
 }
+
+/* ============================================
+   COMPREHENSIVE DARK MODE STYLES
+   ============================================ */
+
+/* Stats Card Dark Mode */
+[data-theme="dark"] .stats-card {
+    background: var(--admin-card-bg);
+    border: 1px solid #374151;
+}
+
+[data-theme="dark"] .stats-card h2,
+[data-theme="dark"] .stats-card h3,
+[data-theme="dark"] .stats-card h4,
+[data-theme="dark"] .stats-card .h2,
+[data-theme="dark"] .stats-card .h3 {
+    color: #f3f4f6 !important;
+}
+
+[data-theme="dark"] .stats-card h6,
+[data-theme="dark"] .stats-card .h6 {
+    color: #9ca3af !important;
+}
+
+/* Fix text-dark in dark mode */
+[data-theme="dark"] .text-dark {
+    color: #f3f4f6 !important;
+}
+
+/* Fix bg-light in dark mode */
+[data-theme="dark"] .bg-light {
+    background-color: #374151 !important;
+}
+
+/* Activity Feed Dark Mode */
+[data-theme="dark"] .activity-content p,
+[data-theme="dark"] .activity-text {
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .activity-text strong {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .activity-text a {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .activity-time {
+    color: #9ca3af;
+}
+
+/* Activity Icon Colors */
+.activity-icon-primary {
+    background: rgba(79, 70, 229, 0.1);
+    color: #6366f1;
+}
+
+.activity-icon-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.activity-icon-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+[data-theme="dark"] .activity-icon-primary {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .activity-icon-success {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="dark"] .activity-icon-info {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+/* List Group Dark Mode */
+[data-theme="dark"] .list-group-item {
+    background-color: var(--admin-card-bg);
+    border-color: #374151;
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .list-group-item h6 {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .list-group-item small,
+[data-theme="dark"] .list-group-item .small {
+    color: #9ca3af;
+}
+
+/* Card Hover Indicator */
+.card-hover-indicator {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    color: var(--admin-text-muted);
+    font-size: 0.875rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .card-hover-indicator {
+    border-top-color: rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+}
+
+.stats-card-clickable:hover .card-hover-indicator {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Breadcrumbs Dark Mode */
+[data-theme="dark"] .breadcrumb-item a {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: #9ca3af;
+}
+
+[data-theme="dark"] .breadcrumb-item+.breadcrumb-item::before {
+    color: #6b7280;
+}
+
+/* Progress Bars Dark Mode */
+[data-theme="dark"] .progress {
+    background-color: #374151;
+}
+
+/* Icon Circle Backgrounds */
+[data-theme="dark"] .rounded-circle.p-3.bg-light {
+    background-color: #374151 !important;
+}
+
+/* Border Utilities */
+[data-theme="dark"] .border-warning {
+    border-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .border-top {
+    border-color: #374151 !important;
+}
+
+/* Pulse Animation for Badges */
+.pulse-animation {
+    animation: badge-pulse 2s infinite;
+}
+
+@keyframes badge-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* System Status Indicator */
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: status-pulse 2s infinite;
+}
+
+@keyframes status-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Admin Users List */
+[data-theme="dark"] .admin-users-list .fw-semibold {
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .admin-users-list .border-top {
+    border-color: #374151 !important;
+}
+
+/* Spin Animation for Refresh Button */
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Stat Updated Animation */
+.stat-updated {
+    animation: highlight 1s ease;
+}
+
+@keyframes highlight {
+    0% {
+        background-color: rgba(79, 70, 229, 0.2);
+    }
+    100% {
+        background-color: var(--admin-card-bg);
+    }
+}
