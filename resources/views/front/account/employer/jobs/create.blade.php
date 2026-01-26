@@ -1759,11 +1759,11 @@
                                 </div>
                                 <textarea class="form-control" id="qualifications" name="qualifications" rows="8" required
                                     maxlength="3000" placeholder="- Graduate of a 4-year BUSINESS-related course (preferably Accountancy)
-                            - With experience as an advantage, or without experience as long as trainable
-                            - Knowledge in accounting and business management
-                            - Has keen attention to detail and paperwork
-                            - Good communication skills
-                            - Honest and trustworthy">{{ old('qualifications') }}</textarea>
+                                            - With experience as an advantage, or without experience as long as trainable
+                                            - Knowledge in accounting and business management
+                                            - Has keen attention to detail and paperwork
+                                            - Good communication skills
+                                            - Honest and trustworthy">{{ old('qualifications') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -1782,8 +1782,8 @@
                                 </div>
                                 <textarea class="form-control" id="requirements" name="requirements" rows="4" maxlength="2000"
                                     placeholder="- Must have own motorcycle (with driver's license)
-                            - Must be willing to be assigned for field work
-                            - With valid professional driver's license">{{ old('requirements') }}</textarea>
+                                            - Must be willing to be assigned for field work
+                                            - With valid professional driver's license">{{ old('requirements') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -1801,10 +1801,10 @@
                                 </div>
                                 <textarea class="form-control" id="benefits" name="benefits" rows="4" maxlength="2000"
                                     placeholder="- Competitive salary
-                            - Health insurance
-                            - 13th month pay
-                            - Paid leave
-                            - Free lunch/snacks">{{ old('benefits') }}</textarea>
+                                            - Health insurance
+                                            - 13th month pay
+                                            - Paid leave
+                                            - Free lunch/snacks">{{ old('benefits') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -1830,19 +1830,20 @@
 
                             <!-- Preliminary Questions Section -->
                             <div class="form-row mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                                     <div class="form-row-header mb-0">
                                         <i class="fas fa-question-circle me-2" style="color: #667eea;"></i> Preliminary
                                         Interview Questions
                                     </div>
-                                    <div class="option-card p-2 px-3" style="display: inline-flex; align-items: center;"
+                                    <div class="option-card py-3 px-4" style="display: inline-flex; align-items: center; gap: 12px;"
                                         onclick="toggleOptionCard(this, 'requires_screening')">
-                                        <div class="form-check form-switch m-0 me-2">
+                                        <div class="form-check form-switch m-0">
                                             <input class="form-check-input" type="checkbox" id="requires_screening"
-                                                name="requires_screening" {{ old('requires_screening') ? 'checked' : '' }}>
+                                                name="requires_screening" {{ old('requires_screening') ? 'checked' : '' }}
+                                                style="width: 3em; height: 1.5em;">
                                         </div>
                                         <label class="form-check-label mb-0" for="requires_screening"
-                                            style="font-weight: 500; cursor: pointer;">
+                                            style="font-weight: 500; cursor: pointer; white-space: nowrap;">
                                             Enable screening
                                         </label>
                                     </div>
@@ -2045,7 +2046,7 @@
     </style>
 @endsection
 
-@push('scripts')
+@push('styles')
     <!-- Mapbox CSS -->
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
     <style>
@@ -2232,9 +2233,9 @@
                     const div = document.createElement('div');
                     div.className = 'location-suggestion-item';
                     div.innerHTML = `
-                                <div class="location-suggestion-name">${place.name || extractLocationName(place.place_name)}</div>
-                                <div class="location-suggestion-address">${place.place_name || place.full_address}</div>
-                            `;
+                                        <div class="location-suggestion-name">${place.name || extractLocationName(place.place_name)}</div>
+                                        <div class="location-suggestion-address">${place.place_name || place.full_address}</div>
+                                    `;
                     div.addEventListener('click', () => selectPlace(place));
                     locationSuggestions.appendChild(div);
                 });
@@ -2365,7 +2366,7 @@
                 @if(!$errors->any() && !old('title'))
                     resetJobForm();
                 @endif
-            });
+                    });
 
             function resetJobForm() {
                 const form = document.getElementById('jobForm');
@@ -2437,318 +2438,9 @@
             window.resetJobForm = resetJobForm;
         })();
 
-        /**
-         * Mapbox Location Autocomplete
-         * Uses the backend API to search for locations in Sta. Cruz, Davao del Sur
-         */
-        (function () {
-            'use strict';
 
-            let searchTimeout = null;
-            let currentSuggestions = [];
-            let selectedIndex = -1;
 
-            document.addEventListener('DOMContentLoaded', function () {
-                initMapboxLocationAutocomplete();
-            });
 
-            function initMapboxLocationAutocomplete() {
-                const locationInput = document.getElementById('location');
-                const suggestionsContainer = document.getElementById('location-suggestions');
-                const latInput = document.getElementById('latitude');
-                const lngInput = document.getElementById('longitude');
-                const locationBtn = document.getElementById('use-current-location');
-
-                if (!locationInput || !suggestionsContainer) return;
-
-                // Handle input changes with debounce
-                locationInput.addEventListener('input', function (e) {
-                    const query = e.target.value.trim();
-
-                    // Clear previous timeout
-                    if (searchTimeout) {
-                        clearTimeout(searchTimeout);
-                    }
-
-                    // Clear coordinates when user types (they haven't selected a suggestion yet)
-                    if (latInput) latInput.value = '';
-                    if (lngInput) lngInput.value = '';
-
-                    // Hide suggestions if query is too short
-                    if (query.length < 2) {
-                        hideSuggestions();
-                        return;
-                    }
-
-                    // Debounce the search (wait 300ms after user stops typing)
-                    searchTimeout = setTimeout(function () {
-                        searchLocations(query);
-                    }, 300);
-                });
-
-                // Handle keyboard navigation
-                locationInput.addEventListener('keydown', function (e) {
-                    if (!suggestionsContainer.classList.contains('show')) return;
-
-                    const items = suggestionsContainer.querySelectorAll('.location-suggestion-item');
-
-                    switch (e.key) {
-                        case 'ArrowDown':
-                            e.preventDefault();
-                            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-                            updateSelectedItem(items);
-                            break;
-
-                        case 'ArrowUp':
-                            e.preventDefault();
-                            selectedIndex = Math.max(selectedIndex - 1, 0);
-                            updateSelectedItem(items);
-                            break;
-
-                        case 'Enter':
-                            e.preventDefault();
-                            if (selectedIndex >= 0 && currentSuggestions[selectedIndex]) {
-                                selectSuggestion(currentSuggestions[selectedIndex]);
-                            }
-                            break;
-
-                        case 'Escape':
-                            hideSuggestions();
-                            break;
-                    }
-                });
-
-                // Hide suggestions when clicking outside
-                document.addEventListener('click', function (e) {
-                    if (!e.target.closest('.location-autocomplete-wrapper')) {
-                        hideSuggestions();
-                    }
-                });
-
-                // Handle "Use Current Location" button with reverse geocoding
-                if (locationBtn) {
-                    locationBtn.addEventListener('click', function () {
-                        if (!navigator.geolocation) {
-                            showNotification('Geolocation is not supported by this browser.', 'error');
-                            return;
-                        }
-
-                        // Show loading state
-                        locationBtn.disabled = true;
-                        locationBtn.innerHTML = '<i class="bi bi-arrow-repeat spin-animation"></i> Detecting...';
-
-                        navigator.geolocation.getCurrentPosition(
-                            function (position) {
-                                const lat = position.coords.latitude;
-                                const lng = position.coords.longitude;
-
-                                // Set coordinates
-                                if (latInput) latInput.value = lat;
-                                if (lngInput) lngInput.value = lng;
-
-                                // Use reverse geocoding to get address
-                                reverseGeocode(lat, lng, function (address) {
-                                    locationInput.value = address || 'Sta. Cruz, Davao del Sur';
-                                    resetLocationButton();
-                                    showNotification('Location detected successfully!', 'success');
-                                });
-                            },
-                            function (error) {
-                                let errorMessage = 'Unable to get your location.';
-                                switch (error.code) {
-                                    case error.PERMISSION_DENIED:
-                                        errorMessage = 'Location permission denied. Please enable location access.';
-                                        break;
-                                    case error.POSITION_UNAVAILABLE:
-                                        errorMessage = 'Location information is unavailable.';
-                                        break;
-                                    case error.TIMEOUT:
-                                        errorMessage = 'Location request timed out.';
-                                        break;
-                                }
-                                showNotification(errorMessage, 'error');
-                                resetLocationButton();
-                            },
-                            {
-                                enableHighAccuracy: false,
-                                timeout: 30000,
-                                maximumAge: 60000
-                            }
-                        );
-                    });
-                }
-
-                function resetLocationButton() {
-                    locationBtn.disabled = false;
-                    locationBtn.innerHTML = '<i class="bi bi-geo-alt-fill me-2"></i>Use My Location';
-                }
-            }
-
-            // Search for locations using the backend API
-            function searchLocations(query) {
-                const suggestionsContainer = document.getElementById('location-suggestions');
-
-                // Show loading state
-                suggestionsContainer.innerHTML = '<div class="location-loading"><i class="fas fa-spinner fa-spin"></i>Searching locations...</div>';
-                suggestionsContainer.classList.add('show');
-
-                // Call the backend API
-                fetch('/api/location/search?q=' + encodeURIComponent(query))
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.suggestions && data.suggestions.length > 0) {
-                            currentSuggestions = data.suggestions;
-                            renderSuggestions(data.suggestions, query);
-                        } else {
-                            currentSuggestions = [];
-                            suggestionsContainer.innerHTML = '<div class="location-no-results"><i class="fas fa-map-marker-alt me-2"></i>No locations found. Try a different search term.</div>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Location search error:', error);
-                        currentSuggestions = [];
-                        suggestionsContainer.innerHTML = '<div class="location-no-results"><i class="fas fa-exclamation-circle me-2"></i>Error searching locations. Please try again.</div>';
-                    });
-            }
-
-            // Render location suggestions
-            function renderSuggestions(suggestions, query) {
-                const suggestionsContainer = document.getElementById('location-suggestions');
-                selectedIndex = -1;
-
-                let html = '';
-                suggestions.forEach((suggestion, index) => {
-                    const name = highlightMatch(suggestion.name || '', query);
-                    const address = suggestion.full_address || suggestion.place_name || '';
-
-                    html += `
-                        <div class="location-suggestion-item" data-index="${index}">
-                            <i class="fas fa-map-marker-alt suggestion-icon"></i>
-                            <div class="d-inline-block">
-                                <div class="suggestion-name">${name}</div>
-                                <div class="suggestion-address">${address}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                suggestionsContainer.innerHTML = html;
-                suggestionsContainer.classList.add('show');
-
-                // Add click handlers to suggestions
-                suggestionsContainer.querySelectorAll('.location-suggestion-item').forEach(item => {
-                    item.addEventListener('click', function () {
-                        const index = parseInt(this.dataset.index);
-                        if (currentSuggestions[index]) {
-                            selectSuggestion(currentSuggestions[index]);
-                        }
-                    });
-                });
-            }
-
-            // Select a suggestion
-            function selectSuggestion(suggestion) {
-                const locationInput = document.getElementById('location');
-                const latInput = document.getElementById('latitude');
-                const lngInput = document.getElementById('longitude');
-
-                // Set the location name
-                const displayName = suggestion.full_address || suggestion.place_name || suggestion.name;
-                locationInput.value = displayName;
-
-                // Set coordinates
-                if (suggestion.coordinates) {
-                    if (latInput) latInput.value = suggestion.coordinates.latitude;
-                    if (lngInput) lngInput.value = suggestion.coordinates.longitude;
-                } else if (suggestion.geometry && suggestion.geometry.coordinates) {
-                    if (lngInput) lngInput.value = suggestion.geometry.coordinates[0];
-                    if (latInput) latInput.value = suggestion.geometry.coordinates[1];
-                }
-
-                // Hide suggestions
-                hideSuggestions();
-
-                // Show success notification
-                showNotification('Location selected: ' + suggestion.name, 'success');
-            }
-
-            // Reverse geocode coordinates to get address
-            function reverseGeocode(lat, lng, callback) {
-                fetch('/api/location/reverse-geocode?lat=' + lat + '&lng=' + lng)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.features && data.features.length > 0) {
-                            callback(data.features[0].place_name);
-                        } else {
-                            callback('Sta. Cruz, Davao del Sur');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Reverse geocoding error:', error);
-                        callback('Sta. Cruz, Davao del Sur');
-                    });
-            }
-
-            // Highlight matching text in suggestions
-            function highlightMatch(text, query) {
-                if (!query) return text;
-                const regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
-                return text.replace(regex, '<span class="highlight">$1</span>');
-            }
-
-            // Escape regex special characters
-            function escapeRegex(string) {
-                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            }
-
-            // Update selected item highlighting
-            function updateSelectedItem(items) {
-                items.forEach((item, index) => {
-                    if (index === selectedIndex) {
-                        item.classList.add('active');
-                        item.scrollIntoView({ block: 'nearest' });
-                    } else {
-                        item.classList.remove('active');
-                    }
-                });
-            }
-
-            // Hide suggestions dropdown
-            function hideSuggestions() {
-                const suggestionsContainer = document.getElementById('location-suggestions');
-                if (suggestionsContainer) {
-                    suggestionsContainer.classList.remove('show');
-                }
-                selectedIndex = -1;
-            }
-
-            // Show notification
-            function showNotification(message, type) {
-                // Remove existing notifications
-                const existingNotifications = document.querySelectorAll('.location-notification');
-                existingNotifications.forEach(n => n.remove());
-
-                // Create notification element
-                const notification = document.createElement('div');
-                notification.className = 'location-notification alert alert-' + (type === 'success' ? 'success' : 'danger') + ' mt-2';
-                notification.style.cssText = 'position: absolute; z-index: 1060; left: 0; right: 0; animation: fadeIn 0.3s ease;';
-                notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + ' me-2"></i>' + message;
-
-                // Insert after location wrapper
-                const wrapper = document.querySelector('.location-autocomplete-wrapper');
-                if (wrapper) {
-                    wrapper.appendChild(notification);
-                }
-
-                // Auto-remove after 3 seconds
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.style.animation = 'fadeOut 0.3s ease';
-                        setTimeout(() => notification.remove(), 300);
-                    }
-                }, 3000);
-            }
-        })();
     </script>
 
     <script>
@@ -2760,30 +2452,70 @@
             // Check if there are validation errors on page load
             const errorAlert = document.querySelector('.alert-danger');
             if (errorAlert) {
-                // Scroll to the error message
-                errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Determine which step has the error based on field names
+                const stepFieldMap = {
+                    1: ['title', 'job_type_id', 'category_id', 'vacancy', 'location', 'is_remote', 'is_featured'],
+                    2: ['description', 'experience_level', 'education_level', 'salary_min', 'salary_max', 'deadline'],
+                    3: ['qualifications', 'requirements', 'benefits', 'skills', 'preliminary_questions', 'job_requirements'],
+                    4: []
+                };
 
-                // Show step 1 if there are errors (most errors are in step 1)
-                const step1 = document.getElementById('step-1');
-                if (step1) {
+                // Find the step with the first error
+                let errorStep = 1;
+                const invalidFields = document.querySelectorAll('.invalid-feedback.d-block');
+
+                if (invalidFields.length > 0) {
+                    // Get the first invalid field's name
+                    const firstInvalidField = invalidFields[0].closest('.form-group, .col-lg-6, .col-lg-4, .col-md-6, .mb-3, .mb-4, .form-row');
+                    if (firstInvalidField) {
+                        const input = firstInvalidField.querySelector('input, select, textarea');
+                        if (input && input.name) {
+                            const fieldName = input.name.replace(/\[.*\]/, ''); // Remove array notation
+                            for (let step = 1; step <= 4; step++) {
+                                if (stepFieldMap[step].includes(fieldName)) {
+                                    errorStep = step;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Show the step with the error
+                const targetStep = document.getElementById('step-' + errorStep);
+                if (targetStep) {
                     // Hide all steps
                     document.querySelectorAll('.wizard-section').forEach(section => {
                         section.style.display = 'none';
                     });
-                    // Show step 1
-                    step1.style.display = 'block';
+                    // Show target step
+                    targetStep.style.display = 'block';
 
                     // Update progress indicator
                     document.querySelectorAll('.progress-step').forEach(step => {
                         step.classList.remove('active');
                     });
-                    document.querySelector('[data-step="0"]').classList.add('active');
+                    const stepIndex = errorStep - 1;
+                    const progressStepEl = document.querySelector('[data-step="' + stepIndex + '"]');
+                    if (progressStepEl) {
+                        progressStepEl.classList.add('active');
+                    }
 
                     // Update progress bar
                     const progressBar = document.querySelector('.progress-bar');
                     if (progressBar) {
-                        progressBar.style.width = '25%';
+                        progressBar.style.width = (errorStep * 25) + '%';
                     }
+
+                    // Scroll to the first error within the step
+                    setTimeout(() => {
+                        const firstError = targetStep.querySelector('.invalid-feedback.d-block');
+                        if (firstError) {
+                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } else {
+                            errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 100);
                 }
             }
 
@@ -2838,7 +2570,7 @@
                         );
                     @endforeach
                 @endif
-                });
+                        });
 
             function initJobRequirements() {
                 const container = document.getElementById('job_requirements_container');
@@ -2867,31 +2599,31 @@
                 const index = requirementIndex++;
 
                 const html = `
-                    <div class="requirement-item">
-                        <button type="button" class="remove-requirement" title="Remove requirement">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <div class="row">
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label">Document Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="job_requirements[${index}][name]"
-                                       value="${escapeHtml(name)}" placeholder="e.g., 2x2 ID Photo" required>
+                            <div class="requirement-item">
+                                <button type="button" class="remove-requirement" title="Remove requirement">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label">Document Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="job_requirements[${index}][name]"
+                                               value="${escapeHtml(name)}" placeholder="e.g., 2x2 ID Photo" required>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label">Description</label>
+                                        <input type="text" class="form-control" name="job_requirements[${index}][description]"
+                                               value="${escapeHtml(description)}" placeholder="e.g., Recent photo with white background">
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch mt-2">
+                                    <input type="checkbox" class="form-check-input" name="job_requirements[${index}][is_required]"
+                                           id="req_required_${index}" ${isRequired ? 'checked' : ''} value="1">
+                                    <label class="form-check-label align-middle" for="req_required_${index}">
+                                        This document is mandatory
+                                    </label>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label">Description</label>
-                                <input type="text" class="form-control" name="job_requirements[${index}][description]"
-                                       value="${escapeHtml(description)}" placeholder="e.g., Recent photo with white background">
-                            </div>
-                        </div>
-                        <div class="form-check form-switch mt-2">
-                            <input type="checkbox" class="form-check-input" name="job_requirements[${index}][is_required]"
-                                   id="req_required_${index}" ${isRequired ? 'checked' : ''} value="1">
-                            <label class="form-check-label align-middle" for="req_required_${index}">
-                                This document is mandatory
-                            </label>
-                        </div>
-                    </div>
-                `;
+                        `;
 
                 container.insertAdjacentHTML('beforeend', html);
             }

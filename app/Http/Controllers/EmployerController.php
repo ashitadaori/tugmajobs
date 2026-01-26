@@ -2247,7 +2247,8 @@ class EmployerController extends Controller
             $validated = $request->validate([
                 'title' => 'required|string|min:5|max:255',
                 'description' => 'required|string|min:20|max:5000',
-                'requirements' => 'required|string|min:10|max:3000',
+                'qualifications' => 'required|string|min:10|max:3000',
+                'requirements' => 'nullable|string|max:3000',
                 'benefits' => 'nullable|string|max:2000',
                 'location' => 'required|string|max:255',
                 'city' => 'nullable|string|max:100',
@@ -2272,8 +2273,8 @@ class EmployerController extends Controller
                 'title.min' => 'Job title must be at least 5 characters',
                 'description.required' => 'Job description is required',
                 'description.min' => 'Job description must be at least 20 characters',
-                'requirements.required' => 'Job requirements are required',
-                'requirements.min' => 'Job requirements must be at least 10 characters',
+                'qualifications.required' => 'Job qualifications are required',
+                'qualifications.min' => 'Job qualifications must be at least 10 characters',
                 'location.required' => 'Job location is required',
                 'job_type_id.required' => 'Please select a job type',
                 'category_id.required' => 'Please select a category',
@@ -2299,7 +2300,8 @@ class EmployerController extends Controller
             $job = new Job();
             $job->title = $validated['title'];
             $job->description = $validated['description'];
-            $job->requirements = $validated['requirements'];
+            $job->qualifications = $validated['qualifications'];
+            $job->requirements = $validated['requirements'] ?? null;
             $job->benefits = $validated['benefits'] ?? null;
             $job->location = $validated['location'];
             $job->location_name = $validated['location'];

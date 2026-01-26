@@ -6,13 +6,12 @@
             <div class="row justify-content-center">
                 <div class="col-md-8 col-lg-6 text-center">
                     <div class="error-illustration mb-4">
-                        <i class="fas fa-search fa-5x text-primary mb-3"></i>
+                        <i class="fas fa-lock fa-5x text-warning mb-3"></i>
                     </div>
-                    <h1 class="display-4 fw-bold mb-3">404</h1>
-                    <h2 class="h3 mb-4">Page Not Found</h2>
+                    <h1 class="display-4 fw-bold mb-3">403</h1>
+                    <h2 class="h3 mb-4">Access Denied</h2>
                     <p class="lead text-muted mb-5">
-                        Sorry, the page you are looking for could not be found. It might have been removed, renamed, or
-                        doesn't exist.
+                        Sorry, you don't have permission to access this page. It might be restricted to specific user roles.
                     </p>
                     <div class="d-flex justify-content-center gap-3">
                         <a href="{{ route('home') }}" class="btn btn-primary btn-lg">

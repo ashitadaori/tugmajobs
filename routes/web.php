@@ -138,6 +138,14 @@ Route::get('/terms-and-conditions', function () {
     return view('front.terms');
 })->name('terms');
 
+Route::get('/privacy-policy', function () {
+    return view('front.privacy');
+})->name('privacy');
+
+Route::get('/cookie-policy', function () {
+    return view('front.cookies');
+})->name('cookies');
+
 // Profile redirect route for all users
 Route::get('/profile', function () {
     $user = Auth::user();

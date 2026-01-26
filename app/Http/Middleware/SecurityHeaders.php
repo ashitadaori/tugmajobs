@@ -11,14 +11,16 @@ class SecurityHeaders
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
-     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     * @param  \Closure  $next
+     * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
         $response = $next($request);
 
-        // Prevent clickjacking attacks
+        // Security Headers
+
+        // Prevent clickjacking
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
 
         // Prevent MIME type sniffing
@@ -27,46 +29,25 @@ class SecurityHeaders
         // Enable XSS protection
         $response->headers->set('X-XSS-Protection', '1; mode=block');
 
-        // Strict Transport Security (HTTPS only)
-        if ($request->secure()) {
-            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-        }
+        // Strict Transport Security (HSTS) - Enforces HTTPS
+        // Max-age is set to 1 year (31536000 seconds)
+        $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
-        // Referrer Policy
-        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-        // Content Security Policy
-        // Note: 'unsafe-inline' and 'unsafe-eval' are needed for some JS frameworks
-        // In production, consider using nonce-based CSP or removing inline scripts
-        $isProduction = config('app.env') === 'production';
-
-        // Base script sources - always needed
-        $scriptSrc = "'self' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://api.mapbox.com";
-
-        // In development, allow unsafe-inline and unsafe-eval for easier debugging
-        // In production, these are still needed due to inline scripts in templates
-        // TODO: Migrate inline scripts to external files to remove unsafe-inline
-        $scriptSrc .= " 'unsafe-inline' 'unsafe-eval'";
-
+        // Content Security Policy (CSP)
+        // This is a permissive policy to start with, allowing inline scripts and styles
+        // You should tighten this up over time by removing 'unsafe-inline' and 'unsafe-eval'
         $csp = "default-src 'self'; " .
-               "script-src {$scriptSrc}; " .
-               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://api.mapbox.com; " .
-               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; " .
-               "img-src 'self' data: https: blob:; " .
-               "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://api.openai.com wss://*.mapbox.com; " .
-               "frame-ancestors 'self'; " .
-               "base-uri 'self'; " .
-               "form-action 'self';";
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; " .
+            "style-src 'self' 'unsafe-inline' https:; " .
+            "img-src 'self' data: https:; " .
+            "font-src 'self' https: data:; " .
+            "connect-src 'self' https:; " .
+            "frame-src 'self' https:;";
 
         $response->headers->set('Content-Security-Policy', $csp);
 
-        // Permissions Policy (formerly Feature Policy)
-        $response->headers->set('Permissions-Policy',
-            'geolocation=(self), ' .
-            'microphone=(), ' .
-            'camera=(), ' .
-            'payment=()'
-        );
+        // Referrer Policy
+        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         return $response;
     }

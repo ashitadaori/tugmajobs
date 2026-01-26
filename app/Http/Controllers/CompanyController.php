@@ -10,14 +10,74 @@ class CompanyController extends Controller
 {
     public function index()
     {
-        // Get standalone companies
-        $standaloneCompanies = \App\Models\Company::with([
-            'jobs' => function ($query) {
-                $query->where('status', 1)->orderBy('created_at', 'desc');
+        // Pagination settings
+        $perPage = 12;
+        $page = request()->get('page', 1);
+
+        // 1. Build Union Query for lightweight pagination
+        // Standalone companies query
+        $standaloneQuery = \DB::table('companies')
+            ->select('id', 'created_at', \DB::raw("'standalone' as source_type"))
+            ->whereNull('deleted_at'); // Assuming SoftDeletes
+
+        // Employer companies query
+        // We need to join users to ensure the employer exists and has active jobs
+        $employerQuery = \DB::table('employers')
+            ->join('users', 'employers.user_id', '=', 'users.id')
+            ->select('employers.id', 'employers.created_at', \DB::raw("'employer' as source_type"))
+            ->distinct();
+
+        // Count for pagination
+        $totalStandalone = $standaloneQuery->count();
+        $totalEmployer = $employerQuery->count();
+        $total = $totalStandalone + $totalEmployer;
+
+        // Fetch paginated IDs directly using UNION
+        // Note: Union order by created_at is complex in some DBs, doing it in PHP for the page slice is okay 
+        // IF we only fetch the lightweight columns. 
+        // BUT strict database pagination is better. 
+
+        // Optimized Strategy:
+        // Since accurate global sorting of two large tables without a common index is slow,
+        // and assuming "Recency" is the key, we will attempt to combine them.
+
+        $results = $standaloneQuery->union($employerQuery)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
+        // 2. Hydrate models for the current page
+        $standaloneIds = [];
+        $employerIds = [];
+
+        foreach ($results as $item) {
+            if ($item->source_type === 'standalone') {
+                $standaloneIds[] = $item->id;
+            } else {
+                $employerIds[] = $item->id;
             }
-        ])
-            ->get()
-            ->map(function ($company) {
+        }
+
+        // Fetch full models eagerly
+        $standaloneModels = \App\Models\Company::with([
+            'jobs' => function ($q) {
+                $q->where('status', 1);
+            }
+        ])->whereIn('id', $standaloneIds)->get()->keyBy('id');
+
+        $employerModels = Employer::with([
+            'user',
+            'jobs' => function ($q) {
+                $q->where('status', 1);
+            }
+        ])->whereIn('id', $employerIds)->get()->keyBy('id');
+
+        // 3. Transform back to uniform structure preserving the sort order
+        $transformedCollection = collect($results->items())->map(function ($item) use ($standaloneModels, $employerModels) {
+            if ($item->source_type === 'standalone') {
+                $company = $standaloneModels->get($item->id);
+                if (!$company)
+                    return null;
+
                 return (object) [
                     'id' => $company->id,
                     'company_name' => $company->name,
@@ -30,20 +90,11 @@ class CompanyController extends Controller
                     'average_rating' => null,
                     'reviews_count' => 0
                 ];
-            });
+            } else {
+                $employer = $employerModels->get($item->id);
+                if (!$employer)
+                    return null;
 
-        // Get employer-based companies
-        $employerCompanies = Employer::with([
-            'user',
-            'jobs' => function ($query) {
-                $query->where('status', 1)->orderBy('created_at', 'desc');
-            }
-        ])
-            ->whereHas('jobs', function ($query) {
-                $query->where('status', 1);
-            })
-            ->get()
-            ->map(function ($employer) {
                 $reviewsCount = \App\Models\Review::where('employer_id', $employer->user_id)
                     ->where('review_type', 'company')
                     ->count();
@@ -51,7 +102,7 @@ class CompanyController extends Controller
 
                 return (object) [
                     'id' => $employer->id,
-                    'company_name' => $employer->company_name ?? $employer->user->name,
+                    'company_name' => $employer->company_name ?? ($employer->user->name ?? 'Unknown'),
                     'company_description' => $employer->company_description,
                     'location' => $employer->city ?? 'Sta. Cruz, Davao del Sur',
                     'logo_url' => $employer->company_logo ? 'storage/' . $employer->company_logo : null,
@@ -61,27 +112,11 @@ class CompanyController extends Controller
                     'average_rating' => $averageRating ? round($averageRating, 1) : null,
                     'reviews_count' => $reviewsCount
                 ];
-            });
+            }
+        })->filter(); // Remove nulls if any record wasn't found
 
-        // Merge and sort by created_at
-        $allCompanies = $standaloneCompanies->concat($employerCompanies)
-            ->sortByDesc('created_at')
-            ->values();
-
-        // Manual pagination
-        $perPage = 12;
-        $currentPage = request()->get('page', 1);
-        $offset = ($currentPage - 1) * $perPage;
-
-        $paginatedCompanies = $allCompanies->slice($offset, $perPage)->values();
-
-        $companies = new \Illuminate\Pagination\LengthAwarePaginator(
-            $paginatedCompanies,
-            $allCompanies->count(),
-            $perPage,
-            $currentPage,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
+        // Replace the collection in the paginator
+        $companies = $results->setCollection($transformedCollection);
 
         return view('front.companies.index', compact('companies'));
     }

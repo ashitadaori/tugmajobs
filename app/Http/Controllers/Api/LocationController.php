@@ -23,12 +23,12 @@ class LocationController extends Controller
     {
         try {
             $areas = $this->locationService->getAllAreas();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $areas
             ])->header('Access-Control-Allow-Origin', '*')
-              ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+                ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         } catch (\Exception $e) {
             \Log::error('Error in getAllAreas: ' . $e->getMessage());
             return response()->json([
@@ -55,7 +55,7 @@ class LocationController extends Controller
                 ], 422);
             }
 
-            $locations = $this->locationService->searchLocations($request->query);
+            $locations = $this->locationService->searchLocations($request->input('query'));
 
             return response()->json([
                 'success' => true,
@@ -113,4 +113,78 @@ class LocationController extends Controller
             ], 500);
         }
     }
-} 
+
+    /**
+     * Get Mapbox configuration
+     */
+    public function getConfig()
+    {
+        return response()->json([
+            'public_token' => config('services.mapbox.public_token') ?? env('MAPBOX_ACCESS_TOKEN'),
+            'default_center' => [
+                'lat' => 6.7512, // Poblacion
+                'lng' => 125.4234
+            ],
+            'default_zoom' => 13,
+            'stacruz_bounds' => [
+                'southwest' => [125.35, 6.70],
+                'northeast' => [125.50, 6.85]
+            ]
+        ]);
+    }
+
+    /**
+     * Reverse geocode coordinates
+     */
+    public function reverseGeocode(Request $request)
+    {
+        try {
+            $lat = (float) $request->lat;
+            $lng = (float) $request->lng;
+
+            if (!$lat || !$lng) {
+                return response()->json(['features' => []]);
+            }
+
+            // Try to get precise location from service
+            $locationInfo = $this->locationService->getLocationByCoordinates($lat, $lng);
+
+            if ($locationInfo) {
+                return response()->json([
+                    'features' => [
+                        [
+                            'place_name' => $locationInfo['formatted'],
+                            'context' => array_map(function ($key, $value) {
+                                return ['id' => $key, 'text' => $value];
+                            }, array_keys($locationInfo['components']), $locationInfo['components'])
+                        ]
+                    ]
+                ]);
+            }
+
+            // Fallback to nearest pre-defined area
+            $nearest = $this->locationService->getNearestArea($lat, $lng);
+
+            if ($nearest) {
+                return response()->json([
+                    'features' => [
+                        [
+                            'place_name' => $nearest['full_address'],
+                            'context' => [
+                                ['id' => 'place', 'text' => $nearest['name']],
+                                ['id' => 'region', 'text' => 'Davao del Sur'],
+                                ['id' => 'country', 'text' => 'Philippines']
+                            ]
+                        ]
+                    ]
+                ]);
+            }
+
+            return response()->json(['features' => []]);
+
+        } catch (\Exception $e) {
+            \Log::error('Reverse geocode error: ' . $e->getMessage());
+            return response()->json(['features' => []]);
+        }
+    }
+}

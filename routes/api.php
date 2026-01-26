@@ -117,10 +117,12 @@ Route::middleware('auth:sanctum')->get('/user/kyc-status', function (Request $re
     ]);
 });
 
-Route::prefix('locations')->group(function () {
+Route::prefix('location')->group(function () {
+    Route::get('/config', [App\Http\Controllers\Api\LocationController::class, 'getConfig']);
     Route::get('/areas', [App\Http\Controllers\Api\LocationController::class, 'getAllAreas']);
     Route::get('/search', [App\Http\Controllers\Api\LocationController::class, 'search']);
     Route::get('/nearest', [App\Http\Controllers\Api\LocationController::class, 'getNearestArea']);
+    Route::get('/reverse-geocode', [App\Http\Controllers\Api\LocationController::class, 'reverseGeocode']);
 });
 
 // KYC Webhook Routes (No authentication required - external service)

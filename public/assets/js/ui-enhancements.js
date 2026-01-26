@@ -82,4 +82,91 @@ document.addEventListener('DOMContentLoaded', function () {
     // Accessibility widget removed as per user request
 
     // Accessibility widget removed as per user request
+
+    // ==========================================
+    // NEW: UI/UX Enhancements Implementation
+    // ==========================================
+
+    // 1. Global Page Loader Logic
+    const pageLoader = document.querySelector('.page-loader');
+
+    // Show loader on page unload (navigation)
+    window.addEventListener('beforeunload', function () {
+        if (pageLoader) {
+            pageLoader.style.width = '30%';
+            setTimeout(() => pageLoader.style.width = '70%', 500);
+        }
+    });
+
+    // Determine actual load progress roughly
+    if (pageLoader) {
+        // Initial state
+        pageLoader.style.width = '30%';
+
+        // Complete when DOM is ready
+        pageLoader.style.width = '100%';
+        setTimeout(() => {
+            pageLoader.parentElement.style.opacity = '0';
+            setTimeout(() => {
+                pageLoader.style.width = '0%';
+                pageLoader.parentElement.style.opacity = '1';
+            }, 200);
+        }, 500);
+    }
+
+    // 2. Scroll to Top Logic
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+    if (scrollToTopBtn) {
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 300) {
+                scrollToTopBtn.classList.add('show');
+            } else {
+                scrollToTopBtn.classList.remove('show');
+            }
+        });
+
+        scrollToTopBtn.addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+
+    // 3. Intelligent Button Loading States
+    // Auto-disable submit buttons on form submit
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            // Check if form is valid (if using browser validation)
+            if (this.checkValidity()) {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn && !submitBtn.classList.contains('no-loading')) {
+                    // Save original text width to prevent layout shift
+                    const originalWidth = submitBtn.offsetWidth;
+                    submitBtn.style.width = `${originalWidth}px`;
+
+                    submitBtn.classList.add('btn-loading');
+                    submitBtn.disabled = true;
+
+                    // Failsafe: Re-enable after 10 seconds (in case of network error/no redirect)
+                    setTimeout(() => {
+                        submitBtn.classList.remove('btn-loading');
+                        submitBtn.disabled = false;
+                        submitBtn.style.width = '';
+                    }, 10000);
+                }
+            }
+        });
+    });
+
+    // 4. Smooth Fade-in for Main Content
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.style.opacity = '0';
+        mainContent.style.transition = 'opacity 0.4s ease';
+        setTimeout(() => {
+            mainContent.style.opacity = '1';
+        }, 100);
+    }
 });

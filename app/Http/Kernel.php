@@ -38,6 +38,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\EncourageKycVerification::class,
             \App\Http\Middleware\CheckMaintenanceMode::class,
+            \App\Http\Middleware\SecurityHeaders::class,
         ],
 
         'api' => [

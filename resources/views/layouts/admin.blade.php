@@ -17,193 +17,80 @@
 
     <style>
         :root {
-            /* Custom Admin Variables */
-            --admin-sidebar-bg: #f8f9fa;
+            /* Custom Admin Variables - Light Mode */
+            --admin-sidebar-bg: #ffffff;
             --admin-sidebar-text: #333;
             --admin-card-bg: #ffffff;
             --admin-border-color: #dee2e6;
+            --admin-body-bg: #f8f9fa;
+            --admin-text-main: #212529;
+            --admin-heading-color: #343a40;
+        }
+
+        [data-theme="dark"] {
+            /* Custom Admin Variables - Dark Mode */
+            --admin-sidebar-bg: #1f2937;
+            --admin-sidebar-text: #e5e7eb;
+            --admin-card-bg: #1f2937;
+            --admin-border-color: #374151;
+            --admin-body-bg: #111827;
+            --admin-text-main: #f3f4f6;
+            --admin-heading-color: #f9fafb;
+            --bs-body-bg: #111827;
+            --bs-body-color: #f3f4f6;
         }
 
         body {
-            background-color: var(--bs-body-bg);
-            color: var(--bs-body-color);
+            background-color: var(--admin-body-bg);
+            color: var(--admin-text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .sidebar {
-            min-height: 100vh;
             background: var(--admin-sidebar-bg);
-            padding: 20px;
             border-right: 1px solid var(--admin-border-color);
-            min-width: 220px;
         }
 
-        .nav-link {
-            color: var(--admin-sidebar-text);
-            padding: 8px 16px;
-            border-radius: 4px;
-            margin: 4px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            white-space: nowrap;
-            font-size: 0.875rem;
-        }
-
-        .nav-link i {
-            flex-shrink: 0;
-        }
-
-        .nav-link:hover {
-            color: var(--bs-primary);
-            background: rgba(13, 110, 253, 0.1);
-        }
-
-        .nav-link.active {
-            background: #0d6efd;
-            color: white;
-        }
-
-        .content-area {
-            padding: 20px;
-        }
-
-        .stats-card {
+        .stats-card,
+        .card {
             background: var(--admin-card-bg);
             border: 1px solid var(--admin-border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .badge-custom {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-
-        .badge-active {
-            background: #198754;
-            color: white;
-        }
-
-        .badge-pending {
-            background: #ffc107;
-            color: black;
-        }
-
-        .badge-suspended {
-            background: #dc3545;
-            color: white;
+            color: var(--admin-text-main);
         }
 
         .top-bar {
             background: var(--admin-card-bg);
             border-bottom: 1px solid var(--admin-border-color);
-            padding: 1rem;
         }
 
-        .profile-menu .dropdown-toggle::after {
-            display: none;
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: var(--admin-heading-color);
         }
 
-        .profile-menu .dropdown-menu {
-            right: 0;
-            left: auto;
-        }
-
-        .admin-avatar {
-            width: 35px;
-            height: 35px;
+        /* Dark Mode Toggle Button */
+        .theme-toggle-btn {
+            background: none;
+            border: 1px solid var(--admin-border-color);
+            color: var(--admin-text-main);
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .sidebar-profile {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--admin-border-color);
-        }
-
-        .sidebar-profile-info {
-            margin-top: 0.5rem;
-        }
-
-        .sidebar-profile-name {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .sidebar-profile-role {
-            font-size: 0.875rem;
-            color: var(--bs-secondary-color);
-        }
-
-        /* Force small pagination arrows */
-        .pagination {
-            font-size: 14px !important;
-        }
-
-        /* Target SVG arrows specifically */
-        .pagination svg,
-        .pagination .page-link svg {
-            width: 14px !important;
-            height: 14px !important;
-            max-width: 14px !important;
-            max-height: 14px !important;
-            font-size: 14px !important;
-        }
-
-        /* Override any inline styles on page links */
-        .pagination .page-link {
-            padding: 0.375rem 0.75rem !important;
-            font-size: 0.875rem !important;
-            line-height: 1.5 !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            min-width: 36px !important;
-            height: 36px !important;
-        }
-
-        .pagination .page-item {
-            margin: 0 2px !important;
-        }
-
-        /* Force arrow text size if using text arrows */
-        .pagination .page-link:first-child,
-        .pagination .page-link:last-child {
-            font-size: 1rem !important;
-        }
-
-        /* KYC Submenu Styles */
-        .kyc-nav-section {
-            margin: 0;
-        }
-
-        .kyc-nav-section .kyc-chevron {
-            transition: transform 0.3s ease;
-            font-size: 0.75rem;
-        }
-
-        .kyc-nav-section .nav-link[aria-expanded="true"] .kyc-chevron {
-            transform: rotate(180deg);
-        }
-
-        #kycSubmenu {
-            background: rgba(0, 0, 0, 0.03);
-            border-radius: 4px;
-            margin: 4px 0;
-            padding: 4px 0;
-        }
-
-        #kycSubmenu .nav-link {
-            font-size: 0.8125rem;
-            padding: 6px 12px 6px 24px;
-        }
-
-        #kycSubmenu .nav-link.active {
-            background: #0d6efd;
+        .theme-toggle-btn:hover {
+            background-color: var(--bs-primary);
             color: white;
+            border-color: var(--bs-primary);
         }
     </style>
     @stack('styles')
@@ -211,6 +98,13 @@
 
     <!-- No-Blink Prevention Script - Must run early -->
     <script src="{{ asset('assets/js/no-blink.js') }}"></script>
+    <script>
+        // Apply theme immediately to prevent flicker
+        (function () {
+            const savedTheme = localStorage.getItem('admin_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 
 <body>
@@ -357,6 +251,11 @@
             <div class="col-md-9 col-lg-10 px-0">
                 <div class="top-bar d-flex justify-content-end align-items-center">
                     <div class="d-flex align-items-center gap-3">
+                        <!-- Dark Mode Toggle -->
+                        <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark Mode">
+                            <i class="fas fa-moon"></i>
+                        </button>
+
                         <!-- Global Search -->
                         @include('admin.partials.global-search')
 
@@ -415,6 +314,36 @@
     <div id="adminToastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
     <script>
+        // Theme Toggle Logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.getElementById('themeToggle');
+            const icon = toggleBtn.querySelector('i');
+
+            // Function to update icon
+            function updateIcon(theme) {
+                if (theme === 'dark') {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            }
+
+            // check current theme and update icon
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            updateIcon(currentTheme);
+
+            toggleBtn.addEventListener('click', function () {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('admin_theme', newTheme);
+                updateIcon(newTheme);
+            });
+        });
+
         // Admin Toast Notification System
         function showAdminToast(message, type = 'success', duration = 3000) {
             const container = document.getElementById('adminToastContainer');

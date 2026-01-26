@@ -6,20 +6,19 @@
             <div class="row justify-content-center">
                 <div class="col-md-8 col-lg-6 text-center">
                     <div class="error-illustration mb-4">
-                        <i class="fas fa-search fa-5x text-primary mb-3"></i>
+                        <i class="fas fa-server fa-5x text-danger mb-3"></i>
                     </div>
-                    <h1 class="display-4 fw-bold mb-3">404</h1>
-                    <h2 class="h3 mb-4">Page Not Found</h2>
+                    <h1 class="display-4 fw-bold mb-3">500</h1>
+                    <h2 class="h3 mb-4">Server Error</h2>
                     <p class="lead text-muted mb-5">
-                        Sorry, the page you are looking for could not be found. It might have been removed, renamed, or
-                        doesn't exist.
+                        Oops! Something went wrong on our end. We're working to fix it. Please try again later.
                     </p>
                     <div class="d-flex justify-content-center gap-3">
                         <a href="{{ route('home') }}" class="btn btn-primary btn-lg">
                             <i class="fas fa-home me-2"></i> Go Home
                         </a>
-                        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">
-                            <i class="fas fa-arrow-left me-2"></i> Go Back
+                        <a href="{{ url()->current() }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-redo me-2"></i> Try Again
                         </a>
                     </div>
                 </div>
