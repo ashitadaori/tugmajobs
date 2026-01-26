@@ -1,7 +1,8 @@
 /* Admin Sidebar Styles */
 .admin-sidebar {
-    background: #fff;
-    border-right: 1px solid #e5e7eb;
+    background: #111827;
+    /* Dark by default */
+    border-right: 1px solid #1f2937;
     height: 100vh;
     width: 280px;
     position: fixed;
@@ -15,13 +16,13 @@
 
 .sidebar-header {
     padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #1f2937;
     margin-bottom: 1rem;
 }
 
 .sidebar-header .logo h4 {
     margin: 0;
-    color: #1a1a1a;
+    color: #ffffff;
     font-weight: 600;
 }
 
@@ -34,7 +35,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    color: #6b7280;
+    color: #9ca3af;
     padding: 0.5rem 1rem;
     margin-bottom: 0.5rem;
 }
@@ -43,7 +44,7 @@
     display: flex;
     align-items: center;
     padding: 0.75rem 1rem;
-    color: #4b5563;
+    color: #d1d5db;
     text-decoration: none;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
@@ -57,15 +58,19 @@
 }
 
 .menu-item:hover {
-    background: #f3f4f6;
-    color: #1a1a1a;
+    background: #1f2937;
+    color: #ffffff;
     text-decoration: none;
 }
 
 .menu-item.active {
-    background: #2563eb;
+    background: #4f46e5;
+    /* Indigo match */
     color: #fff;
 }
+
+/* ... keep other styles ... */
+
 
 .menu-item i {
     width: 20px;

@@ -450,10 +450,10 @@
                             @forelse($activities as $activity)
                                 <div class="activity-item">
                                     <div class="activity-icon
-                                                    @if($activity['type'] === 'job') activity-icon-primary
-                                                    @elseif($activity['type'] === 'user') activity-icon-success
-                                                    @else activity-icon-info
-                                                    @endif">
+                                                            @if($activity['type'] === 'job') activity-icon-primary
+                                                            @elseif($activity['type'] === 'user') activity-icon-success
+                                                            @else activity-icon-info
+                                                            @endif">
                                         @if($activity['type'] === 'job')
                                             <i class="bi bi-briefcase"></i>
                                         @elseif($activity['type'] === 'user')
@@ -500,361 +500,7 @@
         </div>
     </div>
 
-    @push('styles')
-        <style>
-            /* Activity Feed */
-            .activity-feed {
-                max-height: 400px;
-                overflow-y: auto;
-            }
 
-            .activity-item {
-                display: flex;
-                gap: 1rem;
-                padding: 1rem 1.5rem;
-                border-bottom: 1px solid #f3f4f6;
-                transition: background-color 0.2s ease;
-            }
-
-            .activity-item:hover {
-                background-color: #f9fafb;
-            }
-
-            .activity-item:last-child {
-                border-bottom: none;
-            }
-
-            .activity-icon {
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-            }
-
-            .activity-icon-primary {
-                background: #e0e7ff;
-                color: #4f46e5;
-            }
-
-            .activity-icon-success {
-                background: #dcfce7;
-                color: #059669;
-            }
-
-            .activity-icon-info {
-                background: #e0f2fe;
-                color: #0284c7;
-            }
-
-            .activity-icon-warning {
-                background: #fef3c7;
-                color: #d97706;
-            }
-
-            .activity-content {
-                flex: 1;
-            }
-
-            .activity-text {
-                margin: 0 0 0.25rem 0;
-                font-size: 0.875rem;
-                color: #374151;
-                line-height: 1.5;
-            }
-
-            .activity-text a {
-                color: #4f46e5;
-                text-decoration: none;
-            }
-
-            .activity-text a:hover {
-                text-decoration: underline;
-            }
-
-            .activity-time {
-                font-size: 0.75rem;
-                color: #9ca3af;
-            }
-
-            .badge-sm {
-                font-size: 0.65rem;
-                padding: 0.15rem 0.4rem;
-            }
-        </style>
-        <style>
-            /* Admin Dashboard Navbar Styles */
-            .admin-dashboard-navbar {
-                background: #fff;
-                border-radius: 0.5rem;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                border: 1px solid #e5e7eb;
-                padding: 0 1.5rem;
-            }
-
-            .dashboard-breadcrumb .breadcrumb {
-                background: none;
-                padding: 0;
-                margin: 0;
-            }
-
-            .dashboard-breadcrumb .breadcrumb-item a {
-                color: #6b7280;
-                text-decoration: none;
-            }
-
-            .dashboard-breadcrumb .breadcrumb-item.active {
-                color: #1f2937;
-            }
-
-            .system-status .status-indicator {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-            }
-
-            .admin-tabs {
-                border-top: 1px solid #e5e7eb;
-                padding-top: 1rem;
-            }
-
-            .admin-tabs .nav-pills .nav-link {
-                color: #1f2937;
-                background: none;
-                border-radius: 0.375rem;
-                padding: 0.5rem 1rem;
-                margin-right: 0.5rem;
-                transition: all 0.2s ease;
-                font-weight: 500;
-            }
-
-            .admin-tabs .nav-pills .nav-link:hover {
-                background-color: #f3f4f6;
-                color: #2563eb;
-            }
-
-            .admin-tabs .nav-pills .nav-link.active {
-                background-color: #2563eb;
-                color: white;
-            }
-
-            /* Pulse animation for pending jobs notification */
-            .pulse-animation {
-                animation: pulse 2s infinite;
-            }
-
-            @keyframes pulse {
-                0% {
-                    transform: scale(1);
-                    opacity: 1;
-                }
-
-                50% {
-                    transform: scale(1.1);
-                    opacity: 0.7;
-                }
-
-                100% {
-                    transform: scale(1);
-                    opacity: 1;
-                }
-            }
-
-            /* Pending jobs card styling */
-            .stats-card.border-warning {
-                border-left: 4px solid #f59e0b !important;
-                box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
-            }
-
-            .admin-tabs .nav-pills .nav-link .badge {
-                font-size: 0.75rem;
-            }
-
-            .stats-card {
-                background: #fff;
-                border-radius: 0.5rem;
-                padding: 1.5rem;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                border: 1px solid #e5e7eb;
-                transition: all 0.3s ease;
-                position: relative;
-                overflow: hidden;
-            }
-
-            .stats-card-clickable {
-                cursor: pointer;
-            }
-
-            .stats-card-clickable:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-                border-color: #2563eb;
-            }
-
-            .card-hover-indicator {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: linear-gradient(to top, rgba(37, 99, 235, 0.1), transparent);
-                padding: 0.75rem 1.5rem;
-                transform: translateY(100%);
-                transition: transform 0.3s ease;
-                font-size: 0.875rem;
-                color: #2563eb;
-                font-weight: 500;
-            }
-
-            .stats-card-clickable:hover .card-hover-indicator {
-                transform: translateY(0);
-            }
-
-            /* Dynamic update indicators */
-            .stats-card.stat-updated {
-                animation: statUpdated 1s ease;
-                box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
-            }
-
-            .dashboard-updating .stats-card {
-                opacity: 0.8;
-            }
-
-            .dashboard-updating .stats-card:before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-                animation: shimmer 1.5s infinite;
-            }
-
-            /* Loading spinner animation */
-            .spin {
-                animation: spin 1s linear infinite;
-            }
-
-            /* Keyframe animations */
-            @keyframes statUpdated {
-                0% {
-                    transform: scale(1);
-                    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
-                }
-
-                50% {
-                    transform: scale(1.02);
-                    box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.2);
-                }
-
-                100% {
-                    transform: scale(1);
-                    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-                }
-            }
-
-            @keyframes shimmer {
-                0% {
-                    transform: translateX(-100%);
-                }
-
-                100% {
-                    transform: translateX(100%);
-                }
-            }
-
-            @keyframes spin {
-                from {
-                    transform: rotate(0deg);
-                }
-
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-
-                to {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-            }
-
-            /* Toast notifications */
-            .toast-notification {
-                border-radius: 6px;
-                font-weight: 500;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            }
-
-            /* Real-time indicator for active jobs */
-            .stats-card .live-indicator {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                width: 8px;
-                height: 8px;
-                background: #22c55e;
-                border-radius: 50%;
-                animation: pulse 2s infinite;
-            }
-
-            @keyframes pulse {
-                0% {
-                    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-                }
-
-                70% {
-                    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
-                }
-
-                100% {
-                    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-                }
-            }
-
-            @media (max-width: 768px) {
-                .admin-dashboard-navbar .d-flex {
-                    flex-direction: column;
-                    align-items: flex-start !important;
-                    gap: 1rem;
-                }
-
-                .admin-actions {
-                    width: 100%;
-                    justify-content: space-between;
-                }
-
-                .admin-tabs {
-                    overflow-x: auto;
-                }
-
-                .admin-tabs .nav {
-                    flex-nowrap;
-                    min-width: max-content;
-                }
-            }
-        </style>
-    @endpush
 
     @push('scripts')
         <script>
@@ -1117,17 +763,17 @@
                     toast.className = `toast-notification toast-${type}`;
                     toast.textContent = message;
                     toast.style.cssText = `
-                                position: fixed;
-                                top: 20px;
-                                right: 20px;
-                                padding: 12px 20px;
-                                background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
-                                color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
-                                border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
-                                border-radius: 4px;
-                                z-index: 9999;
-                                animation: slideIn 0.3s ease;
-                            `;
+                                        position: fixed;
+                                        top: 20px;
+                                        right: 20px;
+                                        padding: 12px 20px;
+                                        background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+                                        color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+                                        border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
+                                        border-radius: 4px;
+                                        z-index: 9999;
+                                        animation: slideIn 0.3s ease;
+                                    `;
 
                     document.body.appendChild(toast);
 
@@ -1200,18 +846,18 @@
                 toast.className = 'toast-notification';
                 toast.textContent = message;
                 toast.style.cssText = `
-                            position: fixed;
-                            top: 20px;
-                            right: 20px;
-                            padding: 12px 20px;
-                            background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
-                            color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
-                            border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
-                            border-radius: 6px;
-                            z-index: 9999;
-                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                            font-weight: 500;
-                        `;
+                                    position: fixed;
+                                    top: 20px;
+                                    right: 20px;
+                                    padding: 12px 20px;
+                                    background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+                                    color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+                                    border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
+                                    border-radius: 6px;
+                                    z-index: 9999;
+                                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                    font-weight: 500;
+                                `;
 
                 document.body.appendChild(toast);
 

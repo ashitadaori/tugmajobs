@@ -15,6 +15,7 @@
     <!-- Page Transition Prevention - Must be loaded early -->
     <link href="{{ asset('assets/css/no-blink.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/admin-sidebar.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/admin-theme.css') }}" rel="stylesheet">
 
     <style>
         :root {

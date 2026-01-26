@@ -38,8 +38,33 @@ class ProfileController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('profile_img', 'public');
-            $user->image = $path;
+            // Delete old image if it exists
+            if ($user->image) {
+                $oldImagePath = public_path('profile_img/' . $user->image);
+                $oldThumbPath = public_path('profile_img/thumb/' . $user->image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+                if (file_exists($oldThumbPath)) {
+                    unlink($oldThumbPath);
+                }
+            }
+
+            // Generate unique filename
+            $image = $request->file('image');
+            $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+
+            // Ensure directory exists
+            $uploadPath = public_path('profile_img');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            // Move uploaded file to public/profile_img
+            $image->move($uploadPath, $filename);
+
+            // Store just the filename (the accessor will build the full path)
+            $user->image = $filename;
         }
 
         $user->name = $validated['name'];
