@@ -1,0 +1,284 @@
+/* Admin Sidebar Styles */
+.admin-sidebar {
+    background: #fff;
+    border-right: 1px solid #e5e7eb;
+    height: 100vh;
+    width: 280px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    z-index: 1000;
+    padding: 1rem 0;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1rem;
+}
+
+.sidebar-header .logo h4 {
+    margin: 0;
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.menu-section {
+    margin-bottom: 1.5rem;
+    padding: 0 1rem;
+}
+
+.menu-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6b7280;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #4b5563;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    margin-bottom: 0.25rem;
+    position: relative;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background: #f3f4f6;
+    color: #1a1a1a;
+    text-decoration: none;
+}
+
+.menu-item.active {
+    background: #2563eb;
+    color: #fff;
+}
+
+.menu-item i {
+    width: 20px;
+    margin-right: 10px;
+    font-size: 1rem;
+}
+
+.menu-item .badge {
+    position: absolute;
+    right: 1rem;
+}
+
+.logout-btn {
+    color: #ef4444;
+}
+
+.logout-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Submenu styles */
+.kyc-menu-group .chevron-icon {
+    transition: transform 0.3s ease;
+    font-size: 0.75rem;
+}
+
+.kyc-menu-group .menu-item[aria-expanded="true"] .chevron-icon {
+    transform: rotate(180deg);
+}
+
+.submenu-item {
+    padding-left: 2.5rem !important;
+    font-size: 0.9rem;
+}
+
+.submenu-item i {
+    font-size: 0.85rem;
+}
+
+#kycSubmenu {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+/* Special styling for Post New Job button */
+.menu-item-success {
+    background: #10b981;
+    color: #fff !important;
+}
+
+.menu-item-success:hover {
+    background: #059669;
+    color: #fff !important;
+}
+
+.menu-item-success.active {
+    background: #047857;
+    color: #fff !important;
+}
+
+.menu-item-success i {
+    color: #fff;
+}
+
+/* Main Content Layout Adjustments */
+.admin-main-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-content-wrapper {
+    margin-left: 280px;
+    flex: 1;
+    width: calc(100% - 280px);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.admin-top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: var(--admin-card-bg);
+    border-bottom: 1px solid var(--admin-border-color);
+    padding: 0.75rem 1.5rem;
+}
+
+.admin-content-area {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+/* Mobile Toggle */
+.sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--admin-text-main);
+    cursor: pointer;
+    margin-right: 1rem;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .admin-sidebar {
+        background: #1a1a1a;
+        border-color: #374151;
+    }
+
+    .sidebar-header {
+        border-color: #374151;
+    }
+
+    .sidebar-header .logo h4 {
+        color: #fff;
+    }
+
+    .menu-title {
+        color: #9ca3af;
+    }
+
+    .menu-item {
+        color: #9ca3af;
+    }
+
+    .menu-item:hover {
+        background: #374151;
+        color: #fff;
+    }
+
+    .menu-item.active {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .logout-btn {
+        color: #ef4444;
+    }
+
+    .logout-btn:hover {
+        background: #374151;
+        color: #f87171;
+    }
+}
+
+[data-theme="dark"] .admin-sidebar {
+    background: var(--admin-sidebar-bg);
+    border-color: var(--admin-border-color);
+}
+
+[data-theme="dark"] .sidebar-header {
+    border-color: var(--admin-border-color);
+}
+
+[data-theme="dark"] .sidebar-header .logo h4 {
+    color: var(--admin-heading-color);
+}
+
+[data-theme="dark"] .menu-title {
+    color: var(--admin-text-main);
+    opacity: 0.7;
+}
+
+[data-theme="dark"] .menu-item {
+    color: var(--admin-text-main);
+}
+
+[data-theme="dark"] .menu-item:hover {
+    background: #374151;
+    color: #fff;
+}
+
+[data-theme="dark"] .menu-item.active {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .admin-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .admin-sidebar.show {
+        transform: translateX(0);
+    }
+
+    .admin-content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+}

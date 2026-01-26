@@ -39,11 +39,31 @@
                 <span>Company Management</span>
             </a>
 
+            <!-- Jobs Posted - Added to match layout -->
+            <a href="{{ route('admin.jobs.index') }}"
+                class="menu-item {{ request()->routeIs('admin.jobs.index') ? 'active' : '' }}">
+                <i class="fas fa-list"></i>
+                <span>Jobs Posted</span>
+            </a>
+
             <!-- Employer Companies -->
             <a href="{{ route('admin.companies.index') }}"
                 class="menu-item {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}">
                 <i class="fas fa-users"></i>
                 <span>Employer Accounts</span>
+            </a>
+
+            <!-- Employer Documents - Added to match layout -->
+            <a href="{{ route('admin.employers.documents.index') }}"
+                class="menu-item {{ request()->routeIs('admin.employers.documents.*') ? 'active' : '' }}">
+                <i class="fas fa-file-contract"></i>
+                <span>Employer Documents</span>
+                @php
+                    $pendingDocsCount = \App\Models\EmployerDocument::where('status', 'pending')->count();
+                @endphp
+                @if($pendingDocsCount > 0)
+                    <span class="badge bg-warning">{{ $pendingDocsCount }}</span>
+                @endif
             </a>
 
             <!-- Pending Jobs -->
@@ -186,181 +206,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    .admin-sidebar {
-        background: #fff;
-        border-right: 1px solid #e5e7eb;
-        height: 100vh;
-        width: 280px;
-        position: fixed;
-        left: 0;
-        top: 0;
-        overflow-y: auto;
-        z-index: 1000;
-        padding: 1rem 0;
-    }
-
-    .sidebar-header {
-        padding: 1rem;
-        border-bottom: 1px solid #e5e7eb;
-        margin-bottom: 1rem;
-    }
-
-    .sidebar-header .logo h4 {
-        margin: 0;
-        color: #1a1a1a;
-        font-weight: 600;
-    }
-
-    .menu-section {
-        margin-bottom: 1.5rem;
-        padding: 0 1rem;
-    }
-
-    .menu-title {
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        color: #6b7280;
-        padding: 0.5rem 1rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .menu-item {
-        display: flex;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        color: #4b5563;
-        text-decoration: none;
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        margin-bottom: 0.25rem;
-        position: relative;
-        border: none;
-        background: none;
-        width: 100%;
-        text-align: left;
-        cursor: pointer;
-    }
-
-    .menu-item:hover {
-        background: #f3f4f6;
-        color: #1a1a1a;
-    }
-
-    .menu-item.active {
-        background: #2563eb;
-        color: #fff;
-    }
-
-    .menu-item i {
-        width: 20px;
-        margin-right: 10px;
-        font-size: 1rem;
-    }
-
-    .menu-item .badge {
-        position: absolute;
-        right: 1rem;
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-    }
-
-    .logout-btn {
-        color: #ef4444;
-    }
-
-    .logout-btn:hover {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-    /* Submenu styles */
-    .kyc-menu-group .chevron-icon {
-        transition: transform 0.3s ease;
-        font-size: 0.75rem;
-    }
-
-    .kyc-menu-group .menu-item[aria-expanded="true"] .chevron-icon {
-        transform: rotate(180deg);
-    }
-
-    .submenu-item {
-        padding-left: 2.5rem !important;
-        font-size: 0.9rem;
-    }
-
-    .submenu-item i {
-        font-size: 0.85rem;
-    }
-
-    #kycSubmenu {
-        background: rgba(0, 0, 0, 0.02);
-        border-radius: 0.5rem;
-        margin-top: 0.25rem;
-    }
-
-    /* Special styling for Post New Job button */
-    .menu-item-success {
-        background: #10b981;
-        color: #fff !important;
-    }
-
-    .menu-item-success:hover {
-        background: #059669;
-        color: #fff !important;
-    }
-
-    .menu-item-success.active {
-        background: #047857;
-        color: #fff !important;
-    }
-
-    .menu-item-success i {
-        color: #fff;
-    }
-
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-        .admin-sidebar {
-            background: #1a1a1a;
-            border-color: #374151;
-        }
-
-        .sidebar-header {
-            border-color: #374151;
-        }
-
-        .sidebar-header .logo h4 {
-            color: #fff;
-        }
-
-        .menu-title {
-            color: #9ca3af;
-        }
-
-        .menu-item {
-            color: #9ca3af;
-        }
-
-        .menu-item:hover {
-            background: #374151;
-            color: #fff;
-        }
-
-        .menu-item.active {
-            background: #2563eb;
-            color: #fff;
-        }
-
-        .logout-btn {
-            color: #ef4444;
-        }
-
-        .logout-btn:hover {
-            background: #374151;
-            color: #f87171;
-        }
-    }
-</style>
