@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
@@ -30,49 +31,78 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-        
+
+        // Custom validation with better error messages
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'image' => ['nullable', 'image', 'max:2048'], // 2MB max
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'], // 5MB max
+        ], [
+            'image.image' => 'The file must be an image (jpg, jpeg, png, gif, webp).',
+            'image.mimes' => 'The image must be a file of type: jpg, jpeg, png, gif, webp.',
+            'image.max' => 'The image must not be larger than 5MB.',
         ]);
 
-        if ($request->hasFile('image')) {
-            // Delete old image if it exists
-            if ($user->image) {
-                $oldImagePath = public_path('profile_img/' . $user->image);
-                $oldThumbPath = public_path('profile_img/thumb/' . $user->image);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
+        try {
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+
+                // Check if the file is valid
+                if (!$image->isValid()) {
+                    return redirect()->back()
+                        ->with('error', 'Image upload failed: ' . $image->getErrorMessage())
+                        ->withInput();
                 }
-                if (file_exists($oldThumbPath)) {
-                    unlink($oldThumbPath);
+
+                // Delete old image if it exists
+                if ($user->image) {
+                    $oldImagePath = public_path('profile_img/' . $user->image);
+                    $oldThumbPath = public_path('profile_img/thumb/' . $user->image);
+                    if (file_exists($oldImagePath)) {
+                        @unlink($oldImagePath);
+                    }
+                    if (file_exists($oldThumbPath)) {
+                        @unlink($oldThumbPath);
+                    }
                 }
+
+                // Generate unique filename
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+
+                // Ensure directory exists
+                $uploadPath = public_path('profile_img');
+                if (!file_exists($uploadPath)) {
+                    if (!mkdir($uploadPath, 0755, true)) {
+                        return redirect()->back()
+                            ->with('error', 'Failed to create upload directory.')
+                            ->withInput();
+                    }
+                }
+
+                // Move uploaded file to public/profile_img
+                $image->move($uploadPath, $filename);
+
+                // Store just the filename (the accessor will build the full path)
+                $user->image = $filename;
             }
 
-            // Generate unique filename
-            $image = $request->file('image');
-            $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $user->name = $validated['name'];
+            $user->email = $validated['email'];
+            $user->save();
 
-            // Ensure directory exists
-            $uploadPath = public_path('profile_img');
-            if (!file_exists($uploadPath)) {
-                mkdir($uploadPath, 0755, true);
-            }
+            return redirect()->route('admin.profile.edit')
+                ->with('success', 'Profile updated successfully.');
 
-            // Move uploaded file to public/profile_img
-            $image->move($uploadPath, $filename);
+        } catch (\Exception $e) {
+            Log::error('Admin profile update failed', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
 
-            // Store just the filename (the accessor will build the full path)
-            $user->image = $filename;
+            return redirect()->back()
+                ->with('error', 'Failed to update profile: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-        $user->save();
-
-        return redirect()->route('admin.profile.edit')
-            ->with('success', 'Profile updated successfully.');
     }
 
     /**

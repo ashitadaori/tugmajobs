@@ -52,8 +52,10 @@
                             <div class="form-group">
                                 <label class="form-label text-muted">Give your resume a name (e.g., "Senior Developer
                                     2024")</label>
-                                <input type="text" name="title" class="form-control form-control-lg"
-                                    placeholder="Enter resume title..." value="{{ $resume->title }}" required>
+                                <input type="text" name="title"
+                                    class="form-control form-control-lg @error('title') is-invalid @enderror"
+                                    placeholder="Enter resume title..." value="{{ old('title', $resume->title) }}" required>
+                                @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
                     </div>
@@ -100,33 +102,45 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" class="form-control"
-                                        value="{{ $resume->data->personal_info['name'] ?? '' }}" required>
+                                    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+                                        value="{{ old('name', $resume->data->personal_info['name'] ?? '') }}" required>
+                                    @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Email Address <span class="text-danger">*</span></label>
-                                    <input type="email" name="email" class="form-control"
-                                        value="{{ $resume->data->personal_info['email'] ?? '' }}" required>
+                                    <input type="email" name="email"
+                                        class="form-control @error('email') is-invalid @enderror"
+                                        value="{{ old('email', $resume->data->personal_info['email'] ?? '') }}" required>
+                                    @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Phone Number</label>
-                                    <input type="text" name="phone" class="form-control"
-                                        value="{{ $resume->data->personal_info['phone'] ?? '' }}">
+                                    <input type="text" name="phone"
+                                        class="form-control @error('phone') is-invalid @enderror"
+                                        value="{{ old('phone', $resume->data->personal_info['phone'] ?? '') }}">
+                                    @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Location</label>
-                                    <input type="text" name="address" class="form-control"
-                                        value="{{ $resume->data->personal_info['address'] ?? '' }}">
+                                    <input type="text" name="address"
+                                        class="form-control @error('address') is-invalid @enderror"
+                                        value="{{ old('address', $resume->data->personal_info['address'] ?? '') }}">
+                                    @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Website / Portfolio</label>
-                                    <input type="url" name="website" class="form-control"
-                                        value="{{ $resume->data->personal_info['website'] ?? '' }}">
+                                    <input type="url" name="website"
+                                        class="form-control @error('website') is-invalid @enderror"
+                                        value="{{ old('website', $resume->data->personal_info['website'] ?? '') }}">
+                                    @error('website') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Current Job Title <span class="text-danger">*</span></label>
-                                    <input type="text" name="job_title" class="form-control"
-                                        value="{{ $resume->data->personal_info['job_title'] ?? '' }}" required>
+                                    <input type="text" name="job_title"
+                                        class="form-control @error('job_title') is-invalid @enderror"
+                                        value="{{ old('job_title', $resume->data->personal_info['job_title'] ?? '') }}"
+                                        required>
+                                    @error('job_title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         </div>
@@ -332,57 +346,57 @@
             function renderWorkExperiences() {
                 const container = document.getElementById('workExperienceContainer');
                 container.innerHTML = workExperiences.map((exp, index) => `
-                        <div class="card mb-3 border">
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <h6 class="card-title mb-0 fw-bold text-primary">#${index + 1} Experience</h6>
-                                    <button type="button" class="btn btn-sm btn-icon btn-soft-danger" onclick="removeWorkExperience(${exp.id})" title="Remove">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label small text-muted">Job Title</label>
-                                        <input type="text" class="form-control" 
-                                               value="${exp.title || ''}" oninput="updateWorkExperience(${exp.id}, 'title', this.value)">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small text-muted">Company Name</label>
-                                        <input type="text" class="form-control" 
-                                               value="${exp.company || ''}" oninput="updateWorkExperience(${exp.id}, 'company', this.value)">
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label small text-muted">Location</label>
-                                        <input type="text" class="form-control" 
-                                               value="${exp.location || ''}" oninput="updateWorkExperience(${exp.id}, 'location', this.value)">
-                                    </div>
-                                     <div class="col-md-5">
-                                        <label class="form-label small text-muted">Start Date</label>
-                                        <input type="month" class="form-control" 
-                                               value="${exp.start_date || ''}" oninput="updateWorkExperience(${exp.id}, 'start_date', this.value)">
-                                    </div>
-                                    <div class="col-md-5">
-                                        <label class="form-label small text-muted">End Date</label>
-                                        <input type="month" class="form-control" 
-                                               value="${exp.end_date || ''}" ${exp.current ? 'disabled' : ''} 
-                                               oninput="updateWorkExperience(${exp.id}, 'end_date', this.value)">
-                                    </div>
-                                    <div class="col-md-2 d-flex align-items-end mb-2">
-                                        <div class="form-check mb-2">
-                                            <input type="checkbox" class="form-check-input" id="currentCheck_${exp.id}" ${exp.current ? 'checked' : ''} 
-                                                   onchange="updateWorkExperience(${exp.id}, 'current', this.checked)">
-                                            <label class="form-check-label small" for="currentCheck_${exp.id}">Current</label>
+                                        <div class="card mb-3 border">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="card-title mb-0 fw-bold text-primary">#${index + 1} Experience</h6>
+                                                    <button type="button" class="btn btn-sm btn-icon btn-soft-danger" onclick="removeWorkExperience(${exp.id})" title="Remove">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small text-muted">Job Title</label>
+                                                        <input type="text" class="form-control" 
+                                                               value="${exp.title || ''}" oninput="updateWorkExperience(${exp.id}, 'title', this.value)">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small text-muted">Company Name</label>
+                                                        <input type="text" class="form-control" 
+                                                               value="${exp.company || ''}" oninput="updateWorkExperience(${exp.id}, 'company', this.value)">
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-label small text-muted">Location</label>
+                                                        <input type="text" class="form-control" 
+                                                               value="${exp.location || ''}" oninput="updateWorkExperience(${exp.id}, 'location', this.value)">
+                                                    </div>
+                                                     <div class="col-md-5">
+                                                        <label class="form-label small text-muted">Start Date</label>
+                                                        <input type="month" class="form-control" 
+                                                               value="${exp.start_date || ''}" oninput="updateWorkExperience(${exp.id}, 'start_date', this.value)">
+                                                    </div>
+                                                    <div class="col-md-5">
+                                                        <label class="form-label small text-muted">End Date</label>
+                                                        <input type="month" class="form-control" 
+                                                               value="${exp.end_date || ''}" ${exp.current ? 'disabled' : ''} 
+                                                               oninput="updateWorkExperience(${exp.id}, 'end_date', this.value)">
+                                                    </div>
+                                                    <div class="col-md-2 d-flex align-items-end mb-2">
+                                                        <div class="form-check mb-2">
+                                                            <input type="checkbox" class="form-check-input" id="currentCheck_${exp.id}" ${exp.current ? 'checked' : ''} 
+                                                                   onchange="updateWorkExperience(${exp.id}, 'current', this.checked)">
+                                                            <label class="form-check-label small" for="currentCheck_${exp.id}">Current</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-label small text-muted">Description</label>
+                                                        <textarea class="form-control" rows="3" 
+                                                                  oninput="updateWorkExperience(${exp.id}, 'description', this.value)">${exp.description || ''}</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label small text-muted">Description</label>
-                                        <textarea class="form-control" rows="3" 
-                                                  oninput="updateWorkExperience(${exp.id}, 'description', this.value)">${exp.description || ''}</textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
+                                    `).join('');
                 updateEmptyStates();
             }
 
@@ -425,44 +439,44 @@
             function renderEducations() {
                 const container = document.getElementById('educationContainer');
                 container.innerHTML = educations.map((edu, index) => `
-                        <div class="card mb-3 border">
-                             <div class="card-body p-3">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                     <h6 class="card-title mb-0 fw-bold text-primary">#${index + 1} Education</h6>
-                                     <button type="button" class="btn btn-sm btn-icon btn-soft-danger" onclick="removeEducation(${edu.id})">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label small text-muted">Degree / Major</label>
-                                        <input type="text" class="form-control" 
-                                               value="${edu.degree || ''}" oninput="updateEducation(${edu.id}, 'degree', this.value)">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small text-muted">Institution / University</label>
-                                        <input type="text" class="form-control" 
-                                               value="${edu.institution || ''}" oninput="updateEducation(${edu.id}, 'institution', this.value)">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small text-muted">Location</label>
-                                        <input type="text" class="form-control" 
-                                               value="${edu.location || ''}" oninput="updateEducation(${edu.id}, 'location', this.value)">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small text-muted">Graduation Date</label>
-                                        <input type="month" class="form-control" 
-                                               value="${edu.graduation_date || ''}" oninput="updateEducation(${edu.id}, 'graduation_date', this.value)">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small text-muted">GPA</label>
-                                        <input type="text" class="form-control" 
-                                               value="${edu.gpa || ''}" oninput="updateEducation(${edu.id}, 'gpa', this.value)">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
+                                        <div class="card mb-3 border">
+                                             <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                     <h6 class="card-title mb-0 fw-bold text-primary">#${index + 1} Education</h6>
+                                                     <button type="button" class="btn btn-sm btn-icon btn-soft-danger" onclick="removeEducation(${edu.id})">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small text-muted">Degree / Major</label>
+                                                        <input type="text" class="form-control" 
+                                                               value="${edu.degree || ''}" oninput="updateEducation(${edu.id}, 'degree', this.value)">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small text-muted">Institution / University</label>
+                                                        <input type="text" class="form-control" 
+                                                               value="${edu.institution || ''}" oninput="updateEducation(${edu.id}, 'institution', this.value)">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small text-muted">Location</label>
+                                                        <input type="text" class="form-control" 
+                                                               value="${edu.location || ''}" oninput="updateEducation(${edu.id}, 'location', this.value)">
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label small text-muted">Graduation Date</label>
+                                                        <input type="month" class="form-control" 
+                                                               value="${edu.graduation_date || ''}" oninput="updateEducation(${edu.id}, 'graduation_date', this.value)">
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label small text-muted">GPA</label>
+                                                        <input type="text" class="form-control" 
+                                                               value="${edu.gpa || ''}" oninput="updateEducation(${edu.id}, 'gpa', this.value)">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('');
                 updateEmptyStates();
             }
 
@@ -494,11 +508,11 @@
             function renderSkills() {
                 const container = document.getElementById('skillsContainer');
                 container.innerHTML = skills.map((skill, index) => `
-                        <span class="badge bg-soft-primary text-primary border border-primary-subtle d-flex align-items-center gap-2 p-2" style="font-size: 0.9rem;">
-                            ${skill}
-                            <i class="fas fa-times-circle" style="cursor: pointer; font-size: 1.1em;" onclick="removeSkill(${index})"></i>
-                        </span>
-                    `).join('');
+                                        <span class="badge bg-soft-primary text-primary border border-primary-subtle d-flex align-items-center gap-2 p-2" style="font-size: 0.9rem;">
+                                            ${skill}
+                                            <i class="fas fa-times-circle" style="cursor: pointer; font-size: 1.1em;" onclick="removeSkill(${index})"></i>
+                                        </span>
+                                    `).join('');
             }
 
             // --- Certifications Functions ---
@@ -522,35 +536,35 @@
             function renderCertifications() {
                 const container = document.getElementById('certificationsContainer');
                 container.innerHTML = certifications.map((cert, index) => `
-                        <div class="card mb-3 border bg-white">
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between mb-2">
-                                     <h6 class="card-title fw-medium">Certification #${index + 1}</h6>
-                                     <button type="button" class="btn btn-sm btn-icon btn-ghost-danger" onclick="removeCertification(${cert.id})">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="row g-3">
-                                     <div class="col-md-6">
-                                        <input type="text" class="form-control form-control-sm" placeholder="Certification Name" 
-                                               value="${cert.name || ''}" oninput="updateCertification(${cert.id}, 'name', this.value)">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control form-control-sm" placeholder="Issuing Org" 
-                                               value="${cert.issuer || ''}" oninput="updateCertification(${cert.id}, 'issuer', this.value)">
-                                    </div>
-                                     <div class="col-md-6">
-                                        <input type="month" class="form-control form-control-sm" 
-                                               value="${cert.date || ''}" oninput="updateCertification(${cert.id}, 'date', this.value)">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control form-control-sm" placeholder="Credential ID" 
-                                               value="${cert.credential_id || ''}" oninput="updateCertification(${cert.id}, 'credential_id', this.value)">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
+                                        <div class="card mb-3 border bg-white">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                     <h6 class="card-title fw-medium">Certification #${index + 1}</h6>
+                                                     <button type="button" class="btn btn-sm btn-icon btn-ghost-danger" onclick="removeCertification(${cert.id})">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="row g-3">
+                                                     <div class="col-md-6">
+                                                        <input type="text" class="form-control form-control-sm" placeholder="Certification Name" 
+                                                               value="${cert.name || ''}" oninput="updateCertification(${cert.id}, 'name', this.value)">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <input type="text" class="form-control form-control-sm" placeholder="Issuing Org" 
+                                                               value="${cert.issuer || ''}" oninput="updateCertification(${cert.id}, 'issuer', this.value)">
+                                                    </div>
+                                                     <div class="col-md-6">
+                                                        <input type="month" class="form-control form-control-sm" 
+                                                               value="${cert.date || ''}" oninput="updateCertification(${cert.id}, 'date', this.value)">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <input type="text" class="form-control form-control-sm" placeholder="Credential ID" 
+                                                               value="${cert.credential_id || ''}" oninput="updateCertification(${cert.id}, 'credential_id', this.value)">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('');
             }
 
             function updateCertification(id, field, value) {
@@ -579,11 +593,11 @@
             function renderLanguages() {
                 const container = document.getElementById('languagesContainer');
                 container.innerHTML = languages.map((language, index) => `
-                        <span class="badge bg-soft-success text-success border border-success-subtle d-flex align-items-center gap-2 p-2" style="font-size: 0.9rem;">
-                            ${language}
-                            <i class="fas fa-times-circle" style="cursor: pointer; font-size: 1.1em;" onclick="removeLanguage(${index})"></i>
-                        </span>
-                    `).join('');
+                                        <span class="badge bg-soft-success text-success border border-success-subtle d-flex align-items-center gap-2 p-2" style="font-size: 0.9rem;">
+                                            ${language}
+                                            <i class="fas fa-times-circle" style="cursor: pointer; font-size: 1.1em;" onclick="removeLanguage(${index})"></i>
+                                        </span>
+                                    `).join('');
             }
 
             // --- Projects Functions ---
@@ -607,35 +621,35 @@
             function renderProjects() {
                 const container = document.getElementById('projectsContainer');
                 container.innerHTML = projects.map((proj, index) => `
-                        <div class="card mb-3 border bg-white">
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between mb-2">
-                                     <h6 class="card-title fw-medium">Project #${index + 1}</h6>
-                                     <button type="button" class="btn btn-sm btn-icon btn-ghost-danger" onclick="removeProject(${proj.id})">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="row g-3">
-                                     <div class="col-md-12">
-                                        <input type="text" class="form-control form-control-sm" placeholder="Project Name" 
-                                               value="${proj.name || ''}" oninput="updateProject(${proj.id}, 'name', this.value)">
-                                    </div>
-                                    <div class="col-md-12">
-                                        <textarea class="form-control form-control-sm" rows="2" placeholder="Description" 
-                                                  oninput="updateProject(${proj.id}, 'description', this.value)">${proj.description || ''}</textarea>
-                                    </div>
-                                     <div class="col-md-6">
-                                        <input type="text" class="form-control form-control-sm" placeholder="Technologies" 
-                                               value="${proj.technologies || ''}" oninput="updateProject(${proj.id}, 'technologies', this.value)">
-                                    </div>
-                                     <div class="col-md-6">
-                                        <input type="url" class="form-control form-control-sm" placeholder="Link (http://...)" 
-                                               value="${proj.link || ''}" oninput="updateProject(${proj.id}, 'link', this.value)">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
+                                        <div class="card mb-3 border bg-white">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                     <h6 class="card-title fw-medium">Project #${index + 1}</h6>
+                                                     <button type="button" class="btn btn-sm btn-icon btn-ghost-danger" onclick="removeProject(${proj.id})">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="row g-3">
+                                                     <div class="col-md-12">
+                                                        <input type="text" class="form-control form-control-sm" placeholder="Project Name" 
+                                                               value="${proj.name || ''}" oninput="updateProject(${proj.id}, 'name', this.value)">
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <textarea class="form-control form-control-sm" rows="2" placeholder="Description" 
+                                                                  oninput="updateProject(${proj.id}, 'description', this.value)">${proj.description || ''}</textarea>
+                                                    </div>
+                                                     <div class="col-md-6">
+                                                        <input type="text" class="form-control form-control-sm" placeholder="Technologies" 
+                                                               value="${proj.technologies || ''}" oninput="updateProject(${proj.id}, 'technologies', this.value)">
+                                                    </div>
+                                                     <div class="col-md-6">
+                                                        <input type="url" class="form-control form-control-sm" placeholder="Link (http://...)" 
+                                                               value="${proj.link || ''}" oninput="updateProject(${proj.id}, 'link', this.value)">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('');
             }
 
             function updateProject(id, field, value) {

@@ -2,46 +2,46 @@
 <div id="toast-container" class="position-fixed" style="top: 20px; right: 20px; z-index: 9999; max-width: 400px;"></div>
 
 <script>
-// Simple Alert Bar Toast Notification System
-(function() {
-    'use strict';
-    
-    // Create toast function
-    window.showToast = function(message, type = 'info', duration = 5000) {
-        const toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) return;
-        
-        // Generate unique ID
-        const toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        
-        // Color mapping - simple flat colors
-        const config = {
-            success: { 
-                bgColor: '#d1f4e0',
-                textColor: '#0f5132',
-                borderColor: '#badbcc'
-            },
-            error: { 
-                bgColor: '#f8d7da',
-                textColor: '#842029',
-                borderColor: '#f5c2c7'
-            },
-            warning: { 
-                bgColor: '#fff3cd',
-                textColor: '#664d03',
-                borderColor: '#ffecb5'
-            },
-            info: { 
-                bgColor: '#cfe2ff',
-                textColor: '#084298',
-                borderColor: '#b6d4fe'
-            }
-        };
-        
-        const settings = config[type] || config.info;
-        
-        // Create toast HTML - Compact top-right style
-        const toastHTML = `
+    // Simple Alert Bar Toast Notification System
+    (function () {
+        'use strict';
+
+        // Create toast function
+        window.showToast = function (message, type = 'info', duration = 5000) {
+            const toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) return;
+
+            // Generate unique ID
+            const toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+            // Color mapping - simple flat colors
+            const config = {
+                success: {
+                    bgColor: '#d1f4e0',
+                    textColor: '#0f5132',
+                    borderColor: '#badbcc'
+                },
+                error: {
+                    bgColor: '#f8d7da',
+                    textColor: '#842029',
+                    borderColor: '#f5c2c7'
+                },
+                warning: {
+                    bgColor: '#fff3cd',
+                    textColor: '#664d03',
+                    borderColor: '#ffecb5'
+                },
+                info: {
+                    bgColor: '#cfe2ff',
+                    textColor: '#084298',
+                    borderColor: '#b6d4fe'
+                }
+            };
+
+            const settings = config[type] || config.info;
+
+            // Create toast HTML - Compact top-right style
+            const toastHTML = `
             <div id="${toastId}" class="compact-toast alert alert-dismissible fade show" role="alert" style="
                 background-color: ${settings.bgColor};
                 color: ${settings.textColor};
@@ -68,82 +68,91 @@
                 "></button>
             </div>
         `;
-        
-        // Add to container
-        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-        
-        // Auto dismiss
-        setTimeout(() => {
-            const toastElement = document.getElementById(toastId);
-            if (toastElement) {
-                toastElement.style.animation = 'slideOutRight 0.3s ease-out';
-                setTimeout(() => toastElement.remove(), 300);
-            }
-        }, duration);
-    };
-    
-    // Check for session messages on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        @if(session('success'))
-            showToast({!! json_encode(session('success')) !!}, 'success');
-        @endif
-        
-        @if(session('error'))
-            showToast({!! json_encode(session('error')) !!}, 'error');
-        @endif
-        
-        @if(session('warning'))
-            showToast({!! json_encode(session('warning')) !!}, 'warning');
-        @endif
-        
-        @if(session('info'))
-            showToast({!! json_encode(session('info')) !!}, 'info');
-        @endif
+
+            // Add to container
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+            // Auto dismiss
+            setTimeout(() => {
+                const toastElement = document.getElementById(toastId);
+                if (toastElement) {
+                    toastElement.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => toastElement.remove(), 300);
+                }
+            }, duration);
+        };
+
+        // Check for session messages on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(session('success'))
+                showToast({!! json_encode(session('success')) !!}, 'success');
+            @endif
+
+            @if(session('error'))
+                showToast({!! json_encode(session('error')) !!}, 'error');
+            @endif
+
+            @if(session('warning'))
+                showToast({!! json_encode(session('warning')) !!}, 'warning');
+            @endif
+
+            @if(session('info'))
+                showToast({!! json_encode(session('info')) !!}, 'info');
+            @endif
+
+            // Display validation errors
+            @if($errors->any())
+                @foreach($errors->all() as $error)
+                    showToast({!! json_encode($error) !!}, 'error', 10000); // 10s duration for errors to ensure they are read
+                @endforeach
+            @endif
     });
-})();
+    })();
 </script>
 
 <style>
-.compact-toast {
-    width: auto;
-}
-
-/* Slide in from right */
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Slide out to right */
-@keyframes slideOutRight {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-}
-
-/* Mobile responsive */
-@media (max-width: 576px) {
-    #toast-container {
-        top: 10px !important;
-        right: 10px !important;
-        left: 10px !important;
-        max-width: none !important;
-    }
-    
     .compact-toast {
-        min-width: auto !important;
-        max-width: none !important;
+        width: auto;
     }
-}
+
+    /* Slide in from right */
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Slide out to right */
+    @keyframes slideOutRight {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 576px) {
+        #toast-container {
+            top: 10px !important;
+            right: 10px !important;
+            left: 10px !important;
+            max-width: none !important;
+        }
+
+        .compact-toast {
+            min-width: auto !important;
+            max-width: none !important;
+        }
+    }
 </style>
