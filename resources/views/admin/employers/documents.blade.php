@@ -54,16 +54,21 @@
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div>
-                                                    <strong>{{ $document->user->name }}</strong>
-                                                    @if($document->user->isKycVerified())
-                                                        <i class="fas fa-check-circle text-success ms-1" title="KYC Verified" data-bs-toggle="tooltip"></i>
+                                                    @if($document->user)
+                                                        <strong>{{ $document->user->name }}</strong>
+                                                        @if($document->user->isKycVerified())
+                                                            <i class="fas fa-check-circle text-success ms-1" title="KYC Verified" data-bs-toggle="tooltip"></i>
+                                                        @else
+                                                            <i class="fas fa-exclamation-circle text-warning ms-1" title="KYC Pending" data-bs-toggle="tooltip"></i>
+                                                        @endif
                                                     @else
-                                                        <i class="fas fa-exclamation-circle text-warning ms-1" title="KYC Pending" data-bs-toggle="tooltip"></i>
+                                                        <strong class="text-muted">Deleted User</strong>
+                                                        <i class="fas fa-user-slash text-secondary ms-1" title="User Deleted" data-bs-toggle="tooltip"></i>
                                                     @endif
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>{{ $document->user->email }}</td>
+                                        <td>{{ $document->user->email ?? 'N/A' }}</td>
                                         <td>
                                             @php
                                                 $docConfig = $document->document_type_config;

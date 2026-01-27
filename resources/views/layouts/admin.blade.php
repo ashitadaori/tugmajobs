@@ -493,16 +493,30 @@
                             <img src="{{ Auth::user()->profile_image ?? asset('images/default-profile.svg') }}"
                                 alt="Profile" class="admin-avatar">
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown" style="min-width: 200px;">
                             <li>
-                                <h6 class="dropdown-header">{{ Auth::user()->name }}</h6>
+                                <h6 class="dropdown-header">{{ Auth::user()->name ?? 'Admin' }}</h6>
                             </li>
-                            <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin.profile.edit') }}">
                                     <i class="bi bi-person me-2"></i> My Profile
-                                </a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.profile.password') }}">
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin.profile.password') }}">
                                     <i class="bi bi-lock me-2"></i> Change Password
-                                </a></li>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin.settings.index') }}">
+                                    <i class="bi bi-gear me-2"></i> Settings
+                                </a>
+                            </li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

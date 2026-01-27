@@ -1839,7 +1839,7 @@
                                         onclick="toggleOptionCard(this, 'requires_screening')">
                                         <div class="form-check form-switch m-0">
                                             <input class="form-check-input" type="checkbox" id="requires_screening"
-                                                name="requires_screening" {{ old('requires_screening') ? 'checked' : '' }}
+                                                name="requires_screening" value="1" {{ old('requires_screening') ? 'checked' : '' }}
                                                 style="width: 3em; height: 1.5em;">
                                         </div>
                                         <label class="form-check-label mb-0" for="requires_screening"

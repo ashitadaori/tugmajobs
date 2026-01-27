@@ -244,14 +244,24 @@ class JobController extends Controller
                 'requirements_count' => $job->jobRequirements()->count()
             ]);
 
-            // If job is approved, notify all jobseekers
+            // If job is approved, notify all jobseekers (wrapped in try-catch to not fail job creation)
+            $notificationMessage = '';
             if (!$isDraft) {
-                $this->notifyJobseekersAboutNewJob($job);
+                try {
+                    $this->notifyJobseekersAboutNewJob($job);
+                    $notificationMessage = ' Jobseekers with matching preferences have been notified.';
+                } catch (\Exception $notifyException) {
+                    Log::error('Failed to notify jobseekers about new job (job was still created)', [
+                        'job_id' => $job->id,
+                        'error' => $notifyException->getMessage()
+                    ]);
+                    $notificationMessage = ' (Note: Job created but notifications could not be sent)';
+                }
             }
 
             return response()->json([
                 'success' => true,
-                'message' => $isDraft ? 'Job saved as draft successfully!' : 'Job posted successfully! Jobseekers with matching preferences have been notified.',
+                'message' => $isDraft ? 'Job saved as draft successfully!' : 'Job posted successfully!' . $notificationMessage,
                 'redirect' => route('admin.jobs.index')
             ], 200);
 
@@ -630,6 +640,9 @@ class JobController extends Controller
                 $companyName = $job->company_name;
             }
 
+            // Load relationships if not already loaded
+            $job->loadMissing(['jobType', 'category']);
+
             // Send notification to each matching jobseeker
             foreach ($allJobseekers as $jobseeker) {
                 \DB::table('notifications')->insert([
@@ -642,8 +655,8 @@ class JobController extends Controller
                         'job_title' => $job->title,
                         'company_name' => $companyName,
                         'location' => $job->location,
-                        'job_type' => $job->jobType->name ?? 'Full Time',
-                        'category' => $job->category->name ?? 'General',
+                        'job_type' => $job->jobType?->name ?? 'Full Time',
+                        'category' => $job->category?->name ?? 'General',
                         'status' => 'new_job'
                     ]),
                     'action_url' => route('jobDetail', $job->id),

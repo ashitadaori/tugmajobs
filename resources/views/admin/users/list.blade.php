@@ -7,56 +7,56 @@
 
         <!-- Stats Cards -->
         <div class="row g-3 mb-4">
-            <div class="col-md-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="stats-card">
                     <h6 class="card-title">Total Users</h6>
-                    <h3 class="mb-0">{{ $counts['total'] }}</h3>
+                    <h3>{{ $counts['total'] }}</h3>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="stats-card">
                     <h6 class="card-title">Verified</h6>
-                    <h3 class="mb-0">{{ $counts['verified'] }}</h3>
+                    <h3>{{ $counts['verified'] }}</h3>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="stats-card">
                     <h6 class="card-title">Unverified</h6>
-                    <h3 class="mb-0">{{ $counts['unverified'] }}</h3>
+                    <h3>{{ $counts['unverified'] }}</h3>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="stats-card">
                     <h6 class="card-title">Employers</h6>
-                    <h3 class="mb-0">{{ $counts['employers'] }}</h3>
+                    <h3>{{ $counts['employers'] }}</h3>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="stats-card">
                     <h6 class="card-title">Job Seekers</h6>
-                    <h3 class="mb-0">{{ $counts['jobseekers'] }}</h3>
+                    <h3>{{ $counts['jobseekers'] }}</h3>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="stats-card">
                     <h6 class="card-title">Admins</h6>
-                    <h3 class="mb-0">{{ $counts['admins'] }}</h3>
+                    <h3>{{ $counts['admins'] }}</h3>
                 </div>
             </div>
         </div>
 
         <!-- KYC Stats Cards -->
         <div class="row g-3 mb-4">
-            <div class="col-md-6">
+            <div class="col-6 col-md-4 col-lg-3">
                 <div class="stats-card bg-success text-white">
                     <h6 class="card-title">KYC Verified</h6>
-                    <h3 class="mb-0">{{ $counts['kyc_verified'] }}</h3>
+                    <h3>{{ $counts['kyc_verified'] }}</h3>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-6 col-md-4 col-lg-3">
                 <div class="stats-card bg-warning text-white">
                     <h6 class="card-title">KYC Pending</h6>
-                    <h3 class="mb-0">{{ $counts['kyc_pending'] }}</h3>
+                    <h3>{{ $counts['kyc_pending'] }}</h3>
                 </div>
             </div>
         </div>
@@ -71,12 +71,12 @@
             </div>
             <div class="card-body">
                 <!-- Search and Filters -->
-                <div class="row g-3 align-items-center mb-3">
+                <div class="row g-3 align-items-center mb-4">
                     <!-- Live Search -->
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-5 col-lg-4">
                         <div class="position-relative">
-                            <input type="text" id="live-search" class="form-control" placeholder="Search users..."
-                                style="padding-left: 35px;" value="{{ request('search') }}" autocomplete="off">
+                            <input type="text" id="live-search" class="form-control" placeholder="Search by name or email..."
+                                style="padding-left: 38px;" value="{{ request('search') }}" autocomplete="off">
                             <i class="bi bi-search position-absolute"
                                 style="left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
                             <span id="search-spinner" class="position-absolute d-none"
@@ -91,74 +91,64 @@
                     </div>
 
                     <!-- Role Filter -->
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-3 col-lg-2">
                         <select id="role-filter" class="form-select">
                             <option value="">All Roles</option>
-                            <option value="jobseeker" {{ request('role') === 'jobseeker' ? 'selected' : '' }}>Job Seeker
-                            </option>
+                            <option value="jobseeker" {{ request('role') === 'jobseeker' ? 'selected' : '' }}>Job Seeker</option>
                             <option value="employer" {{ request('role') === 'employer' ? 'selected' : '' }}>Employer</option>
                             <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admin</option>
                         </select>
                     </div>
 
                     <!-- KYC Status Filter -->
-                    <div class="col-md-2">
+                    <div class="col-6 col-md-4 col-lg-2">
                         <select id="kyc-filter" class="form-select">
                             <option value="all">All KYC Status</option>
-                            <option value="verified" {{ request('kyc_status') === 'verified' ? 'selected' : '' }}>KYC Verified
-                            </option>
-                            <option value="in_progress" {{ request('kyc_status') === 'in_progress' ? 'selected' : '' }}>KYC
-                                Pending</option>
-                            <option value="rejected" {{ request('kyc_status') === 'rejected' ? 'selected' : '' }}>KYC Rejected
-                            </option>
+                            <option value="verified" {{ request('kyc_status') === 'verified' ? 'selected' : '' }}>KYC Verified</option>
+                            <option value="in_progress" {{ request('kyc_status') === 'in_progress' ? 'selected' : '' }}>KYC Pending</option>
+                            <option value="rejected" {{ request('kyc_status') === 'rejected' ? 'selected' : '' }}>KYC Rejected</option>
                         </select>
                     </div>
 
                     <!-- Results Info -->
-                    <div class="col-md-4 text-end">
+                    <div class="col-12 col-lg-4 text-lg-end">
                         <span class="text-muted" id="results-info">
-                            Showing <span id="results-from">{{ $users->firstItem() ?? 0 }}</span> - <span
-                                id="results-to">{{ $users->lastItem() ?? 0 }}</span> of <span
-                                id="results-total">{{ $users->total() }}</span> users
+                            Showing <strong id="results-from">{{ $users->firstItem() ?? 0 }}</strong> - <strong id="results-to">{{ $users->lastItem() ?? 0 }}</strong> of <strong id="results-total">{{ $users->total() }}</strong> users
                         </span>
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table">
+                    <table class="table table-hover align-middle">
                         <thead>
                             <tr>
-                                <th>
-                                    <a href="{{ route('admin.users.index', array_merge(request()->query(), ['sort' => 'name', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}"
-                                        class="text-decoration-none text-dark">
+                                <th style="min-width: 150px;">
+                                    <a href="{{ route('admin.users.index', array_merge(request()->query(), ['sort' => 'name', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}">
                                         Name
                                         @if(request('sort') === 'name')
                                             <i class="bi bi-sort-{{ request('direction') === 'asc' ? 'up' : 'down' }}"></i>
                                         @endif
                                     </a>
                                 </th>
-                                <th>
-                                    <a href="{{ route('admin.users.index', array_merge(request()->query(), ['sort' => 'email', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}"
-                                        class="text-decoration-none text-dark">
+                                <th style="min-width: 200px;">
+                                    <a href="{{ route('admin.users.index', array_merge(request()->query(), ['sort' => 'email', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}">
                                         Email
                                         @if(request('sort') === 'email')
                                             <i class="bi bi-sort-{{ request('direction') === 'asc' ? 'up' : 'down' }}"></i>
                                         @endif
                                     </a>
                                 </th>
-                                <th>Role</th>
-                                <th>KYC Status</th>
-                                <th>
-                                    <a href="{{ route('admin.users.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}"
-                                        class="text-decoration-none text-dark">
+                                <th style="min-width: 100px;">Role</th>
+                                <th style="min-width: 120px;">KYC Status</th>
+                                <th style="min-width: 120px;">
+                                    <a href="{{ route('admin.users.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}">
                                         Registered
                                         @if(request('sort') === 'created_at' || !request('sort'))
-                                            <i
-                                                class="bi bi-sort-{{ request('direction', 'desc') === 'asc' ? 'up' : 'down' }}"></i>
+                                            <i class="bi bi-sort-{{ request('direction', 'desc') === 'asc' ? 'up' : 'down' }}"></i>
                                         @endif
                                     </a>
                                 </th>
-                                <th>Actions</th>
+                                <th style="min-width: 100px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="users-table-body">

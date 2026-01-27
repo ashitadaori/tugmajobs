@@ -2263,10 +2263,10 @@ class EmployerController extends Controller
                 'salary_min' => 'nullable|numeric|min:0',
                 'salary_max' => 'nullable|numeric|min:0',
                 'deadline' => 'nullable|date|after_or_equal:today',
-                'is_remote' => 'boolean',
-                'is_featured' => 'boolean',
+                'is_remote' => 'nullable',
+                'is_featured' => 'nullable',
                 'skills' => 'nullable|string',
-                'requires_screening' => 'boolean',
+                'requires_screening' => 'nullable',
                 'preliminary_questions' => 'nullable|string'
             ], [
                 'title.required' => 'Job title is required',
@@ -2295,6 +2295,9 @@ class EmployerController extends Controller
             if (!empty($validated['skills'])) {
                 $skills = json_decode($validated['skills'], true) ?: [];
             }
+
+            // Start transaction for job creation
+            DB::beginTransaction();
 
             // Create the job
             $job = new Job();
@@ -2400,6 +2403,8 @@ class EmployerController extends Controller
                 'visible_to_jobseekers' => $savedJob && $savedJob->status == 1 ? 'YES' : 'NO'
             ]);
 
+            DB::commit();
+
             // Handle AJAX requests
             if ($request->ajax()) {
                 return response()->json([
@@ -2435,6 +2440,7 @@ class EmployerController extends Controller
                 ->withInput()
                 ->with('error', 'Please check the form for errors and try again.');
         } catch (\Exception $e) {
+            DB::rollBack();
             \Log::error('Job creation failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

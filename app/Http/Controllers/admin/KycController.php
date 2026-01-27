@@ -630,24 +630,42 @@ class KycController extends Controller
     public function approveDiditVerification(User $user)
     {
         $verification = $user->kycVerifications()->latest()->first();
-        
+
         if (!$verification) {
             return redirect()->back()->with('error', 'No KYC verification found for this user.');
         }
-        
+
         // Update verification status
         $verification->update([
             'status' => 'verified',
             'verified_at' => now()
         ]);
-        
+
         // Update user KYC status
         $user->update([
             'kyc_status' => 'verified',
             'kyc_verified_at' => now()
         ]);
-        
-        return redirect()->back()->with('success', 'KYC verification approved successfully.');
+
+        // Notify the user that they have been verified
+        try {
+            Notification::create([
+                'user_id' => $user->id,
+                'title' => 'Congratulations! You are now verified',
+                'message' => 'Your identity has been successfully verified. You now have full access to all features on TugmaJobs. Start exploring opportunities today!',
+                'type' => 'kyc_verified',
+                'data' => [
+                    'verified_at' => now()->toDateTimeString(),
+                ],
+                'action_url' => $user->role === 'employer'
+                    ? route('employer.dashboard')
+                    : route('account.dashboard'),
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Failed to create DiDit KYC approval notification', ['error' => $e->getMessage()]);
+        }
+
+        return redirect()->back()->with('success', 'KYC verification approved successfully. User has been notified.');
     }
 
     /**
@@ -658,24 +676,40 @@ class KycController extends Controller
         $request->validate([
             'rejection_reason' => 'required|string|max:500'
         ]);
-        
+
         $verification = $user->kycVerifications()->latest()->first();
-        
+
         if (!$verification) {
             return redirect()->back()->with('error', 'No KYC verification found for this user.');
         }
-        
+
         // Update verification status
         $verification->update([
             'status' => 'failed'
         ]);
-        
+
         // Update user KYC status
         $user->update([
             'kyc_status' => 'failed'
         ]);
-        
-        return redirect()->back()->with('success', 'KYC verification rejected successfully.');
+
+        // Notify the user that their KYC was rejected
+        try {
+            Notification::create([
+                'user_id' => $user->id,
+                'title' => 'Verification Needs Attention',
+                'message' => "Your identity verification requires some changes. Reason: {$request->rejection_reason}. Please re-submit your documents to complete verification.",
+                'type' => 'kyc_rejected',
+                'data' => [
+                    'rejection_reason' => $request->rejection_reason,
+                ],
+                'action_url' => route('kyc.start.form'),
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Failed to create DiDit KYC rejection notification', ['error' => $e->getMessage()]);
+        }
+
+        return redirect()->back()->with('success', 'KYC verification rejected successfully. User has been notified.');
     }
     
     /**

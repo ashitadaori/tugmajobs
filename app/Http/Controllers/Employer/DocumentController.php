@@ -173,6 +173,32 @@ class DocumentController extends Controller
 
         $document->update($updateData);
 
+        // Notify all admins about the resubmitted document
+        try {
+            $user = Auth::user();
+            $documentTypeName = EmployerDocument::getDocumentTypes()[$document->document_type]['label'] ?? $document->document_type;
+            $admins = User::where('role', 'admin')->get();
+
+            foreach ($admins as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => 'Employer Document Resubmitted',
+                    'message' => "{$user->name} has resubmitted their {$documentTypeName} for verification after revision. Please review the updated document.",
+                    'type' => 'admin_employer_document',
+                    'data' => [
+                        'document_id' => $document->id,
+                        'employer_id' => $user->id,
+                        'employer_name' => $user->name,
+                        'document_type' => $document->document_type,
+                        'is_resubmission' => true,
+                    ],
+                    'action_url' => route('admin.employers.documents.index'),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Failed to create resubmission notification for admin', ['error' => $e->getMessage()]);
+        }
+
         // If AJAX request, return JSON response to stay on the same page
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

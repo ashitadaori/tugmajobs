@@ -1,71 +1,120 @@
-<!-- Notification Center Component -->
-<div id="notificationCenter" class="notification-center">
-    <!-- Notification Bell -->
-    <div class="notification-bell-wrapper">
-        <button class="notification-bell" id="notificationBell" title="Notifications">
-            <i class="bi bi-bell"></i>
-            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
-            <span class="notification-pulse" id="notificationPulse" style="display: none;"></span>
-        </button>
-    </div>
+@php
+    $adminNotifications = \App\Models\Notification::where('user_id', auth()->id())
+        ->orderBy('created_at', 'desc')
+        ->take(10)
+        ->get();
+    $unreadCount = \App\Models\Notification::where('user_id', auth()->id())
+        ->whereNull('read_at')
+        ->count();
+@endphp
 
-    <!-- Notification Dropdown -->
-    <div class="notification-dropdown" id="notificationDropdown" style="display: none;">
-        <div class="notification-header">
-            <h6 class="mb-0">
-                <i class="bi bi-bell me-2"></i>Notifications
-            </h6>
-            <div class="notification-actions">
-                <button class="btn-icon" onclick="markAllAsRead()" title="Mark all as read">
-                    <i class="bi bi-check2-all"></i>
+<div class="dropdown admin-notif-wrapper">
+    <button type="button"
+        class="admin-notif-bell-btn {{ $unreadCount > 0 ? 'has-unread' : '' }}"
+        id="adminNotificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-bell"></i>
+        @if($unreadCount > 0)
+            <span class="admin-notif-badge">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+        @endif
+    </button>
+
+    <div class="dropdown-menu dropdown-menu-end admin-notif-dropdown" aria-labelledby="adminNotificationDropdown">
+        <!-- Header -->
+        <div class="admin-notif-header">
+            <h6 class="mb-0"><i class="bi bi-bell me-2"></i>Notifications</h6>
+            @if($unreadCount > 0)
+                <button type="button" class="admin-notif-mark-all" id="adminMarkAllRead">
+                    Mark all read
                 </button>
-                <button class="btn-icon" onclick="refreshNotifications()" title="Refresh">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </button>
+            @endif
+        </div>
+
+        <!-- Notification List -->
+        <div class="admin-notif-list" id="adminNotifList">
+            @forelse($adminNotifications as $notification)
+                @php
+                    $iconClass = 'bi-bell';
+                    $iconBg = '#e0e7ff';
+                    $iconColor = '#6366f1';
+
+                    // Icon mapping based on notification type
+                    switch($notification->type) {
+                        case 'admin_employer_document':
+                            $iconClass = 'bi-file-earmark-arrow-up';
+                            $iconBg = '#fef3c7';
+                            $iconColor = '#f59e0b';
+                            break;
+                        case 'admin_kyc_submission':
+                            $iconClass = 'bi-person-badge';
+                            $iconBg = '#fef3c7';
+                            $iconColor = '#f59e0b';
+                            break;
+                        case 'new_job_pending':
+                            $iconClass = 'bi-briefcase';
+                            $iconBg = '#fef3c7';
+                            $iconColor = '#f59e0b';
+                            break;
+                        case 'admin_new_application':
+                            $iconClass = 'bi-file-earmark-text';
+                            $iconBg = '#dbeafe';
+                            $iconColor = '#3b82f6';
+                            break;
+                        case 'kyc_verified':
+                        case 'document_approved':
+                            $iconClass = 'bi-check-circle';
+                            $iconBg = '#d1fae5';
+                            $iconColor = '#10b981';
+                            break;
+                        case 'kyc_rejected':
+                        case 'document_rejected':
+                            $iconClass = 'bi-x-circle';
+                            $iconBg = '#fee2e2';
+                            $iconColor = '#ef4444';
+                            break;
+                    }
+                @endphp
+
+                <a href="{{ $notification->action_url ?? '#' }}"
+                    class="admin-notif-item {{ is_null($notification->read_at) ? 'unread' : '' }}"
+                    data-notification-id="{{ $notification->id }}">
+                    <div class="admin-notif-icon" style="background: {{ $iconBg }};">
+                        <i class="bi {{ $iconClass }}" style="color: {{ $iconColor }};"></i>
+                    </div>
+                    <div class="admin-notif-content">
+                        <div class="admin-notif-title">{{ $notification->title ?? 'Notification' }}</div>
+                        <div class="admin-notif-message">{{ Str::limit($notification->message, 80) }}</div>
+                        <div class="admin-notif-time">
+                            <i class="bi bi-clock"></i>
+                            {{ $notification->created_at->diffForHumans() }}
+                        </div>
+                    </div>
+                </a>
+            @empty
+                <div class="admin-notif-empty">
+                    <i class="bi bi-bell-slash"></i>
+                    <p>No notifications</p>
+                    <small>You'll see alerts for KYC submissions, documents, and jobs here</small>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Footer -->
+        @if($adminNotifications->count() >= 10)
+            <div class="admin-notif-footer">
+                <a href="{{ route('admin.dashboard') }}" class="admin-notif-view-all">
+                    View all notifications
+                </a>
             </div>
-        </div>
-
-        <!-- Filter Tabs -->
-        <div class="notification-tabs">
-            <button class="notif-tab active" data-filter="all" onclick="filterNotifications('all')">
-                All <span class="tab-count" id="countAll">0</span>
-            </button>
-            <button class="notif-tab" data-filter="unread" onclick="filterNotifications('unread')">
-                Unread <span class="tab-count" id="countUnread">0</span>
-            </button>
-            <button class="notif-tab" data-filter="job_approved" onclick="filterNotifications('job_approved')">
-                <i class="bi bi-briefcase"></i> Jobs
-            </button>
-            <button class="notif-tab" data-filter="new_application" onclick="filterNotifications('new_application')">
-                <i class="bi bi-file-earmark"></i> Applications
-            </button>
-        </div>
-
-        <!-- Notifications List -->
-        <div class="notification-list" id="notificationList">
-            <div class="notification-loading">
-                <div class="spinner-border spinner-border-sm" role="status"></div>
-                <span class="ms-2">Loading notifications...</span>
-            </div>
-        </div>
-
-        <!-- View All Footer -->
-        <div class="notification-footer">
-            <a href="#" class="view-all-link">View All Notifications</a>
-        </div>
+        @endif
     </div>
 </div>
 
 <style>
-    .notification-center {
-        position: relative;
+    .admin-notif-wrapper {
+        position: relative !important;
     }
 
-    .notification-bell-wrapper {
-        display: inline-block;
-    }
-
-    .notification-bell {
+    .admin-notif-bell-btn {
         position: relative;
         width: 40px;
         height: 40px;
@@ -76,613 +125,267 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.2s;
         color: #6b7280;
     }
 
-    .notification-bell:hover {
+    .admin-notif-bell-btn:hover {
         background: #f9fafb;
         border-color: #667eea;
         color: #667eea;
     }
 
-    .notification-bell i {
+    .admin-notif-bell-btn i {
         font-size: 1.25rem;
     }
 
-    .notification-badge {
+    .admin-notif-bell-btn.has-unread i {
+        animation: bellPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes bellPulse {
+        0%, 100% { transform: rotate(0); }
+        10% { transform: rotate(10deg); }
+        20% { transform: rotate(-8deg); }
+        30% { transform: rotate(6deg); }
+        40% { transform: rotate(-4deg); }
+        50% { transform: rotate(0); }
+    }
+
+    .admin-notif-badge {
         position: absolute;
         top: -4px;
         right: -4px;
         background: #ef4444;
         color: white;
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
+        min-width: 18px;
+        height: 18px;
+        font-size: 0.65rem;
+        font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
         border: 2px solid white;
-        animation: bounce 2s infinite;
     }
 
-    @keyframes bounce {
-
-        0%,
-        20%,
-        50%,
-        80%,
-        100% {
-            transform: translateY(0);
-        }
-
-        40% {
-            transform: translateY(-5px);
-        }
-
-        60% {
-            transform: translateY(-3px);
-        }
+    .admin-notif-dropdown {
+        width: 360px !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+        padding: 0 !important;
+        margin-top: 8px !important;
+        overflow: hidden !important;
     }
 
-    .notification-pulse {
-        position: absolute;
-        top: -2px;
-        right: -2px;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: #ef4444;
-        animation: pulse-ring 2s infinite;
-    }
-
-    @keyframes pulse-ring {
-        0% {
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        100% {
-            transform: scale(2);
-            opacity: 0;
-        }
-    }
-
-    .notification-dropdown {
-        position: absolute;
-        top: calc(100% + 10px);
-        right: 0;
-        width: 420px;
-        max-height: 600px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        animation: dropdownSlide 0.3s ease-out;
-    }
-
-    @keyframes dropdownSlide {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .notification-header {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #e5e7eb;
+    .admin-notif-header {
+        padding: 14px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 
-    .notification-actions {
-        display: flex;
-        gap: 0.5rem;
+    .admin-notif-header h6 {
+        color: white !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
     }
 
-    .btn-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        background: #f3f4f6;
+    .admin-notif-mark-all {
+        font-size: 0.7rem;
+        color: white;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 10px;
+        border-radius: 4px;
         border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         cursor: pointer;
         transition: all 0.2s;
-        color: #6b7280;
     }
 
-    .btn-icon:hover {
-        background: #e5e7eb;
-        color: #374151;
+    .admin-notif-mark-all:hover {
+        background: rgba(255, 255, 255, 0.3);
     }
 
-    .notification-tabs {
-        display: flex;
-        border-bottom: 1px solid #e5e7eb;
-        padding: 0 1rem;
-        gap: 0.5rem;
-    }
-
-    .notif-tab {
-        padding: 0.75rem 1rem;
-        background: none;
-        border: none;
-        border-bottom: 3px solid transparent;
-        cursor: pointer;
-        font-size: 0.875rem;
-        color: #6b7280;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        position: relative;
-    }
-
-    .notif-tab:hover {
-        color: #374151;
-    }
-
-    .notif-tab.active {
-        color: #667eea;
-        border-bottom-color: #667eea;
-        font-weight: 600;
-    }
-
-    .tab-count {
-        background: #f3f4f6;
-        color: #6b7280;
-        font-size: 0.75rem;
-        padding: 0.125rem 0.5rem;
-        border-radius: 12px;
-        font-weight: 600;
-    }
-
-    .notif-tab.active .tab-count {
-        background: #ede9fe;
-        color: #667eea;
-    }
-
-    .notification-list {
-        flex: 1;
-        overflow-y: auto;
+    .admin-notif-list {
         max-height: 400px;
+        overflow-y: auto;
+        background: white;
     }
 
-    .notification-loading {
-        padding: 2rem;
-        text-align: center;
-        color: #9ca3af;
-        font-size: 0.875rem;
+    .admin-notif-item {
+        display: flex !important;
+        align-items: flex-start !important;
+        padding: 12px 16px !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+        text-decoration: none !important;
+        color: #374151 !important;
+        transition: background 0.15s !important;
+        gap: 12px;
     }
 
-    .notification-item {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #f3f4f6;
-        cursor: pointer;
-        transition: all 0.2s;
-        position: relative;
+    .admin-notif-item:hover {
+        background: #f9fafb !important;
     }
 
-    .notification-item:hover {
-        background: #f9fafb;
+    .admin-notif-item.unread {
+        background: #eff6ff !important;
+        border-left: 3px solid #667eea !important;
     }
 
-    .notification-item.unread {
-        background: #eff6ff;
+    .admin-notif-item.unread:hover {
+        background: #dbeafe !important;
     }
 
-    .notification-item.unread::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: #667eea;
-    }
-
-    .notif-icon {
+    .admin-notif-icon {
+        flex-shrink: 0;
         width: 40px;
         height: 40px;
-        border-radius: 50%;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.25rem;
-        margin-right: 1rem;
     }
 
-    .notif-icon.success {
-        background: #d1fae5;
-        color: #10b981;
+    .admin-notif-icon i {
+        font-size: 1.1rem;
     }
 
-    .notif-icon.info {
-        background: #dbeafe;
-        color: #3b82f6;
-    }
-
-    .notif-icon.warning {
-        background: #fef3c7;
-        color: #f59e0b;
-    }
-
-    .notif-icon.danger {
-        background: #fee2e2;
-        color: #ef4444;
-    }
-
-    .notif-content {
+    .admin-notif-content {
         flex: 1;
+        min-width: 0;
     }
 
-    .notif-title {
+    .admin-notif-title {
+        font-size: 0.85rem;
         font-weight: 600;
-        color: #111827;
-        margin-bottom: 0.25rem;
-        font-size: 0.875rem;
+        color: #1f2937;
+        margin-bottom: 2px;
     }
 
-    .notif-message {
+    .admin-notif-message {
+        font-size: 0.8rem;
         color: #6b7280;
-        font-size: 0.875rem;
         line-height: 1.4;
+        margin-bottom: 4px;
     }
 
-    .notif-time {
-        font-size: 0.75rem;
+    .admin-notif-time {
+        font-size: 0.7rem;
         color: #9ca3af;
-        margin-top: 0.5rem;
-    }
-
-    .notif-actions {
         display: flex;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
+        align-items: center;
+        gap: 4px;
     }
 
-    .notif-action-btn {
-        padding: 0.25rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s;
+    .admin-notif-empty {
+        padding: 40px 20px;
+        text-align: center;
+        color: #9ca3af;
+    }
+
+    .admin-notif-empty i {
+        font-size: 2.5rem;
+        opacity: 0.3;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .admin-notif-empty p {
+        font-size: 0.9rem;
         font-weight: 500;
-    }
-
-    .notif-action-primary {
-        background: #667eea;
-        color: white;
-    }
-
-    .notif-action-primary:hover {
-        background: #5568d3;
-    }
-
-    .notif-action-secondary {
-        background: #f3f4f6;
         color: #6b7280;
+        margin: 4px 0;
     }
 
-    .notif-action-secondary:hover {
-        background: #e5e7eb;
+    .admin-notif-empty small {
+        font-size: 0.75rem;
     }
 
-    .notification-footer {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #e5e7eb;
+    .admin-notif-footer {
+        padding: 12px 16px;
+        border-top: 1px solid #f3f4f6;
+        background: #f9fafb;
         text-align: center;
     }
 
-    .view-all-link {
+    .admin-notif-view-all {
         color: #667eea;
-        font-weight: 600;
-        font-size: 0.875rem;
         text-decoration: none;
+        font-weight: 600;
+        font-size: 0.8rem;
     }
 
-    .view-all-link:hover {
+    .admin-notif-view-all:hover {
         text-decoration: underline;
     }
 
-    .empty-notifications {
-        padding: 3rem 2rem;
-        text-align: center;
-        color: #9ca3af;
+    .admin-notif-list::-webkit-scrollbar {
+        width: 4px;
     }
 
-    .empty-notifications i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: #d1d5db;
+    .admin-notif-list::-webkit-scrollbar-thumb {
+        background: #e5e7eb;
+        border-radius: 2px;
     }
 
-    @media (max-width: 768px) {
-        .notification-dropdown {
-            width: calc(100vw - 40px);
-            right: -10px;
+    @media (max-width: 576px) {
+        .admin-notif-dropdown {
+            width: 300px !important;
         }
     }
 </style>
 
 <script>
-    let notifications = [];
-    let currentFilter = 'all';
-    let notificationCheckInterval;
-
-    // Initialize Notification Center
-    document.addEventListener('DOMContentLoaded', function () {
-        initializeNotificationCenter();
-        loadNotifications();
-
-        // Check for new notifications every 30 seconds
-        notificationCheckInterval = setInterval(loadNotifications, 30000);
-    });
-
-    function initializeNotificationCenter() {
-        const bell = document.getElementById('notificationBell');
-        const dropdown = document.getElementById('notificationDropdown');
-
-        bell.addEventListener('click', function (e) {
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark all as read
+    const markAllBtn = document.getElementById('adminMarkAllRead');
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             e.stopPropagation();
-            const isVisible = dropdown.style.display !== 'none';
 
-            if (isVisible) {
-                dropdown.style.display = 'none';
-            } else {
-                dropdown.style.display = 'block';
-                loadNotifications();
-            }
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function (e) {
-            if (!dropdown.contains(e.target) && e.target !== bell) {
-                dropdown.style.display = 'none';
-            }
-        });
-    }
-
-    function loadNotifications() {
-        fetch('{{ route('admin.notifications.index') }}?limit=50')
-            .then(res => res.json())
-            .then(data => {
-                notifications = data.notifications || [];
-                updateNotificationBadge();
-                renderNotifications();
-            })
-            .catch(err => {
-                console.error('Failed to load notifications:', err);
-            });
-    }
-
-    function updateNotificationBadge() {
-        const badge = document.getElementById('notificationBadge');
-        const pulse = document.getElementById('notificationPulse');
-        const unreadCount = notifications.filter(n => !n.read_at).length;
-
-        document.getElementById('countAll').textContent = notifications.length;
-        document.getElementById('countUnread').textContent = unreadCount;
-
-        if (unreadCount > 0) {
-            badge.style.display = 'flex';
-            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-            pulse.style.display = 'block';
-        } else {
-            badge.style.display = 'none';
-            pulse.style.display = 'none';
-        }
-    }
-
-    function renderNotifications() {
-        const container = document.getElementById('notificationList');
-        let filteredNotifications = notifications;
-
-        if (currentFilter === 'unread') {
-            filteredNotifications = notifications.filter(n => !n.read_at);
-        } else if (currentFilter !== 'all') {
-            filteredNotifications = notifications.filter(n => n.type === currentFilter);
-        }
-
-        if (filteredNotifications.length === 0) {
-            container.innerHTML = `
-            <div class="empty-notifications">
-                <i class="bi bi-bell-slash"></i>
-                <p class="mb-0">No notifications</p>
-            </div>
-        `;
-            return;
-        }
-
-        container.innerHTML = filteredNotifications.map(notif => {
-            const data = JSON.parse(notif.data || '{}');
-            const iconClass = getNotificationIconClass(notif.type);
-            const icon = getNotificationIcon(notif.type);
-
-            return `
-            <div class="notification-item ${!notif.read_at ? 'unread' : ''}"
-                 onclick="handleNotificationClick('${notif.id}', '${notif.action_url || '#'}')">
-                <div class="d-flex align-items-start">
-                    <div class="notif-icon ${iconClass}">
-                        <i class="${icon}"></i>
-                    </div>
-                    <div class="notif-content">
-                        <div class="notif-title">${notif.title}</div>
-                        <div class="notif-message">${notif.message}</div>
-                        <div class="notif-time">
-                            <i class="bi bi-clock me-1"></i>${formatNotificationTime(notif.created_at)}
-                        </div>
-                        ${!notif.read_at ? `
-                            <div class="notif-actions">
-                                <button class="notif-action-btn notif-action-primary"
-                                        onclick="event.stopPropagation(); markAsRead('${notif.id}')">
-                                    Mark as read
-                                </button>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-        }).join('');
-    }
-
-    function getNotificationIconClass(type) {
-        const iconMap = {
-            'job_approved': 'success',
-            'job_rejected': 'warning',
-            'new_application': 'info',
-            'new_job': 'info',
-            'kyc_approved': 'success',
-            'kyc_rejected': 'danger',
-            'admin_announcement': 'info'
-        };
-        return iconMap[type] || 'info';
-    }
-
-    function getNotificationIcon(type) {
-        const iconMap = {
-            'job_approved': 'bi-check-circle',
-            'job_rejected': 'bi-x-circle',
-            'new_application': 'bi-file-earmark-text',
-            'new_job': 'bi-briefcase',
-            'kyc_approved': 'bi-shield-check',
-            'kyc_rejected': 'bi-shield-x',
-            'admin_announcement': 'bi-megaphone'
-        };
-        return iconMap[type] || 'bi-bell';
-    }
-
-    function formatNotificationTime(dateString) {
-        // MySQL returns timestamps without timezone info, so JS interprets as local time
-        // Append 'Z' to force UTC interpretation, then adjust for Manila time (+8)
-        let utcDateString = dateString;
-        if (!dateString.endsWith('Z') && !dateString.includes('+')) {
-            utcDateString = dateString.replace(' ', 'T') + 'Z';
-        }
-        const date = new Date(utcDateString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffHours < 24) return `${diffHours}h ago`;
-        if (diffDays < 7) return `${diffDays}d ago`;
-
-        return date.toLocaleDateString();
-    }
-
-    function filterNotifications(filter) {
-        currentFilter = filter;
-
-        document.querySelectorAll('.notif-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.querySelector(`.notif-tab[data-filter="${filter}"]`).classList.add('active');
-
-        renderNotifications();
-    }
-
-    function handleNotificationClick(notificationId, actionUrl) {
-        markAsRead(notificationId);
-
-        if (actionUrl && actionUrl !== '#') {
-            // Map employer routes to admin routes for admin users
-            let mappedUrl = actionUrl;
-
-            // Admin route mappings
-            const routeMappings = {
-                '/employer/applications/': '/admin/jobs/applications/',
-                '/employer/jobs/': '/admin/jobs/',
-            };
-
-            // Apply mappings
-            for (const [employerPath, adminPath] of Object.entries(routeMappings)) {
-                if (mappedUrl.includes(employerPath)) {
-                    mappedUrl = mappedUrl.replace(employerPath, adminPath);
-                    console.log('Mapped notification URL for admin:', actionUrl, '->', mappedUrl);
-                    break;
+            fetch('{{ route("admin.notifications.mark-all-read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 }
-            }
-
-            setTimeout(() => {
-                window.location.href = mappedUrl;
-            }, 200);
-        }
-    }
-
-    function markAsRead(notificationId) {
-        fetch(`{{ route('admin.notifications.mark-read') }}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ notification_id: notificationId })
-        })
-            .then(() => {
-                const notif = notifications.find(n => n.id == notificationId);
-                if (notif) {
-                    notif.read_at = new Date().toISOString();
-                }
-                updateNotificationBadge();
-                renderNotifications();
+            }).then(() => {
+                document.querySelectorAll('.admin-notif-item.unread').forEach(item => {
+                    item.classList.remove('unread');
+                });
+                const badge = document.querySelector('.admin-notif-badge');
+                if (badge) badge.remove();
+                document.querySelector('.admin-notif-bell-btn').classList.remove('has-unread');
+                markAllBtn.style.display = 'none';
             });
+        });
     }
 
-    function markAllAsRead() {
-        const unreadIds = notifications.filter(n => !n.read_at).map(n => n.id);
+    // Mark individual notification as read on click
+    document.querySelectorAll('.admin-notif-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            const notifId = this.dataset.notificationId;
+            const url = this.getAttribute('href');
 
-        if (unreadIds.length === 0) {
-            showAdminToast('No unread notifications', 'info');
-            return;
-        }
-
-        fetch(`{{ route('admin.notifications.mark-all-read') }}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ notification_ids: unreadIds })
-        })
-            .then(() => {
-                notifications.forEach(n => {
-                    if (unreadIds.includes(n.id)) {
-                        n.read_at = new Date().toISOString();
+            if (this.classList.contains('unread') && notifId) {
+                e.preventDefault();
+                fetch('{{ route("admin.notifications.mark-read") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ notification_id: notifId })
+                }).then(() => {
+                    if (url && url !== '#') {
+                        window.location.href = url;
                     }
                 });
-                updateNotificationBadge();
-                renderNotifications();
-                showAdminToast('All notifications marked as read', 'success');
-            });
-    }
-
-    function refreshNotifications() {
-        document.getElementById('notificationList').innerHTML = `
-        <div class="notification-loading">
-            <div class="spinner-border spinner-border-sm" role="status"></div>
-            <span class="ms-2">Refreshing...</span>
-        </div>
-    `;
-
-        loadNotifications();
-    }
+            }
+        });
+    });
+});
 </script>

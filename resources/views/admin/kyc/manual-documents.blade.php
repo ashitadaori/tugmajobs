@@ -117,24 +117,33 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="user-avatar me-3">
-                                            @if($document->user->profile_image)
+                                            @if($document->user && $document->user->profile_image)
                                                 <img src="{{ $document->user->profile_image }}"
                                                      class="rounded-circle"
                                                      width="40" height="40"
                                                      alt="{{ $document->user->name }}">
-                                            @else
+                                            @elseif($document->user)
                                                 <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
                                                      style="width: 40px; height: 40px; font-size: 18px;">
                                                     {{ strtoupper(substr($document->user->name, 0, 1)) }}
                                                 </div>
+                                            @else
+                                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                                     style="width: 40px; height: 40px; font-size: 18px;">
+                                                    ?
+                                                </div>
                                             @endif
                                         </div>
                                         <div>
-                                            <div class="fw-bold">{{ $document->user->name }}</div>
-                                            <div class="text-muted small">{{ $document->user->email }}</div>
-                                            <span class="badge bg-{{ $document->user->role === 'employer' ? 'info' : 'primary' }} small">
-                                                {{ ucfirst($document->user->role ?? 'User') }}
-                                            </span>
+                                            <div class="fw-bold">{{ $document->user->name ?? 'Deleted User' }}</div>
+                                            <div class="text-muted small">{{ $document->user->email ?? 'N/A' }}</div>
+                                            @if($document->user)
+                                                <span class="badge bg-{{ $document->user->role === 'employer' ? 'info' : 'primary' }} small">
+                                                    {{ ucfirst($document->user->role ?? 'User') }}
+                                                </span>
+                                            @else
+                                                <span class="badge bg-secondary small">Unknown</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
