@@ -120,16 +120,10 @@ class LocationController extends Controller
     public function getConfig()
     {
         return response()->json([
-            'public_token' => config('services.mapbox.public_token') ?? env('MAPBOX_ACCESS_TOKEN'),
-            'default_center' => [
-                'lat' => 6.7512, // Poblacion
-                'lng' => 125.4234
-            ],
-            'default_zoom' => 13,
-            'stacruz_bounds' => [
-                'southwest' => [125.35, 6.70],
-                'northeast' => [125.50, 6.85]
-            ]
+            'public_token' => config('mapbox.public_token'),
+            'default_center' => config('mapbox.default_center'),
+            'default_zoom' => config('mapbox.default_zoom'),
+            'stacruz_bounds' => config('mapbox.stacruz_bounds')
         ]);
     }
 
