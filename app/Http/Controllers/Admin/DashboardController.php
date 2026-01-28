@@ -54,15 +54,21 @@ class DashboardController extends Controller
                 ? round(($totalApplications - $lastMonthApplications) / $lastMonthApplications * 100, 1)
                 : 0;
 
-            // Get registration data for the last 7 days
-            $registrationData = User::select(
-                DB::raw('DATE_FORMAT(created_at, "%a") as day'),
-                DB::raw('COUNT(*) as count')
-            )
-                ->where('created_at', '>=', now()->subDays(7))
-                ->groupBy('day')
-                ->orderBy(DB::raw('MIN(created_at)'))
-                ->get();
+            // Get registration data for the last 30 days (Users vs Jobs)
+            $chartData = collect();
+            for ($i = 29; $i >= 0; $i--) {
+                $date = Carbon::now()->subDays($i)->format('Y-m-d');
+                $displayDate = Carbon::now()->subDays($i)->format('M d');
+
+                $userCount = User::whereDate('created_at', $date)->count();
+                $jobCount = Job::whereDate('created_at', $date)->count();
+
+                $chartData->push([
+                    'date' => $displayDate,
+                    'users' => $userCount,
+                    'jobs' => $jobCount
+                ]);
+            }
 
             // Get user distribution by role
             $userTypeData = [
@@ -86,7 +92,7 @@ class DashboardController extends Controller
                 'totalKycRequired',
                 'totalApplications',
                 'applicationGrowth',
-                'registrationData',
+                'chartData',
                 'userTypeData'
             );
         });
@@ -133,6 +139,22 @@ class DashboardController extends Controller
             ? round(($totalApplications - $lastMonthApplications) / $lastMonthApplications * 100, 1)
             : 0;
 
+        // Get chart data for the last 30 days
+        $chartData = collect();
+        for ($i = 29; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->format('Y-m-d');
+            $displayDate = Carbon::now()->subDays($i)->format('M d');
+
+            $userCount = User::whereDate('created_at', $date)->count();
+            $jobCount = Job::whereDate('created_at', $date)->count();
+
+            $chartData->push([
+                'date' => $displayDate,
+                'users' => $userCount,
+                'jobs' => $jobCount
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -149,7 +171,8 @@ class DashboardController extends Controller
                 'rejectedKyc' => $rejectedKyc,
                 'totalApplications' => $totalApplications,
                 'applicationGrowth' => $applicationGrowth,
-                'lastUpdated' => now()->format('Y-m-d H:i:s')
+                'chartData' => $chartData,
+                'lastUpdated' => now()->format('H:i:s')
             ]
         ]);
     }

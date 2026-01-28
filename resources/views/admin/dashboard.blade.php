@@ -2,254 +2,153 @@
 
 @section('content')
     <div class="container-fluid">
-        <!-- Admin Dashboard Navigation Bar -->
-        <div class="admin-dashboard-navbar mb-4">
-            <div class="d-flex justify-content-between align-items-center py-3">
+        <!-- Admin Dashboard Header -->
+        <div class="row align-items-center mb-4 g-3">
+            <div class="col-12 col-md-6">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
+                </nav>
                 <div class="d-flex align-items-center">
-                    <h4 class="mb-0 me-4">Admin Dashboard</h4>
-                    <div class="dashboard-breadcrumb">
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-0">
-                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
-                                <li class="breadcrumb-item active">Dashboard</li>
-                            </ol>
-                        </nav>
+                    <h1 class="h3 mb-0 me-3">Dashboard Overview</h1>
+                    <div class="system-status bg-white border rounded-pill px-3 py-1 d-flex align-items-center shadow-sm">
+                        <div class="status-indicator bg-success me-2"></div>
+                        <small class="text-success fw-bold">SYSTEM ONLINE</small>
                     </div>
                 </div>
-
-                <div class="admin-actions d-flex align-items-center gap-3">
-                    <!-- System Status -->
-                    <div class="system-status">
-                        <div class="d-flex align-items-center">
-                            <div class="status-indicator bg-success me-2"></div>
-                            <small class="text-muted">System Online</small>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <div class="btn-group">
-                        <a href="{{ route('admin.users.index') }}" class="btn btn-primary btn-sm">
+            </div>
+            <div class="col-12 col-md-6 text-md-end">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+                    <div class="btn-group shadow-sm">
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-primary">
                             <i class="bi bi-people me-1"></i> Manage Users
                         </a>
-                        <a href="{{ route('admin.users.index', ['kyc_status' => 'all']) }}"
-                            class="btn btn-outline-info btn-sm">
+                        <a href="{{ route('admin.users.index', ['kyc_status' => 'all']) }}" class="btn btn-info text-white">
                             <i class="bi bi-shield-check me-1"></i> KYC Overview
-                            @if(isset($pendingKyc) && $pendingKyc > 0)
-                                <span class="badge bg-warning ms-1">{{ $pendingKyc }} pending</span>
-                            @endif
                         </a>
                     </div>
+                    <div class="btn-group shadow-sm">
+                        <a href="{{ route('admin.dashboard.export') }}" class="btn btn-success" title="Export Statistics">
+                            <i class="bi bi-download"></i>
+                        </a>
+                        <button type="button" id="refresh-stats" class="btn btn-light border" onclick="refreshDashboard()"
+                            title="Refresh Data">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Quick Navigation Tabs -->
-            <div class="admin-tabs">
-                <ul class="nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('admin.dashboard') }}">
-                            <i class="bi bi-speedometer2 me-1"></i> Overview
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.users.index') }}">
-                            <i class="bi bi-people me-1"></i> Users
-                            @if(isset($totalUsers) && $totalUsers > 0)
-                                <span class="badge bg-primary ms-1">{{ number_format($totalUsers) }}</span>
-                            @endif
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.jobs.index') }}">
-                            <i class="bi bi-briefcase me-1"></i> Jobs
-                            @if(isset($activeJobs) && $activeJobs > 0)
-                                <span class="badge bg-success ms-1">{{ number_format($activeJobs) }}</span>
-                            @endif
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.categories.index') }}">
-                            <i class="bi bi-tags me-1"></i> Categories
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.analytics.dashboard') }}">
-                            <i class="bi bi-graph-up me-1"></i> Analytics
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button">
-                            <i class="bi bi-gear me-1"></i> System
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">
-                                    <i class="bi bi-sliders me-2"></i> Settings
-                                </a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.settings.security-log') }}">
-                                    <i class="bi bi-shield-lock me-2"></i> Security Log
-                                </a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.settings.audit-log') }}">
-                                    <i class="bi bi-clipboard-data me-2"></i> Audit Log
-                                </a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.audit-reports.index') }}">
-                                    <i class="bi bi-file-earmark-bar-graph me-2"></i> Audit Reports
-                                </a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3">Dashboard</h1>
-            <div class="btn-group">
-                <a href="{{ route('admin.dashboard.export') }}" class="btn btn-success"
-                    title="Export dashboard statistics to CSV">
-                    <i class="bi bi-download me-2"></i>Export Statistics
-                </a>
-                <button type="button" id="refresh-stats" class="btn btn-outline-primary ms-2" onclick="refreshDashboard()"
-                    title="Manually refresh dashboard data">
-                    <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
             </div>
         </div>
 
         <!-- Statistics Cards -->
         <div class="row g-4 mb-4">
-            <div class="col-12 col-sm-6 col-xl-3">
+            <!-- Total Users -->
+            <div class="col-12 col-sm-6 col-xl-2">
                 <a href="{{ route('admin.users.index') }}" class="text-decoration-none">
-                    <div id="total-users" class="stats-card stats-card-clickable">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="text-muted mb-2">Total Users</h6>
-                                <h2 class="mb-0 text-dark">{{ number_format($totalUsers) }}</h2>
-                                <div class="small text-success">
-                                    <i class="bi bi-arrow-up"></i> {{ $userGrowth }}% from last month
+                    <div id="total-users"
+                        class="stats-card stats-card-clickable h-100 p-4 border-0 shadow-sm bg-white rounded-4">
+                        <div class="d-flex flex-column h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stats-icon bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                                    <i class="bi bi-people-fill fs-4"></i>
+                                </div>
+                                <div class="growth-indicator small text-success">
+                                    <i class="bi bi-graph-up-arrow me-1"></i>{{ $userGrowth }}%
                                 </div>
                             </div>
-                            <div class="flex-shrink-0 ms-3">
-                                <div class="bg-light rounded-circle p-3">
-                                    <i class="bi bi-people text-primary"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-hover-indicator">
-                            <i class="bi bi-arrow-right"></i> View All Users
+                            <h6 class="text-muted fw-bold small text-uppercase mb-1">Total Users</h6>
+                            <h2 class="mb-0 fw-bold text-dark">{{ number_format($totalUsers) }}</h2>
                         </div>
                     </div>
                 </a>
             </div>
 
-            <div class="col-12 col-sm-6 col-xl-3">
+            <!-- Active Jobs -->
+            <div class="col-12 col-sm-6 col-xl-2">
                 <a href="{{ route('admin.companies.index') }}" class="text-decoration-none">
-                    <div id="active-jobs" class="stats-card stats-card-clickable">
+                    <div id="active-jobs"
+                        class="stats-card stats-card-clickable h-100 p-4 border-0 shadow-sm bg-white rounded-4">
                         <div class="live-indicator"></div>
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="text-muted mb-2">Active Jobs</h6>
-                                <h2 class="mb-0 text-dark">{{ number_format($activeJobs) }}</h2>
-                                <div class="small text-success">
-                                    <i class="bi bi-arrow-up"></i> {{ $jobGrowth }}% from last month
+                        <div class="d-flex flex-column h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stats-icon bg-success bg-opacity-10 text-success rounded-3 p-2">
+                                    <i class="bi bi-briefcase-fill fs-4"></i>
+                                </div>
+                                <div class="growth-indicator small text-success">
+                                    <i class="bi bi-graph-up-arrow me-1"></i>{{ $jobGrowth }}%
                                 </div>
                             </div>
-                            <div class="flex-shrink-0 ms-3">
-                                <div class="bg-light rounded-circle p-3">
-                                    <i class="bi bi-briefcase text-primary"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-hover-indicator">
-                            <i class="bi bi-arrow-right"></i> View All Jobs
+                            <h6 class="text-muted fw-bold small text-uppercase mb-1">Active Jobs</h6>
+                            <h2 class="mb-0 fw-bold text-dark">{{ number_format($activeJobs) }}</h2>
                         </div>
                     </div>
                 </a>
             </div>
 
-            <div class="col-12 col-sm-6 col-xl-3">
+            <!-- Pending Jobs -->
+            <div class="col-12 col-sm-6 col-xl-2">
                 <a href="{{ route('admin.jobs.pending') }}" class="text-decoration-none">
                     <div id="pending-jobs"
-                        class="stats-card stats-card-clickable {{ $pendingJobs > 0 ? 'border-warning' : '' }}">
-                        @if($pendingJobs > 0)
-                            <div class="position-absolute top-0 end-0 p-2">
-                                <span class="badge bg-warning text-dark pulse-animation">{{ $pendingJobs }}</span>
-                            </div>
-                        @endif
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="text-muted mb-2">Pending Jobs</h6>
-                                <h2 class="mb-0 {{ $pendingJobs > 0 ? 'text-warning' : 'text-dark' }}">
-                                    {{ number_format($pendingJobs) }}
-                                </h2>
-                                <div class="small">
-                                    @if($pendingJobs > 0)
-                                        <span class="text-warning">
-                                            <i class="bi bi-arrow-right"></i> Review Now
-                                        </span>
-                                    @else
-                                        <span class="text-success">
-                                            <i class="bi bi-check-circle"></i> All jobs reviewed
-                                        </span>
-                                    @endif
+                        class="stats-card stats-card-clickable h-100 p-4 border-0 shadow-sm bg-white rounded-4 {{ $pendingJobs > 0 ? 'border-warning border-start border-4' : '' }}">
+                        <div class="d-flex flex-column h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div
+                                    class="stats-icon {{ $pendingJobs > 0 ? 'bg-warning text-warning' : 'bg-secondary text-secondary' }} bg-opacity-10 rounded-3 p-2">
+                                    <i class="bi bi-clock-history fs-4"></i>
                                 </div>
+                                @if($pendingJobs > 0)
+                                    <span class="badge bg-warning text-dark rounded-pill">{{ $pendingJobs }}</span>
+                                @endif
                             </div>
-                            <div class="flex-shrink-0 ms-3">
-                                <div class="bg-light rounded-circle p-3">
-                                    <i
-                                        class="bi bi-clock-history {{ $pendingJobs > 0 ? 'text-warning' : 'text-muted' }}"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-hover-indicator">
-                            <i class="bi bi-arrow-right"></i> Review Pending Jobs
+                            <h6 class="text-muted fw-bold small text-uppercase mb-1">Pending Jobs</h6>
+                            <h2 class="mb-0 fw-bold {{ $pendingJobs > 0 ? 'text-warning' : 'text-dark' }}">
+                                {{ number_format($pendingJobs) }}</h2>
                         </div>
                     </div>
                 </a>
             </div>
 
+            <!-- KYC Verified -->
             <div class="col-12 col-sm-6 col-xl-3">
                 <a href="{{ route('admin.kyc.didit-verifications') }}" class="text-decoration-none">
-                    <div id="verified-kyc" class="stats-card stats-card-clickable">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="text-muted mb-2">KYC Verified</h6>
-                                <h2 class="mb-0 text-dark">{{ $verifiedKyc }}</h2>
-                                <div class="small text-info">
-                                    <i class="bi bi-info-circle"></i>
-                                    <span id="pending-kyc-info">{{ $pendingKyc }} pending verification</span>
+                    <div id="verified-kyc"
+                        class="stats-card stats-card-clickable h-100 p-4 border-0 shadow-sm bg-white rounded-4">
+                        <div class="d-flex flex-column h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stats-icon bg-info bg-opacity-10 text-info rounded-3 p-2">
+                                    <i class="bi bi-shield-check-fill fs-4"></i>
+                                </div>
+                                <div class="small text-muted">
+                                    <span class="text-info">{{ $pendingKyc }}</span> pending
                                 </div>
                             </div>
-                            <div class="flex-shrink-0 ms-3">
-                                <div class="bg-light rounded-circle p-3">
-                                    <i class="bi bi-shield-check text-primary"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-hover-indicator">
-                            <i class="bi bi-arrow-right"></i> View KYC Verifications
+                            <h6 class="text-muted fw-bold small text-uppercase mb-1">KYC Verified</h6>
+                            <h2 class="mb-0 fw-bold text-dark">{{ $verifiedKyc }}</h2>
                         </div>
                     </div>
                 </a>
             </div>
 
+            <!-- Total Applications -->
             <div class="col-12 col-sm-6 col-xl-3">
                 <a href="{{ route('admin.companies.index') }}" class="text-decoration-none">
-                    <div id="total-applications" class="stats-card stats-card-clickable">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="text-muted mb-2">Total Applications</h6>
-                                <h2 class="mb-0 text-dark">{{ number_format($totalApplications) }}</h2>
-                                <div class="small text-success">
-                                    <i class="bi bi-arrow-up"></i> {{ $applicationGrowth }}% from last month
+                    <div id="total-applications"
+                        class="stats-card stats-card-clickable h-100 p-4 border-0 shadow-sm bg-white rounded-4">
+                        <div class="d-flex flex-column h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stats-icon bg-purple bg-opacity-10 text-purple rounded-3 p-2"
+                                    style="background-color: rgba(111, 66, 193, 0.1); color: #6f42c1;">
+                                    <i class="bi bi-file-earmark-text-fill fs-4"></i>
+                                </div>
+                                <div class="growth-indicator small text-success">
+                                    <i class="bi bi-graph-up-arrow me-1"></i>{{ $applicationGrowth }}%
                                 </div>
                             </div>
-                            <div class="flex-shrink-0 ms-3">
-                                <div class="bg-light rounded-circle p-3">
-                                    <i class="bi bi-file-text text-primary"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-hover-indicator">
-                            <i class="bi bi-arrow-right"></i> View All Applications
+                            <h6 class="text-muted fw-bold small text-uppercase mb-1">Total Applications</h6>
+                            <h2 class="mb-0 fw-bold text-dark">{{ number_format($totalApplications) }}</h2>
                         </div>
                     </div>
                 </a>
@@ -450,10 +349,10 @@
                             @forelse($activities as $activity)
                                 <div class="activity-item">
                                     <div class="activity-icon
-                                                            @if($activity['type'] === 'job') activity-icon-primary
-                                                            @elseif($activity['type'] === 'user') activity-icon-success
-                                                            @else activity-icon-info
-                                                            @endif">
+                                                                            @if($activity['type'] === 'job') activity-icon-primary
+                                                                            @elseif($activity['type'] === 'user') activity-icon-success
+                                                                            @else activity-icon-info
+                                                                            @endif">
                                         @if($activity['type'] === 'job')
                                             <i class="bi bi-briefcase"></i>
                                         @elseif($activity['type'] === 'user')
@@ -502,48 +401,151 @@
 
 
 
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        .stats-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card-clickable:hover .stats-icon {
+            transform: scale(1.1);
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
     @push('scripts')
         <script>
+            let platformChart = null;
+
+            function initPlatformChart(data) {
+                const ctx = document.getElementById('platformActivityChart').getContext('2d');
+
+                if (platformChart) {
+                    platformChart.destroy();
+                }
+
+                platformChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(item => item.date),
+                        datasets: [
+                            {
+                                label: 'Users',
+                                data: data.map(item => item.users),
+                                borderColor: '#4f46e5',
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 6
+                            },
+                            {
+                                label: 'Jobs',
+                                data: data.map(item => item.jobs),
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 6
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: '#1f2937',
+                                padding: 12,
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                cornerRadius: 8
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    drawBorder: false,
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    stepSize: 1,
+                                    color: '#6b7280'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 10,
+                                    color: '#6b7280'
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
+                        }
+                    }
+                });
+            }
+
             // Dashboard Statistics Update System
             class AdminDashboardUpdater {
                 constructor() {
-                    this.updateInterval = 30000; // 30 seconds
                     this.isUpdating = false;
-                    this.lastUpdateTime = null;
                     this.init();
                 }
 
                 init() {
-                    // Disable automatic updates to prevent errors
-                    // this.startAutoUpdate();
-
-                    // Manual refresh button (if exists)
                     const refreshBtn = document.getElementById('refresh-stats');
                     if (refreshBtn) {
                         refreshBtn.addEventListener('click', () => this.updateStats());
                     }
 
-                    // Disable auto-update on focus to prevent errors
-                    // document.addEventListener('visibilitychange', () => {
-                    //     if (!document.hidden && this.shouldUpdate()) {
-                    //         this.updateStats();
-                    //     }
-                    // });
-                }
-
-                startAutoUpdate() {
-                    // Disabled to prevent continuous error messages
-                    // setInterval(() => {
-                    //     if (!document.hidden && this.shouldUpdate()) {
-                    //         this.updateStats();
-                    //     }
-                    // }, this.updateInterval);
-                }
-
-                shouldUpdate() {
-                    if (!this.lastUpdateTime) return true;
-                    const timeDiff = Date.now() - this.lastUpdateTime;
-                    return timeDiff > this.updateInterval;
+                    // Initial chart load
+                    const initialData = {!! json_encode($chartData) !!};
+                    initPlatformChart(initialData);
                 }
 
                 async updateStats() {
@@ -557,28 +559,21 @@
                             method: 'GET',
                             headers: {
                                 'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                'X-Requested-With': 'XMLHttpRequest'
                             }
                         });
 
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
+                        if (!response.ok) throw new Error('Refresh failed');
                         const result = await response.json();
 
                         if (result.success) {
                             this.updateDashboardCards(result.data);
-                            this.lastUpdateTime = Date.now();
-                            this.showSuccessIndicator();
-                        } else {
-                            throw new Error('Failed to fetch dashboard statistics');
+                            if (result.data.chartData) {
+                                initPlatformChart(result.data.chartData);
+                            }
                         }
-
                     } catch (error) {
-                        console.error('Error updating dashboard stats:', error);
-                        this.showErrorIndicator();
+                        console.error('Dashboard refresh error:', error);
                     } finally {
                         this.isUpdating = false;
                         this.hideLoadingIndicator();
@@ -586,298 +581,56 @@
                 }
 
                 updateDashboardCards(data) {
-                    // Update Total Users
-                    this.updateCard('total-users', data.totalUsers, data.userGrowth, '%');
-
-                    // Update Active Jobs (main focus)
-                    this.updateCard('active-jobs', data.activeJobs, data.jobGrowth, '%');
-
-                    // Update Pending Jobs (high priority)
-                    this.updatePendingJobsCard(data.pendingJobs);
-
-                    // Update KYC Verified
-                    this.updateCard('verified-kyc', data.verifiedKyc);
-
-                    // Update Pending KYC
-                    this.updateCard('pending-kyc', data.pendingKyc);
-
-                    // Update Total Applications
-                    this.updateCard('total-applications', data.totalApplications, data.applicationGrowth, '%');
-
-                    // Update badges in navigation
-                    this.updateNavigationBadges(data);
+                    this.animateValue('total-users', data.totalUsers);
+                    this.animateValue('active-jobs', data.activeJobs);
+                    this.animateValue('pending-jobs', data.pendingJobs);
+                    this.animateValue('verified-kyc', data.verifiedKyc);
+                    this.animateValue('total-applications', data.totalApplications);
                 }
 
-                updateCard(cardId, mainValue, growthValue = null, growthSuffix = '') {
-                    const cardElement = document.getElementById(cardId);
-                    if (!cardElement) return;
+                animateValue(id, newValue) {
+                    const el = document.querySelector(`#${id} h2`);
+                    if (!el) return;
 
-                    // Update main value with animation
-                    const mainValueElement = cardElement.querySelector('.main-value, h2');
-                    if (mainValueElement) {
-                        const currentValue = parseInt(mainValueElement.textContent.replace(/,/g, '')) || 0;
-                        const newValue = parseInt(mainValue) || 0;
-
-                        if (currentValue !== newValue) {
-                            // Add highlight animation
-                            cardElement.classList.add('stat-updated');
-                            setTimeout(() => cardElement.classList.remove('stat-updated'), 1000);
-
-                            // Animate number change
-                            this.animateNumber(mainValueElement, currentValue, newValue);
-                        }
-                    }
-
-                    // Update growth value if provided
-                    if (growthValue !== null) {
-                        const growthElement = cardElement.querySelector('.growth-value, .small');
-                        if (growthElement) {
-                            const growthText = `${growthValue >= 0 ? '↗' : '↘'} ${Math.abs(growthValue)}${growthSuffix} from last month`;
-                            growthElement.innerHTML = growthText;
-                            growthElement.className = `small text-${growthValue >= 0 ? 'success' : 'danger'}`;
-                        }
-                    }
-                }
-
-                updatePendingJobsCard(pendingJobs) {
-                    const cardElement = document.getElementById('pending-jobs');
-                    if (!cardElement) return;
-
-                    // Update main value
-                    const mainValueElement = cardElement.querySelector('h2');
-                    if (mainValueElement) {
-                        const currentValue = parseInt(mainValueElement.textContent.replace(/,/g, '')) || 0;
-                        const newValue = parseInt(pendingJobs) || 0;
-
-                        if (currentValue !== newValue) {
-                            cardElement.classList.add('stat-updated');
-                            setTimeout(() => cardElement.classList.remove('stat-updated'), 1000);
-                            this.animateNumber(mainValueElement, currentValue, newValue);
-
-                            // Update warning styling
-                            if (newValue > 0) {
-                                mainValueElement.classList.add('text-warning');
-                                cardElement.classList.add('border-warning');
-                            } else {
-                                mainValueElement.classList.remove('text-warning');
-                                cardElement.classList.remove('border-warning');
-                            }
-                        }
-                    }
-
-                    // Update badge and link
-                    const badge = cardElement.querySelector('.badge');
-                    const link = cardElement.querySelector('a, .small');
-
-                    if (pendingJobs > 0) {
-                        if (badge) badge.textContent = pendingJobs;
-                        if (link) {
-                            link.innerHTML = '<i class="bi bi-arrow-right"></i> Review Now';
-                            link.className = 'text-warning text-decoration-none';
-                        }
-                    } else {
-                        if (badge) badge.style.display = 'none';
-                        if (link) {
-                            link.innerHTML = '<i class="bi bi-check-circle"></i> All jobs reviewed';
-                            link.className = 'small text-success';
-                        }
-                    }
-                }
-
-                updateNavigationBadges(data) {
-                    // Update jobs badge in navigation
-                    const jobsBadge = document.querySelector('a[href*="admin.jobs"] .badge');
-                    if (jobsBadge) {
-                        jobsBadge.textContent = this.formatNumber(data.activeJobs);
-                    }
-
-                    // Update KYC pending count in notifications
-                    const kycNotifications = document.querySelectorAll('[data-kyc-count]');
-                    kycNotifications.forEach(el => {
-                        el.textContent = `${data.pendingKyc} KYC pending review`;
-                    });
-                }
-
-                animateNumber(element, from, to, duration = 1000) {
+                    const startValue = parseInt(el.textContent.replace(/,/g, '')) || 0;
+                    const duration = 1000;
                     const startTime = performance.now();
-                    const difference = to - from;
 
                     const step = (currentTime) => {
-                        const elapsed = currentTime - startTime;
-                        const progress = Math.min(elapsed / duration, 1);
-
-                        const current = Math.floor(from + (difference * this.easeOutCubic(progress)));
-                        element.textContent = this.formatNumber(current);
+                        const progress = Math.min((currentTime - startTime) / duration, 1);
+                        const current = Math.floor(startValue + progress * (newValue - startValue));
+                        el.textContent = new Intl.NumberFormat().format(current);
 
                         if (progress < 1) {
                             requestAnimationFrame(step);
                         }
                     };
-
                     requestAnimationFrame(step);
                 }
 
-                easeOutCubic(t) {
-                    return 1 - Math.pow(1 - t, 3);
-                }
-
-                formatNumber(num) {
-                    return new Intl.NumberFormat().format(num);
-                }
-
                 showLoadingIndicator() {
-                    // Add loading class to dashboard
-                    document.body.classList.add('dashboard-updating');
-
-                    // Show loading in refresh button if exists
-                    const refreshBtn = document.getElementById('refresh-stats');
-                    if (refreshBtn) {
-                        refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Updating...';
-                        refreshBtn.disabled = true;
-                    }
+                    const btn = document.getElementById('refresh-stats');
+                    if (btn) btn.classList.add('disabled');
+                    const icon = btn?.querySelector('i');
+                    if (icon) icon.classList.add('spin');
                 }
 
                 hideLoadingIndicator() {
-                    document.body.classList.remove('dashboard-updating');
-
-                    const refreshBtn = document.getElementById('refresh-stats');
-                    if (refreshBtn) {
-                        refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh';
-                        refreshBtn.disabled = false;
-                    }
-                }
-
-                showSuccessIndicator() {
-                    this.showToast('Dashboard updated successfully', 'success');
-                }
-
-                showErrorIndicator() {
-                    // Suppress error toast to prevent annoying users
-                    // this.showToast('Failed to update dashboard', 'error');
-                    console.log('Dashboard update failed - suppressed error toast');
-                }
-
-                showToast(message, type = 'info') {
-                    // Simple toast notification
-                    const toast = document.createElement('div');
-                    toast.className = `toast-notification toast-${type}`;
-                    toast.textContent = message;
-                    toast.style.cssText = `
-                                        position: fixed;
-                                        top: 20px;
-                                        right: 20px;
-                                        padding: 12px 20px;
-                                        background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
-                                        color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
-                                        border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
-                                        border-radius: 4px;
-                                        z-index: 9999;
-                                        animation: slideIn 0.3s ease;
-                                    `;
-
-                    document.body.appendChild(toast);
-
-                    setTimeout(() => {
-                        toast.style.animation = 'slideOut 0.3s ease';
-                        setTimeout(() => toast.remove(), 300);
-                    }, 3000);
+                    const btn = document.getElementById('refresh-stats');
+                    if (btn) btn.classList.remove('disabled');
+                    const icon = btn?.querySelector('i');
+                    if (icon) icon.classList.remove('spin');
                 }
             }
 
-            // Registration Chart
-            const registrationCtx = document.getElementById('registrationChart').getContext('2d');
-            new Chart(registrationCtx, {
-                type: 'pie',
-                data: {
-                    labels: {!! json_encode($registrationData->pluck('day')) !!},
-                    datasets: [{
-                        label: 'New Registrations',
-                        data: {!! json_encode($registrationData->pluck('count')) !!},
-                        backgroundColor: [
-                            '#0dcaf0', '#0effff', '#0aa2c0', '#087990', '#055160',
-                            '#3ff', '#33ccff', '#0099cc', '#006699', '#003366'
-                        ],
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-
-            // User Types Chart
-            const userTypesCtx = document.getElementById('userTypesChart').getContext('2d');
-            new Chart(userTypesCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Job Seekers', 'Employers', 'Admins'],
-                    datasets: [{
-                        data: {!! json_encode($userTypeData) !!},
-                        backgroundColor: ['#0d6efd', '#198754', '#ffc107'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-
-            // Initialize dashboard updater
-            document.addEventListener('DOMContentLoaded', () => {
-                new AdminDashboardUpdater();
-            });
-
-            // Function to show simple toast
-            function showSimpleToast(message, type = 'info') {
-                const toast = document.createElement('div');
-                toast.className = 'toast-notification';
-                toast.textContent = message;
-                toast.style.cssText = `
-                                    position: fixed;
-                                    top: 20px;
-                                    right: 20px;
-                                    padding: 12px 20px;
-                                    background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
-                                    color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
-                                    border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
-                                    border-radius: 6px;
-                                    z-index: 9999;
-                                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                                    font-weight: 500;
-                                `;
-
-                document.body.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    toast.style.transition = 'opacity 0.3s ease';
-                    setTimeout(() => toast.remove(), 300);
-                }, 2000);
-            }
-
-            // Manual refresh dashboard function
+            // Function to manually refresh dashboard with cache clearing
             function refreshDashboard() {
                 const refreshBtn = document.getElementById('refresh-stats');
-                const originalHTML = refreshBtn.innerHTML;
+                const icon = refreshBtn?.querySelector('i');
 
-                // Show loading state
-                refreshBtn.disabled = true;
-                refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Refreshing...';
+                if (refreshBtn) refreshBtn.classList.add('disabled');
+                if (icon) icon.classList.add('spin');
 
-                // Clear cache and reload
                 fetch('{{ route('admin.dashboard.clear-cache') }}', {
                     method: 'POST',
                     headers: {
@@ -889,20 +642,20 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            showSimpleToast('Dashboard refreshed successfully!', 'success');
-                            // Reload page after short delay to show the toast
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 800);
+                            window.location.reload();
                         }
                     })
                     .catch(error => {
                         console.error('Error refreshing dashboard:', error);
-                        showSimpleToast('Failed to refresh dashboard', 'error');
-                        refreshBtn.disabled = false;
-                        refreshBtn.innerHTML = originalHTML;
+                        if (refreshBtn) refreshBtn.classList.remove('disabled');
+                        if (icon) icon.classList.remove('spin');
                     });
             }
+
+            // Initialize on Load
+            document.addEventListener('DOMContentLoaded', () => {
+                new AdminDashboardUpdater();
+            });
         </script>
     @endpush
 @endsection
