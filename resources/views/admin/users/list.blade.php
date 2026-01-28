@@ -5,58 +5,102 @@
 @section('content')
     <div class="container-fluid p-0">
 
-        <!-- Stats Cards -->
+        <!-- Stats Cards - All in one unified row -->
         <div class="row g-3 mb-4">
-            <div class="col-6 col-sm-4 col-lg-2">
-                <div class="stats-card">
-                    <h6 class="card-title">Total Users</h6>
-                    <h3>{{ $counts['total'] }}</h3>
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="stats-label text-muted mb-1">Total Users</h6>
+                            <h3 class="stats-value mb-0">{{ $counts['total'] }}</h3>
+                        </div>
+                        <div class="stats-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-lg-2">
-                <div class="stats-card">
-                    <h6 class="card-title">Verified</h6>
-                    <h3>{{ $counts['verified'] }}</h3>
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="stats-label text-muted mb-1">Verified</h6>
+                            <h3 class="stats-value mb-0 text-success">{{ $counts['verified'] }}</h3>
+                        </div>
+                        <div class="stats-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-lg-2">
-                <div class="stats-card">
-                    <h6 class="card-title">Unverified</h6>
-                    <h3>{{ $counts['unverified'] }}</h3>
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="stats-label text-muted mb-1">Unverified</h6>
+                            <h3 class="stats-value mb-0 text-warning">{{ $counts['unverified'] }}</h3>
+                        </div>
+                        <div class="stats-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-lg-2">
-                <div class="stats-card">
-                    <h6 class="card-title">Employers</h6>
-                    <h3>{{ $counts['employers'] }}</h3>
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="stats-label text-muted mb-1">Employers</h6>
+                            <h3 class="stats-value mb-0">{{ $counts['employers'] }}</h3>
+                        </div>
+                        <div class="stats-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-building"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-lg-2">
-                <div class="stats-card">
-                    <h6 class="card-title">Job Seekers</h6>
-                    <h3>{{ $counts['jobseekers'] }}</h3>
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="stats-label text-muted mb-1">Job Seekers</h6>
+                            <h3 class="stats-value mb-0">{{ $counts['jobseekers'] }}</h3>
+                        </div>
+                        <div class="stats-icon bg-secondary bg-opacity-10 text-secondary">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-lg-2">
-                <div class="stats-card">
-                    <h6 class="card-title">Admins</h6>
-                    <h3>{{ $counts['admins'] }}</h3>
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
+                <div class="stats-card h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="stats-label text-muted mb-1">Admins</h6>
+                            <h3 class="stats-value mb-0">{{ $counts['admins'] }}</h3>
+                        </div>
+                        <div class="stats-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- KYC Stats Cards -->
+        <!-- KYC Stats Cards - Smaller, inline badges style -->
         <div class="row g-3 mb-4">
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="stats-card bg-success text-white">
-                    <h6 class="card-title">KYC Verified</h6>
-                    <h3>{{ $counts['kyc_verified'] }}</h3>
+            <div class="col-auto">
+                <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-success bg-opacity-10 border border-success border-opacity-25">
+                    <i class="bi bi-patch-check-fill text-success"></i>
+                    <span class="fw-semibold text-success">KYC Verified:</span>
+                    <span class="badge bg-success rounded-pill">{{ $counts['kyc_verified'] }}</span>
                 </div>
             </div>
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="stats-card bg-warning text-white">
-                    <h6 class="card-title">KYC Pending</h6>
-                    <h3>{{ $counts['kyc_pending'] }}</h3>
+            <div class="col-auto">
+                <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-warning bg-opacity-10 border border-warning border-opacity-25">
+                    <i class="bi bi-hourglass-split text-warning"></i>
+                    <span class="fw-semibold text-warning">KYC Pending:</span>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ $counts['kyc_pending'] }}</span>
                 </div>
             </div>
         </div>
@@ -167,6 +211,141 @@
 
     @push('styles')
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+        <style>
+            /* Stats Card Styling */
+            .stats-card {
+                padding: 1.25rem;
+                border-radius: 12px;
+                transition: all 0.2s ease;
+            }
+
+            .stats-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .stats-label {
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .stats-value {
+                font-size: 1.75rem;
+                font-weight: 700;
+            }
+
+            .stats-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.25rem;
+            }
+
+            /* Table Styling */
+            .table th a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            .table th a:hover {
+                color: var(--bs-primary);
+            }
+
+            /* Search Input Enhancement */
+            #live-search {
+                border-radius: 8px;
+                border: 1px solid var(--admin-border-color);
+            }
+
+            #live-search:focus {
+                box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+                border-color: #6366f1;
+            }
+
+            /* Filter Selects */
+            .form-select {
+                border-radius: 8px;
+            }
+
+            /* Card Header */
+            .card-header {
+                border-radius: 12px 12px 0 0 !important;
+                padding: 1rem 1.25rem;
+            }
+
+            .card {
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            /* Badge Styling */
+            .badge {
+                font-weight: 500;
+            }
+
+            /* Role Badges */
+            .badge-role-jobseeker {
+                background-color: #0ea5e9;
+                color: white;
+            }
+
+            .badge-role-employer {
+                background-color: #10b981;
+                color: white;
+            }
+
+            .badge-role-admin {
+                background-color: #6366f1;
+                color: white;
+            }
+
+            /* KYC Status Badges */
+            .badge-kyc-verified {
+                background-color: #10b981;
+                color: white;
+            }
+
+            .badge-kyc-pending {
+                background-color: #f59e0b;
+                color: #1f2937;
+            }
+
+            .badge-kyc-rejected {
+                background-color: #ef4444;
+                color: white;
+            }
+
+            /* Table Row Hover */
+            .table-hover tbody tr:hover {
+                background-color: rgba(99, 102, 241, 0.04);
+            }
+
+            /* Dark Mode Adjustments */
+            [data-theme="dark"] .stats-icon {
+                opacity: 0.9;
+            }
+
+            [data-theme="dark"] .bg-opacity-10 {
+                --bs-bg-opacity: 0.15 !important;
+            }
+
+            [data-theme="dark"] .border-opacity-25 {
+                --bs-border-opacity: 0.3 !important;
+            }
+
+            [data-theme="dark"] .table-hover tbody tr:hover {
+                background-color: rgba(99, 102, 241, 0.08);
+            }
+
+            [data-theme="dark"] .badge-kyc-pending {
+                color: #111827;
+            }
+        </style>
     @endpush
 
     @push('scripts')

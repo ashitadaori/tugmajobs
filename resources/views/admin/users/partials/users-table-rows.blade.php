@@ -1,18 +1,18 @@
 @forelse($users as $user)
     <tr>
-        <td>{{ $user->name }}</td>
-        <td>{{ $user->email }}</td>
+        <td class="fw-medium">{{ $user->name }}</td>
+        <td class="text-muted">{{ $user->email }}</td>
         <td>
             @php
                 $roleBadgeClass = match ($user->role) {
-                    'jobseeker' => 'bg-info text-white',
-                    'employer' => 'bg-primary',
-                    'admin' => 'bg-dark',
+                    'jobseeker' => 'badge-role-jobseeker',
+                    'employer' => 'badge-role-employer',
+                    'admin' => 'badge-role-admin',
                     default => 'bg-secondary'
                 };
             @endphp
             <span class="badge {{ $roleBadgeClass }}">
-                {{ ucfirst($user->role) }}
+                {{ $user->role === 'jobseeker' ? 'Jobseeker' : ucfirst($user->role) }}
             </span>
         </td>
         <td>
@@ -21,33 +21,39 @@
             @endphp
             @if($kycStatus && $kycStatus !== 'not_started')
                 @php
-                    $kycStatusColor = match ($kycStatus) {
-                        'verified' => 'success',
-                        'in_progress' => 'warning text-dark',
-                        'rejected' => 'danger',
-                        default => 'secondary'
+                    $kycLabel = match ($kycStatus) {
+                        'verified' => 'Verified',
+                        'in_progress' => 'Pending',
+                        'rejected' => 'Rejected',
+                        default => ucfirst($kycStatus)
+                    };
+                    $kycBadgeClass = match ($kycStatus) {
+                        'verified' => 'badge-kyc-verified',
+                        'in_progress' => 'badge-kyc-pending',
+                        'rejected' => 'badge-kyc-rejected',
+                        default => 'bg-secondary'
                     };
                 @endphp
-                <span class="badge bg-{{ $kycStatusColor }}">
-                    {{ ucfirst(str_replace('_', ' ', $kycStatus)) }}
-                </span>
+                <span class="badge {{ $kycBadgeClass }}">{{ $kycLabel }}</span>
+            @else
+                <span class="text-muted small">-</span>
             @endif
         </td>
-        <td>{{ $user->created_at->format('M d, Y') }}</td>
+        <td class="text-muted">{{ $user->created_at->format('M d, Y') }}</td>
         <td>
-            <div class="btn-group" role="group">
+            <div class="d-flex gap-1">
                 {{-- Resume Download for Job Seekers --}}
                 @if($user->role === 'jobseeker' && $user->jobSeekerProfile && $user->jobSeekerProfile->resume_file)
                     <a href="{{ asset('storage/resumes/' . $user->jobSeekerProfile->resume_file) }}"
-                        class="btn btn-sm btn-outline-danger" target="_blank" title="Download Resume">
-                        <i class="fas fa-file-pdf"></i>
+                        class="btn btn-sm btn-outline-danger rounded-2" target="_blank" title="Download Resume">
+                        <i class="bi bi-file-earmark-pdf"></i>
                     </a>
                 @endif
 
                 {{-- Edit Button --}}
-                <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-outline-primary"
+                <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-outline-primary rounded-2"
                     title="Edit User">
-                    <i class="fas fa-edit"></i>
+                    <i class="bi bi-pencil-square"></i>
                 </a>
             </div>
         </td>
