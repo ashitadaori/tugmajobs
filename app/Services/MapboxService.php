@@ -81,13 +81,23 @@ class MapboxService
         try {
             $response = Http::get(config('mapbox.geocoding_url') . "/{$longitude},{$latitude}.json", [
                 'access_token' => $this->publicToken,
-                'types' => 'address,poi'
+                'types' => 'address,poi,locality,place,neighborhood'
             ]);
 
             if ($response->successful()) {
-                return $response->json();
+                $data = $response->json();
+                Log::info('Mapbox reverse geocode response', [
+                    'lng' => $longitude,
+                    'lat' => $latitude,
+                    'features_count' => count($data['features'] ?? [])
+                ]);
+                return $data;
             }
 
+            Log::warning('Mapbox reverse geocode failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
             return null;
         } catch (\Exception $e) {
             Log::error('Mapbox reverse geocoding error', ['error' => $e->getMessage()]);

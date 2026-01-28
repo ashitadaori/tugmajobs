@@ -180,25 +180,28 @@
                                 <label class="ep-form-label">Search Location</label>
                                 <div class="location-search-wrapper">
                                     <div class="location-input-container">
-                                        <i class="bi bi-geo-alt location-icon"></i>
-                                        <input type="text" id="locationSearch" class="ep-form-input location-search-input"
+                                        <i class="bi bi-search location-icon"></i>
+                                        <input type="text" id="locationSearch" class="location-search-input"
                                             placeholder="Search for your business location in Sta. Cruz..." autocomplete="off">
-                                        <div class="location-suggestions-dropdown" id="locationSuggestions"
-                                            style="display: none;">
-                                            <!-- Suggestions will be populated here -->
-                                        </div>
+                                        <button type="button" class="location-detect-btn" id="detectLocationBtn"
+                                            title="Detect my current location">
+                                            <i class="bi bi-crosshair"></i>
+                                        </button>
                                     </div>
-                                    <button type="button" class="ep-btn ep-btn-secondary location-detect-btn"
-                                        id="detectLocationBtn" title="Use current location">
-                                        <i class="bi bi-crosshair"></i>
-                                    </button>
+                                    <div class="location-suggestions-dropdown" id="locationSuggestions" style="display: none;">
+                                        <!-- Suggestions will be populated here -->
+                                    </div>
                                 </div>
-                                <div class="ep-form-help">Start typing to search for locations in Sta. Cruz, Davao del Sur</div>
+                                <div class="ep-form-help">Type your business name or street to find it on the map</div>
                             </div>
 
                             <!-- Map Display -->
                             <div class="ep-form-group">
                                 <div id="locationMap" class="location-map-container"></div>
+                                <div class="ep-form-help d-flex justify-content-between align-items-center">
+                                    <span>Tip: You can also drag the marker to fine-tune your location</span>
+                                    <span id="coordinateDisplay" class="text-muted" style="font-size: 11px;"></span>
+                                </div>
                             </div>
 
                             <!-- Hidden fields for coordinates -->
@@ -208,24 +211,38 @@
                             <div class="form-grid form-grid-3">
                                 <div class="ep-form-group">
                                     <label class="ep-form-label">City</label>
-                                    <input type="text" name="city" id="cityInput" class="ep-form-input"
-                                        value="{{ $profile->city ?? '' }}" placeholder="e.g. Sta. Cruz">
+                                    <div class="input-icon-wrapper">
+                                        <i class="bi bi-building input-icon"></i>
+                                        <input type="text" name="city" id="cityInput" class="ep-form-input input-with-icon"
+                                            value="{{ $profile->city ?? '' }}" placeholder="e.g. Sta. Cruz">
+                                    </div>
                                 </div>
                                 <div class="ep-form-group">
                                     <label class="ep-form-label">Province</label>
-                                    <input type="text" name="state" id="stateInput" class="ep-form-input"
-                                        value="{{ $profile->state ?? '' }}" placeholder="e.g. Davao del Sur">
+                                    <div class="input-icon-wrapper">
+                                        <i class="bi bi-map input-icon"></i>
+                                        <input type="text" name="state" id="stateInput" class="ep-form-input input-with-icon"
+                                            value="{{ $profile->state ?? '' }}" placeholder="e.g. Davao del Sur">
+                                    </div>
                                 </div>
                                 <div class="ep-form-group">
                                     <label class="ep-form-label">Country</label>
-                                    <input type="text" name="country" id="countryInput" class="ep-form-input"
-                                        value="{{ $profile->country ?? 'Philippines' }}" placeholder="Philippines">
+                                    <div class="input-icon-wrapper">
+                                        <i class="bi bi-globe input-icon"></i>
+                                        <input type="text" name="country" id="countryInput"
+                                            class="ep-form-input input-with-icon"
+                                            value="{{ $profile->country ?? 'Philippines' }}" placeholder="Philippines">
+                                    </div>
                                 </div>
                             </div>
                             <div class="ep-form-group">
                                 <label class="ep-form-label">Street Address</label>
-                                <textarea name="location" id="streetAddress" class="ep-form-textarea" rows="2"
-                                    placeholder="Enter your company street address...">{{ $profile->business_address ?? '' }}</textarea>
+                                <div class="input-icon-wrapper">
+                                    <i class="bi bi-geo-alt input-icon" style="top: 15px; transform: none;"></i>
+                                    <textarea name="location" id="streetAddress" class="ep-form-textarea input-with-icon"
+                                        rows="2"
+                                        placeholder="Enter your company street address...">{{ $profile->business_address ?? '' }}</textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -407,51 +424,71 @@
         <style>
             /* Location Search Styles */
             .location-search-wrapper {
-                display: flex;
-                gap: var(--ep-space-2);
-                align-items: stretch;
+                position: relative;
+                margin-bottom: var(--ep-space-4);
             }
 
             .location-input-container {
-                flex: 1;
                 position: relative;
+                display: flex;
+                align-items: center;
+                background: white;
+                border: 1px solid var(--ep-gray-300);
+                border-radius: var(--ep-radius-md);
+                transition: all var(--ep-transition-base);
+            }
+
+            .location-input-container:focus-within {
+                border-color: var(--ep-primary);
+                box-shadow: 0 0 0 3px var(--ep-primary-100);
             }
 
             .location-icon {
-                position: absolute;
-                left: 14px;
-                top: 50%;
-                transform: translateY(-50%);
+                padding-left: 14px;
                 color: var(--ep-gray-400);
                 font-size: 18px;
-                z-index: 1;
             }
 
             .location-search-input {
-                padding-left: 42px !important;
+                flex: 1;
+                border: none !important;
+                background: transparent !important;
+                padding: var(--ep-space-3) var(--ep-space-4) !important;
+                padding-left: 10px !important;
+                box-shadow: none !important;
+                height: 48px;
             }
 
             .location-detect-btn {
-                padding: 0 16px;
+                background: none;
+                border: none;
+                padding: 0 14px;
+                color: var(--ep-primary);
+                cursor: pointer;
+                transition: color 0.15s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
 
-            .location-detect-btn i {
-                font-size: 18px;
+            .location-detect-btn:hover {
+                color: var(--ep-primary-dark);
+            }
+
+            .location-detect-btn:disabled {
+                color: var(--ep-gray-400);
+                cursor: not-allowed;
             }
 
             .location-suggestions-dropdown {
                 position: absolute;
-                top: 100%;
+                top: 105%;
                 left: 0;
                 right: 0;
                 background: white;
-                border: 1px solid var(--ep-gray-300);
-                border-top: none;
-                border-radius: 0 0 var(--ep-radius-md) var(--ep-radius-md);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                border: 1px solid var(--ep-gray-200);
+                border-radius: var(--ep-radius-md);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
                 z-index: 1000;
                 max-height: 280px;
                 overflow-y: auto;
@@ -460,16 +497,28 @@
             .location-suggestion-item {
                 padding: 12px 16px;
                 cursor: pointer;
-                border-bottom: 1px solid var(--ep-gray-100);
+                border-bottom: 1px solid var(--ep-gray-50);
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
                 transition: background-color 0.15s ease;
             }
 
-            .location-suggestion-item:hover {
-                background-color: var(--ep-primary-50);
+            .location-suggestion-item i {
+                margin-top: 3px;
+                color: var(--ep-gray-400);
             }
 
-            .location-suggestion-item:last-child {
-                border-bottom: none;
+            .location-suggestion-item:hover {
+                background-color: var(--ep-gray-50);
+            }
+
+            .location-suggestion-item:hover i {
+                color: var(--ep-primary);
+            }
+
+            .location-suggestion-content {
+                flex: 1;
             }
 
             .location-suggestion-name {
@@ -485,11 +534,13 @@
             }
 
             .location-map-container {
-                height: 250px;
+                height: 300px;
                 border-radius: var(--ep-radius-md);
                 border: 1px solid var(--ep-gray-300);
                 overflow: hidden;
                 background: var(--ep-gray-100);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                margin-bottom: var(--ep-space-2);
             }
 
             .location-map-placeholder {
@@ -506,24 +557,26 @@
                 margin-bottom: 12px;
             }
 
-            .location-map-placeholder span {
-                font-size: 14px;
-            }
-
             /* Mapbox marker styling */
             .mapboxgl-marker {
-                cursor: pointer;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
             }
 
-            .mapboxgl-popup-content {
-                padding: 12px 16px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            .ep-form-group .input-icon-wrapper {
+                position: relative;
             }
 
-            .mapboxgl-popup-close-button {
-                padding: 4px 8px;
-                font-size: 18px;
+            .ep-form-group .input-icon {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--ep-gray-400);
+                pointer-events: none;
+            }
+
+            .ep-form-group .input-with-icon {
+                padding-left: 42px !important;
             }
 
             .profile-layout {
@@ -914,11 +967,11 @@
 
                 function showMapPlaceholder() {
                     locationMapContainer.innerHTML = `
-                            <div class="location-map-placeholder">
-                                <i class="bi bi-geo-alt"></i>
-                                <span>Map unavailable. Please enter your address manually.</span>
-                            </div>
-                        `;
+                                    <div class="location-map-placeholder">
+                                        <i class="bi bi-geo-alt"></i>
+                                        <span>Map unavailable. Please enter your address manually.</span>
+                                    </div>
+                                `;
                 }
 
                 function addMarker(lng, lat) {
@@ -948,6 +1001,12 @@
                 function updateCoordinates(lng, lat) {
                     longitudeInput.value = lng.toFixed(8);
                     latitudeInput.value = lat.toFixed(8);
+
+                    // Update coordinate display
+                    const coordDisplay = document.getElementById('coordinateDisplay');
+                    if (coordDisplay) {
+                        coordDisplay.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    }
                 }
 
                 function isWithinStaCruz(lng, lat) {
@@ -1013,9 +1072,12 @@
                         const div = document.createElement('div');
                         div.className = 'location-suggestion-item';
                         div.innerHTML = `
-                                <div class="location-suggestion-name">${place.name || extractLocationName(place.place_name)}</div>
-                                <div class="location-suggestion-address">${place.place_name || place.full_address}</div>
-                            `;
+                                        <i class="bi bi-geo-alt"></i>
+                                        <div class="location-suggestion-content">
+                                            <div class="location-suggestion-name">${place.name || extractLocationName(place.place_name)}</div>
+                                            <div class="location-suggestion-address">${place.place_name || place.full_address}</div>
+                                        </div>
+                                    `;
 
                         div.addEventListener('click', () => {
                             selectPlace(place);

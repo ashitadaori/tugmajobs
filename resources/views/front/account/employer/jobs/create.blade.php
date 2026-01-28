@@ -1504,43 +1504,88 @@
                                     <div class="location-suggestions" id="locationSuggestions" style="display: none;"></div>
                                 </div>
 
+                                <!-- Location Search with Mapbox -->
+                                <div class="mb-4">
+                                    <label for="locationSearch" class="form-label">
+                                        <i class="bi bi-geo-alt"></i> Search Job Location
+                                        <span class="required-badge">Required</span>
+                                    </label>
+                                    <div class="location-search-wrapper" style="position: relative; margin-bottom: 1rem;">
+                                        <div class="location-input-container"
+                                            style="display: flex; align-items: center; border: 2px solid #e9ecef; border-radius: 12px; background: #fafbfc; transition: all 0.3s ease;">
+                                            <i class="bi bi-search" style="padding-left: 14px; color: #6c757d;"></i>
+                                            <input type="text" id="locationSearch" class="form-control"
+                                                style="border: none !important; background: transparent !important; padding: 14px 12px !important; box-shadow: none !important; flex: 1;"
+                                                placeholder="Search for job location in Sta. Cruz..." autocomplete="off">
+                                            <button type="button" id="detectLocationBtn"
+                                                style="background: none; border: none; padding: 0 14px; color: #667eea; cursor: pointer;"
+                                                title="Detect my current location">
+                                                <i class="bi bi-crosshair"></i>
+                                            </button>
+                                        </div>
+                                        <div class="location-suggestions-dropdown" id="locationSuggestions"
+                                            style="display: none; position: absolute; top: 105%; left: 0; right: 0; background: white; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000; max-height: 250px; overflow-y: auto;">
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Map Container -->
-                                <div id="locationMap" class="mb-3"
-                                    style="height: 300px; border-radius: 8px; border: 2px solid #e9ecef;"></div>
+                                <div class="mb-2">
+                                    <div id="locationMap"
+                                        style="height: 350px; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                                    </div>
+                                    <div class="form-text d-flex justify-content-between align-items-center mt-2">
+                                        <span><i class="bi bi-info-circle me-1"></i> Tip: Drag the marker to fine-tune the job
+                                            location</span>
+                                        <span id="coordinateDisplay" class="text-muted" style="font-size: 11px;"></span>
+                                    </div>
+                                </div>
 
                                 <!-- Hidden Coordinates -->
                                 <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude') }}">
                                 <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude') }}">
 
                                 <!-- Location Details Grid -->
-                                <div class="row g-3 mb-3">
+                                <div class="row g-3 mb-4">
                                     <div class="col-md-4">
-                                        <label class="form-label small text-muted">City</label>
-                                        <input type="text" class="form-control bg-light" id="cityInput" name="city" readonly>
+                                        <label class="form-label small text-muted">City/Town</label>
+                                        <div style="position: relative;">
+                                            <i class="bi bi-building"
+                                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #adb5bd;"></i>
+                                            <input type="text" class="form-control bg-light" id="cityInput" name="city" readonly
+                                                style="padding-left: 40px;">
+                                        </div>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small text-muted">Province</label>
-                                        <input type="text" class="form-control bg-light" id="stateInput" name="province"
-                                            readonly>
+                                        <div style="position: relative;">
+                                            <i class="bi bi-map"
+                                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #adb5bd;"></i>
+                                            <input type="text" class="form-control bg-light" id="stateInput" name="province"
+                                                readonly style="padding-left: 40px;">
+                                        </div>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small text-muted">Country</label>
-                                        <input type="text" class="form-control bg-light" id="countryInput" name="country"
-                                            value="Philippines" readonly>
+                                        <div style="position: relative;">
+                                            <i class="bi bi-globe"
+                                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #adb5bd;"></i>
+                                            <input type="text" class="form-control bg-light" id="countryInput" name="country"
+                                                value="Philippines" readonly style="padding-left: 40px;">
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Full Address (The main field validated by controller) -->
-                                <div class="mb-2">
+                                <!-- Full Address -->
+                                <div class="mb-4">
                                     <label for="location" class="form-label small text-muted">Full Street Address</label>
-                                    <textarea class="form-control" id="streetAddress" name="location" rows="2"
-                                        placeholder="Specific address will appear here..." readonly
-                                        required>{{ old('location') }}</textarea>
-                                </div>
-
-                                <div class="form-text">
-                                    <i class="bi bi-info-circle me-1"></i> Search and select a location from the map to
-                                    auto-fill details.
+                                    <div style="position: relative;">
+                                        <i class="bi bi-geo-alt"
+                                            style="position: absolute; left: 14px; top: 15px; color: #adb5bd;"></i>
+                                        <textarea class="form-control" id="streetAddress" name="location" rows="2"
+                                            placeholder="Specific address will appear here..." readonly required
+                                            style="padding-left: 40px;">{{ old('location') }}</textarea>
+                                    </div>
                                 </div>
                                 @error('location')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -1759,11 +1804,11 @@
                                 </div>
                                 <textarea class="form-control" id="qualifications" name="qualifications" rows="8" required
                                     maxlength="3000" placeholder="- Graduate of a 4-year BUSINESS-related course (preferably Accountancy)
-                                            - With experience as an advantage, or without experience as long as trainable
-                                            - Knowledge in accounting and business management
-                                            - Has keen attention to detail and paperwork
-                                            - Good communication skills
-                                            - Honest and trustworthy">{{ old('qualifications') }}</textarea>
+                                                    - With experience as an advantage, or without experience as long as trainable
+                                                    - Knowledge in accounting and business management
+                                                    - Has keen attention to detail and paperwork
+                                                    - Good communication skills
+                                                    - Honest and trustworthy">{{ old('qualifications') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -1782,8 +1827,8 @@
                                 </div>
                                 <textarea class="form-control" id="requirements" name="requirements" rows="4" maxlength="2000"
                                     placeholder="- Must have own motorcycle (with driver's license)
-                                            - Must be willing to be assigned for field work
-                                            - With valid professional driver's license">{{ old('requirements') }}</textarea>
+                                                    - Must be willing to be assigned for field work
+                                                    - With valid professional driver's license">{{ old('requirements') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -1801,10 +1846,10 @@
                                 </div>
                                 <textarea class="form-control" id="benefits" name="benefits" rows="4" maxlength="2000"
                                     placeholder="- Competitive salary
-                                            - Health insurance
-                                            - 13th month pay
-                                            - Paid leave
-                                            - Free lunch/snacks">{{ old('benefits') }}</textarea>
+                                                    - Health insurance
+                                                    - 13th month pay
+                                                    - Paid leave
+                                                    - Free lunch/snacks">{{ old('benefits') }}</textarea>
                                 <div class="d-flex justify-content-end mt-2">
                                     <div class="character-counter"></div>
                                 </div>
@@ -2136,6 +2181,12 @@
                 longitudeInput.value = lng.toFixed(8);
                 latitudeInput.value = lat.toFixed(8);
 
+                // Update coordinate display
+                const coordDisplay = document.getElementById('coordinateDisplay');
+                if (coordDisplay) {
+                    coordDisplay.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                }
+
                 // Trigger input event for preview updates if any
                 streetAddress.dispatchEvent(new Event('input'));
             }
@@ -2185,11 +2236,20 @@
                 locationSuggestions.innerHTML = '';
                 places.forEach(place => {
                     const div = document.createElement('div');
+                    div.style.padding = '12px 16px';
+                    div.style.cursor = 'pointer';
+                    div.style.borderBottom = '1px solid #f0f0f0';
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'flex-start';
+                    div.style.gap = '12px';
                     div.className = 'location-suggestion-item';
                     div.innerHTML = `
-                                        <div class="location-suggestion-name">${place.name || extractLocationName(place.place_name)}</div>
-                                        <div class="location-suggestion-address">${place.place_name || place.full_address}</div>
-                                    `;
+                                            <i class="bi bi-geo-alt" style="margin-top: 3px; color: #adb5bd;"></i>
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 600; color: #1a1a2e; font-size: 14px;">${place.name || extractLocationName(place.place_name)}</div>
+                                                <div style="font-size: 12px; color: #6c757d; margin-top: 2px;">${place.place_name || place.full_address}</div>
+                                            </div>
+                                        `;
                     div.addEventListener('click', () => selectPlace(place));
                     locationSuggestions.appendChild(div);
                 });
@@ -2231,30 +2291,75 @@
 
             function reverseGeocode(lng, lat) {
                 fetch(`/api/location/reverse-geocode?lng=${lng}&lat=${lat}`)
-                    .then(res => res.json())
+                    .then(res => {
+                        if (!res.ok) throw new Error('Network response was not ok');
+                        return res.json();
+                    })
                     .then(data => {
+                        console.log('Reverse geocode response:', data);
                         if (data && data.features && data.features.length > 0) {
                             const feature = data.features[0];
                             locationSearch.value = extractLocationName(feature.place_name);
                             parseAddressComponents(feature);
+                        } else {
+                            // No features returned, use default values
+                            console.log('No features in response, using defaults');
+                            setDefaultLocationValues();
                         }
+                    })
+                    .catch(err => {
+                        console.error('Reverse geocode error:', err);
+                        setDefaultLocationValues();
                     });
+            }
+
+            function setDefaultLocationValues() {
+                cityInput.value = 'Sta. Cruz';
+                stateInput.value = 'Davao del Sur';
+                countryInput.value = 'Philippines';
+                streetAddress.dispatchEvent(new Event('input'));
             }
 
             function parseAddressComponents(feature) {
                 const placeName = feature.place_name || '';
                 const parts = placeName.split(',').map(p => p.trim());
-                if (parts.length > 0) streetAddress.value = parts[0];
 
-                if (feature.context) {
+                // Set street address from first part of place_name
+                if (parts.length > 0) {
+                    streetAddress.value = parts[0];
+                }
+
+                // Reset values before parsing
+                let foundCity = false;
+                let foundRegion = false;
+                let foundCountry = false;
+
+                // Parse context array for city, region, country
+                if (feature.context && Array.isArray(feature.context)) {
                     feature.context.forEach(ctx => {
-                        if (ctx.id.startsWith('locality') || ctx.id.startsWith('place')) cityInput.value = ctx.text;
-                        if (ctx.id.startsWith('region')) stateInput.value = ctx.text;
+                        if (!ctx.id || !ctx.text) return;
+
+                        if (ctx.id.startsWith('locality') || ctx.id.startsWith('place')) {
+                            cityInput.value = ctx.text;
+                            foundCity = true;
+                        }
+                        if (ctx.id.startsWith('region')) {
+                            stateInput.value = ctx.text;
+                            foundRegion = true;
+                        }
+                        if (ctx.id.startsWith('country')) {
+                            countryInput.value = ctx.text;
+                            foundCountry = true;
+                        }
                     });
                 }
-                // Fallbacks
-                if (!cityInput.value) cityInput.value = 'Sta. Cruz';
-                if (!stateInput.value) stateInput.value = 'Davao del Sur';
+
+                // Fallbacks for Sta. Cruz, Davao del Sur area
+                if (!foundCity || !cityInput.value) cityInput.value = 'Sta. Cruz';
+                if (!foundRegion || !stateInput.value) stateInput.value = 'Davao del Sur';
+                if (!foundCountry || !countryInput.value) countryInput.value = 'Philippines';
+
+                console.log('Parsed address - Street:', streetAddress.value, 'City:', cityInput.value, 'State:', stateInput.value, 'Country:', countryInput.value);
 
                 // Trigger preview update
                 streetAddress.dispatchEvent(new Event('input'));
@@ -2319,7 +2424,7 @@
                 @if(!$errors->any() && !old('title'))
                     resetJobForm();
                 @endif
-                    });
+                        });
 
             function resetJobForm() {
                 const form = document.getElementById('jobForm');
@@ -2523,7 +2628,7 @@
                         );
                     @endforeach
                 @endif
-                        });
+                            });
 
             function initJobRequirements() {
                 const container = document.getElementById('job_requirements_container');
@@ -2552,31 +2657,31 @@
                 const index = requirementIndex++;
 
                 const html = `
-                            <div class="requirement-item">
-                                <button type="button" class="remove-requirement" title="Remove requirement">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                <div class="row">
-                                    <div class="col-md-6 mb-2">
-                                        <label class="form-label">Document Name <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="job_requirements[${index}][name]"
-                                               value="${escapeHtml(name)}" placeholder="e.g., 2x2 ID Photo" required>
+                                <div class="requirement-item">
+                                    <button type="button" class="remove-requirement" title="Remove requirement">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Document Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" name="job_requirements[${index}][name]"
+                                                   value="${escapeHtml(name)}" placeholder="e.g., 2x2 ID Photo" required>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control" name="job_requirements[${index}][description]"
+                                                   value="${escapeHtml(description)}" placeholder="e.g., Recent photo with white background">
+                                        </div>
                                     </div>
-                                    <div class="col-md-6 mb-2">
-                                        <label class="form-label">Description</label>
-                                        <input type="text" class="form-control" name="job_requirements[${index}][description]"
-                                               value="${escapeHtml(description)}" placeholder="e.g., Recent photo with white background">
+                                    <div class="form-check form-switch mt-2">
+                                        <input type="checkbox" class="form-check-input" name="job_requirements[${index}][is_required]"
+                                               id="req_required_${index}" ${isRequired ? 'checked' : ''} value="1">
+                                        <label class="form-check-label align-middle" for="req_required_${index}">
+                                            This document is mandatory
+                                        </label>
                                     </div>
                                 </div>
-                                <div class="form-check form-switch mt-2">
-                                    <input type="checkbox" class="form-check-input" name="job_requirements[${index}][is_required]"
-                                           id="req_required_${index}" ${isRequired ? 'checked' : ''} value="1">
-                                    <label class="form-check-label align-middle" for="req_required_${index}">
-                                        This document is mandatory
-                                    </label>
-                                </div>
-                            </div>
-                        `;
+                            `;
 
                 container.insertAdjacentHTML('beforeend', html);
             }
