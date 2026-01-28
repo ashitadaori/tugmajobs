@@ -128,7 +128,7 @@ class LocationController extends Controller
     }
 
     /**
-     * Reverse geocode coordinates
+     * Reverse geocode coordinates using Mapbox API
      */
     public function reverseGeocode(Request $request)
     {
@@ -140,20 +140,56 @@ class LocationController extends Controller
                 return response()->json(['features' => []]);
             }
 
-            // Try to get precise location from service
-            $locationInfo = $this->locationService->getLocationByCoordinates($lat, $lng);
+            // Use Mapbox Geocoding API for reverse geocoding
+            $mapboxToken = config('mapbox.public_token');
 
-            if ($locationInfo) {
-                return response()->json([
-                    'features' => [
-                        [
-                            'place_name' => $locationInfo['formatted'],
-                            'context' => array_map(function ($key, $value) {
-                                return ['id' => $key, 'text' => $value];
-                            }, array_keys($locationInfo['components']), $locationInfo['components'])
-                        ]
+            if ($mapboxToken) {
+                $response = \Illuminate\Support\Facades\Http::get(
+                    "https://api.mapbox.com/geocoding/v5/mapbox.places/{$lng},{$lat}.json",
+                    [
+                        'access_token' => $mapboxToken,
+                        'types' => 'address,poi,locality,place,neighborhood',
+                        'limit' => 1
                     ]
-                ]);
+                );
+
+                if ($response->successful()) {
+                    $data = $response->json();
+
+                    if (!empty($data['features'])) {
+                        $feature = $data['features'][0];
+                        $context = $feature['context'] ?? [];
+
+                        // Extract address components from context
+                        $city = '';
+                        $region = '';
+                        $country = '';
+
+                        foreach ($context as $item) {
+                            if (str_starts_with($item['id'], 'place')) {
+                                $city = $item['text'];
+                            } elseif (str_starts_with($item['id'], 'region')) {
+                                $region = $item['text'];
+                            } elseif (str_starts_with($item['id'], 'country')) {
+                                $country = $item['text'];
+                            }
+                        }
+
+                        return response()->json([
+                            'features' => [
+                                [
+                                    'place_name' => $feature['place_name'] ?? '',
+                                    'text' => $feature['text'] ?? '',
+                                    'context' => [
+                                        ['id' => 'place', 'text' => $city],
+                                        ['id' => 'region', 'text' => $region],
+                                        ['id' => 'country', 'text' => $country]
+                                    ]
+                                ]
+                            ]
+                        ]);
+                    }
+                }
             }
 
             // Fallback to nearest pre-defined area
