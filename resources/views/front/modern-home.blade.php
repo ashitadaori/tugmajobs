@@ -732,13 +732,22 @@
             suggestions.forEach((suggestion, index) => {
                 const suggestionElement = document.createElement('div');
                 suggestionElement.className = 'location-suggestion';
+                suggestionElement.style.cssText = 'background-color: #fff; padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee;';
                 suggestionElement.innerHTML = `
-                                                <div class="suggestion-name">${suggestion.name}</div>
-                                                <div class="suggestion-address">${suggestion.full_address || suggestion.place_name}</div>
+                                                <div class="suggestion-name" style="color: #1a1a1a; font-weight: 600; font-size: 14px;">${suggestion.name}</div>
+                                                <div class="suggestion-address" style="color: #666; font-size: 12px; margin-top: 3px;">${suggestion.full_address || suggestion.place_name}</div>
                                             `;
 
                 suggestionElement.addEventListener('click', () => {
                     selectSuggestion(suggestion);
+                });
+
+                suggestionElement.addEventListener('mouseenter', () => {
+                    suggestionElement.style.backgroundColor = '#f0f7ff';
+                });
+
+                suggestionElement.addEventListener('mouseleave', () => {
+                    suggestionElement.style.backgroundColor = '#fff';
                 });
 
                 suggestionsContainer.appendChild(suggestionElement);

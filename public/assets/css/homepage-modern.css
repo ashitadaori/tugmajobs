@@ -266,6 +266,7 @@
     cursor: pointer;
     border-bottom: 1px solid #eee;
     transition: background-color 0.2s ease;
+    background-color: #ffffff !important;
 }
 
 .location-suggestion:last-child {
@@ -274,19 +275,33 @@
 
 .location-suggestion:hover,
 .location-suggestion.active {
-    background-color: #f0f7ff;
+    background-color: #f0f7ff !important;
 }
 
+.location-suggestion .suggestion-name,
 .suggestion-name {
     font-weight: 600;
-    color: #333;
+    color: #1a1a1a !important;
     font-size: 0.95rem;
+    background: none !important;
+    background-color: transparent !important;
 }
 
+.location-suggestion .suggestion-address,
 .suggestion-address {
     font-size: 0.85rem;
-    color: #666;
+    color: #555555 !important;
     margin-top: 0.25rem;
+    background: none !important;
+    background-color: transparent !important;
+}
+
+.location-suggestions * {
+    background-color: transparent;
+}
+
+.location-suggestions .location-suggestion div {
+    background: none !important;
 }
 
 .btn-search {
