@@ -118,6 +118,8 @@ class LocationController extends Controller
         $lat = (float) $request->get('lat');
         $lng = (float) $request->get('lng');
 
+        \Log::info('Reverse geocode request', ['lat' => $lat, 'lng' => $lng]);
+
         if (!$lat || !$lng) {
             return response()->json(['features' => []]);
         }
@@ -126,26 +128,41 @@ class LocationController extends Controller
         $results = $this->mapboxService->reverseGeocode($lng, $lat);
 
         if ($results && !empty($results['features'])) {
+            \Log::info('MapboxService returned results', ['count' => count($results['features'])]);
             return response()->json($results);
         }
+
+        \Log::warning('MapboxService returned no results, trying direct API call');
 
         // Fallback: Direct Mapbox API call
         try {
             $mapboxToken = config('mapbox.public_token');
 
             if ($mapboxToken) {
-                $response = \Illuminate\Support\Facades\Http::get(
-                    "https://api.mapbox.com/geocoding/v5/mapbox.places/{$lng},{$lat}.json",
-                    [
-                        'access_token' => $mapboxToken,
-                        'types' => 'address,poi,locality,place,neighborhood',
-                        'limit' => 1
-                    ]
-                );
+                $url = "https://api.mapbox.com/geocoding/v5/mapbox.places/{$lng},{$lat}.json";
+                \Log::info('Calling Mapbox API directly', ['url' => $url]);
+
+                $response = \Illuminate\Support\Facades\Http::get($url, [
+                    'access_token' => $mapboxToken,
+                    'types' => 'address,poi,locality,place,neighborhood',
+                    'limit' => 1
+                ]);
 
                 if ($response->successful()) {
-                    return response()->json($response->json());
+                    $data = $response->json();
+                    \Log::info('Direct API call successful', [
+                        'features_count' => count($data['features'] ?? []),
+                        'first_place_name' => $data['features'][0]['place_name'] ?? 'none'
+                    ]);
+                    return response()->json($data);
+                } else {
+                    \Log::error('Direct API call failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body()
+                    ]);
                 }
+            } else {
+                \Log::error('Mapbox token is not configured');
             }
         } catch (\Exception $e) {
             \Log::error('Reverse geocode fallback error: ' . $e->getMessage());

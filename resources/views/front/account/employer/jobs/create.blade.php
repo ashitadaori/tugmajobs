@@ -2317,9 +2317,55 @@
                 cityInput.value = 'Sta. Cruz';
                 stateInput.value = 'Davao del Sur';
                 countryInput.value = 'Philippines';
-                // Set street address with coordinates as fallback
-                streetAddress.value = `Sta. Cruz, Davao del Sur (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+
+                // Try to find nearest barangay
+                const nearestBarangay = findNearestBarangay(lng, lat);
+                if (nearestBarangay) {
+                    streetAddress.value = `${nearestBarangay}, Sta. Cruz, Davao del Sur`;
+                } else {
+                    streetAddress.value = `Sta. Cruz, Davao del Sur (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                }
                 streetAddress.dispatchEvent(new Event('input'));
+            }
+
+            // Pre-defined barangays in Sta. Cruz, Davao del Sur
+            const staCruzBarangays = [
+                { name: 'Astorga', lat: 6.8210, lng: 125.3980 },
+                { name: 'Bato', lat: 6.8450, lng: 125.4050 },
+                { name: 'Coronon', lat: 6.8520, lng: 125.4200 },
+                { name: 'Darong', lat: 6.9362, lng: 125.4715 },
+                { name: 'Inawayan', lat: 6.8280, lng: 125.4350 },
+                { name: 'Jose Rizal', lat: 6.8150, lng: 125.4100 },
+                { name: 'Matutungan', lat: 6.8600, lng: 125.4450 },
+                { name: 'Melilia', lat: 6.8380, lng: 125.3900 },
+                { name: 'Saliducon', lat: 6.8700, lng: 125.4300 },
+                { name: 'Sibulan', lat: 6.8900, lng: 125.4500 },
+                { name: 'Sinoron', lat: 6.8100, lng: 125.4250 },
+                { name: 'Tagabuli', lat: 6.8550, lng: 125.3850 },
+                { name: 'Tibolo', lat: 6.8650, lng: 125.4600 },
+                { name: 'Tuban', lat: 6.8750, lng: 125.4100 },
+                { name: 'Zone I (Poblacion)', lat: 6.8340, lng: 125.4154 },
+                { name: 'Zone II (Poblacion)', lat: 6.8350, lng: 125.4160 },
+                { name: 'Zone III (Poblacion)', lat: 6.8330, lng: 125.4145 },
+                { name: 'Zone IV (Poblacion)', lat: 6.8345, lng: 125.4170 }
+            ];
+
+            function findNearestBarangay(lng, lat) {
+                let nearest = null;
+                let minDistance = Infinity;
+
+                staCruzBarangays.forEach(brgy => {
+                    const distance = Math.sqrt(
+                        Math.pow(brgy.lat - lat, 2) + Math.pow(brgy.lng - lng, 2)
+                    );
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearest = brgy.name;
+                    }
+                });
+
+                // Only return if within reasonable distance (roughly 5km)
+                return minDistance < 0.05 ? nearest : null;
             }
 
             function parseAddressComponents(feature, lng, lat) {
