@@ -2300,33 +2300,45 @@
                         if (data && data.features && data.features.length > 0) {
                             const feature = data.features[0];
                             locationSearch.value = extractLocationName(feature.place_name);
-                            parseAddressComponents(feature);
+                            parseAddressComponents(feature, lng, lat);
                         } else {
                             // No features returned, use default values
                             console.log('No features in response, using defaults');
-                            setDefaultLocationValues();
+                            setDefaultLocationValues(lng, lat);
                         }
                     })
                     .catch(err => {
                         console.error('Reverse geocode error:', err);
-                        setDefaultLocationValues();
+                        setDefaultLocationValues(lng, lat);
                     });
             }
 
-            function setDefaultLocationValues() {
+            function setDefaultLocationValues(lng, lat) {
                 cityInput.value = 'Sta. Cruz';
                 stateInput.value = 'Davao del Sur';
                 countryInput.value = 'Philippines';
+                // Set street address with coordinates as fallback
+                streetAddress.value = `Sta. Cruz, Davao del Sur (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
                 streetAddress.dispatchEvent(new Event('input'));
             }
 
-            function parseAddressComponents(feature) {
+            function parseAddressComponents(feature, lng, lat) {
                 const placeName = feature.place_name || '';
+                const featureText = feature.text || '';
                 const parts = placeName.split(',').map(p => p.trim());
 
-                // Set street address from first part of place_name
-                if (parts.length > 0) {
-                    streetAddress.value = parts[0];
+                console.log('Feature data:', { placeName, featureText, context: feature.context });
+
+                // Set street address - use full place_name or construct from parts
+                if (placeName) {
+                    // Use up to first 3 parts for a more complete address
+                    const addressParts = parts.slice(0, Math.min(3, parts.length));
+                    streetAddress.value = addressParts.join(', ');
+                } else if (featureText) {
+                    streetAddress.value = featureText;
+                } else if (lng && lat) {
+                    // Fallback to coordinates
+                    streetAddress.value = `Sta. Cruz, Davao del Sur (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
                 }
 
                 // Reset values before parsing
@@ -2339,25 +2351,50 @@
                     feature.context.forEach(ctx => {
                         if (!ctx.id || !ctx.text) return;
 
-                        if (ctx.id.startsWith('locality') || ctx.id.startsWith('place')) {
+                        const ctxId = ctx.id.toLowerCase();
+                        if (ctxId.startsWith('locality') || ctxId.startsWith('place')) {
                             cityInput.value = ctx.text;
                             foundCity = true;
                         }
-                        if (ctx.id.startsWith('region')) {
+                        if (ctxId.startsWith('region')) {
                             stateInput.value = ctx.text;
                             foundRegion = true;
                         }
-                        if (ctx.id.startsWith('country')) {
+                        if (ctxId.startsWith('country')) {
                             countryInput.value = ctx.text;
                             foundCountry = true;
                         }
                     });
                 }
 
-                // Fallbacks for Sta. Cruz, Davao del Sur area
+                // Secondary fallback: Try to extract from place_name parts
+                if (!foundCity || !foundRegion) {
+                    parts.forEach(part => {
+                        const lowerPart = part.toLowerCase();
+                        if (!foundCity && (lowerPart.includes('sta. cruz') || lowerPart.includes('sta cruz') || lowerPart.includes('santa cruz'))) {
+                            cityInput.value = 'Sta. Cruz';
+                            foundCity = true;
+                        }
+                        if (!foundRegion && (lowerPart.includes('davao del sur') || lowerPart.includes('davao sur'))) {
+                            stateInput.value = 'Davao del Sur';
+                            foundRegion = true;
+                        }
+                        if (!foundCountry && lowerPart.includes('philippines')) {
+                            countryInput.value = 'Philippines';
+                            foundCountry = true;
+                        }
+                    });
+                }
+
+                // Final fallbacks for Sta. Cruz, Davao del Sur area
                 if (!foundCity || !cityInput.value) cityInput.value = 'Sta. Cruz';
                 if (!foundRegion || !stateInput.value) stateInput.value = 'Davao del Sur';
                 if (!foundCountry || !countryInput.value) countryInput.value = 'Philippines';
+
+                // If still no street address, set a default
+                if (!streetAddress.value) {
+                    streetAddress.value = 'Sta. Cruz, Davao del Sur';
+                }
 
                 console.log('Parsed address - Street:', streetAddress.value, 'City:', cityInput.value, 'State:', stateInput.value, 'Country:', countryInput.value);
 
