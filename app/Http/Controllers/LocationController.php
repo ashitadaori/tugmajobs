@@ -111,24 +111,48 @@ class LocationController extends Controller
     }
 
     /**
-     * Reverse geocode coordinates
+     * Reverse geocode coordinates using Mapbox API
      */
     public function reverseGeocode(Request $request)
     {
-        $lat = $request->get('lat');
-        $lng = $request->get('lng');
-        
-        if (empty($lat) || empty($lng)) {
-            return response()->json(['error' => 'Latitude and longitude parameters are required'], 400);
+        $lat = (float) $request->get('lat');
+        $lng = (float) $request->get('lng');
+
+        if (!$lat || !$lng) {
+            return response()->json(['features' => []]);
         }
 
+        // Try MapboxService first
         $results = $this->mapboxService->reverseGeocode($lng, $lat);
-        
-        if ($results) {
+
+        if ($results && !empty($results['features'])) {
             return response()->json($results);
         }
 
-        return response()->json(['error' => 'Reverse geocoding failed'], 500);
+        // Fallback: Direct Mapbox API call
+        try {
+            $mapboxToken = config('mapbox.public_token');
+
+            if ($mapboxToken) {
+                $response = \Illuminate\Support\Facades\Http::get(
+                    "https://api.mapbox.com/geocoding/v5/mapbox.places/{$lng},{$lat}.json",
+                    [
+                        'access_token' => $mapboxToken,
+                        'types' => 'address,poi,locality,place,neighborhood',
+                        'limit' => 1
+                    ]
+                );
+
+                if ($response->successful()) {
+                    return response()->json($response->json());
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Reverse geocode fallback error: ' . $e->getMessage());
+        }
+
+        // Return empty features instead of error
+        return response()->json(['features' => []]);
     }
 
     /**
