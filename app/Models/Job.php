@@ -57,7 +57,10 @@ class Job extends Model
         'has_category_mismatch',
         'extracted_skills',
         'detected_role_type',
-        'content_analyzed_at'
+        'content_analyzed_at',
+        // Meta data
+        'meta_data',
+        'featured'
     ];
 
     protected $casts = [

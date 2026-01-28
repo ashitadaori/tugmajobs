@@ -2185,65 +2185,20 @@ class EmployerController extends Controller
 
     public function storeJob(Request $request)
     {
-        \Log::info('🚀 JOB CREATION ATTEMPT STARTED', [
-            'timestamp' => now()->toDateTimeString(),
-            'user_id' => Auth::id(),
-            'user_role' => Auth::user()?->role,
-            'user_name' => Auth::user()?->name,
-            'request_method' => $request->method(),
-            'request_url' => $request->fullUrl(),
-            'request_data' => $request->except(['_token']),
-            'can_post_jobs' => Auth::user()?->canPostJobs(),
-            'is_ajax' => $request->ajax(),
-            'user_agent' => $request->userAgent()
-        ]);
-
         try {
-            // First, check if employer profile is complete before processing job creation
-            $employer = Auth::user();
-            $profile = Employer::where('user_id', $employer->id)->first();
+            $user = Auth::user();
 
-            // Define required fields for posting jobs (using correct database field names)
-            $requiredFields = [
-                'company_name' => 'Company Name',
-                'company_description' => 'Company Description',
-                'industry' => 'Industry',
-                'business_email' => 'Contact Email',
-                'business_address' => 'Company Location'
-            ];
-
-            $missingFields = [];
-
-            if (!$profile) {
-                // No profile exists, all fields are missing
-                $missingFields = array_values($requiredFields);
-            } else {
-                // Check which required fields are missing
-                foreach ($requiredFields as $field => $label) {
-                    if (empty($profile->$field)) {
-                        $missingFields[] = $label;
-                    }
-                }
-            }
-
-            // If there are missing fields, return appropriate response
-            if (!empty($missingFields)) {
-                $message = 'Please complete your company profile before posting jobs. Missing: ' . implode(', ', $missingFields);
-
+            // Quick profile check
+            $profile = Employer::where('user_id', $user->id)->first();
+            if (!$profile || empty($profile->company_name)) {
+                $message = 'Please complete your company profile before posting jobs.';
                 if ($request->ajax()) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => $message,
-                        'redirect' => route('employer.profile.edit')
-                    ], 422);
+                    return response()->json(['status' => false, 'message' => $message, 'redirect' => route('employer.profile.edit')], 422);
                 }
-
-                return redirect()->route('employer.profile.edit')
-                    ->with('error', $message)
-                    ->with('highlight_required', true);
+                return redirect()->route('employer.profile.edit')->with('error', $message);
             }
 
-            // Validate the request
+            // Validate
             $validated = $request->validate([
                 'title' => 'required|string|min:5|max:255',
                 'description' => 'required|string|min:20|max:5000',
@@ -2255,209 +2210,94 @@ class EmployerController extends Controller
                 'province' => 'nullable|string|max:100',
                 'latitude' => 'nullable|numeric',
                 'longitude' => 'nullable|numeric',
-                'job_type_id' => 'required|exists:job_types,id',
-                'category_id' => 'required|exists:categories,id',
+                'job_type_id' => 'required|integer',
+                'category_id' => 'required|integer',
                 'vacancy' => 'required|integer|min:1|max:100',
                 'experience_level' => 'required|in:entry,intermediate,expert',
-                'education_level' => 'nullable|in:high_school,vocational,associate,bachelor,master,doctorate',
+                'education_level' => 'nullable|string',
                 'salary_min' => 'nullable|numeric|min:0',
                 'salary_max' => 'nullable|numeric|min:0',
-                'deadline' => 'nullable|date|after_or_equal:today',
+                'deadline' => 'nullable|date',
                 'is_remote' => 'nullable',
                 'is_featured' => 'nullable',
-                'skills' => 'nullable|string',
-                'requires_screening' => 'nullable',
-                'preliminary_questions' => 'nullable|string'
-            ], [
-                'title.required' => 'Job title is required',
-                'title.min' => 'Job title must be at least 5 characters',
-                'description.required' => 'Job description is required',
-                'description.min' => 'Job description must be at least 20 characters',
-                'qualifications.required' => 'Job qualifications are required',
-                'qualifications.min' => 'Job qualifications must be at least 10 characters',
-                'location.required' => 'Job location is required',
-                'job_type_id.required' => 'Please select a job type',
-                'category_id.required' => 'Please select a category',
-                'vacancy.required' => 'Number of positions is required',
-                'vacancy.min' => 'At least 1 position is required',
-                'experience_level.required' => 'Please select an experience level'
+                'skills' => 'nullable|string'
             ]);
 
-            $user = Auth::user();
+            // Parse skills
+            $skills = !empty($validated['skills']) ? (json_decode($validated['skills'], true) ?: []) : [];
 
-            \Log::info('Job validation passed', [
-                'validated_data' => $validated,
-                'user_id' => $user->id
+            // Create job directly without transaction (simpler)
+            $job = Job::create([
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'qualifications' => $validated['qualifications'],
+                'requirements' => $validated['requirements'] ?? null,
+                'benefits' => $validated['benefits'] ?? null,
+                'location' => $validated['location'],
+                'location_name' => $validated['location'],
+                'address' => $validated['location'],
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
+                'job_type_id' => $validated['job_type_id'],
+                'category_id' => $validated['category_id'],
+                'employer_id' => $user->id,
+                'vacancy' => $validated['vacancy'],
+                'experience_level' => $validated['experience_level'],
+                'salary_min' => $validated['salary_min'] ?? null,
+                'salary_max' => $validated['salary_max'] ?? null,
+                'deadline' => $validated['deadline'] ?? null,
+                'featured' => $request->boolean('is_featured') ? 1 : 0,
+                'status' => 0, // Pending
+                'city' => $validated['city'] ?? 'Sta. Cruz',
+                'province' => $validated['province'] ?? 'Davao del Sur',
+                'barangay' => $validated['location'],
+                'requires_screening' => false,
+                'preliminary_questions' => null,
+                'meta_data' => ['skills' => $skills, 'created_via' => 'web_form']
             ]);
 
-            // Parse skills if provided
-            $skills = [];
-            if (!empty($validated['skills'])) {
-                $skills = json_decode($validated['skills'], true) ?: [];
-            }
-
-            // Start transaction for job creation
-            DB::beginTransaction();
-
-            // Create the job
-            $job = new Job();
-            $job->title = $validated['title'];
-            $job->description = $validated['description'];
-            $job->qualifications = $validated['qualifications'];
-            $job->requirements = $validated['requirements'] ?? null;
-            $job->benefits = $validated['benefits'] ?? null;
-            $job->location = $validated['location'];
-            $job->location_name = $validated['location'];
-            $job->address = $validated['location']; // Use address field as well
-            $job->latitude = $validated['latitude'] ?? null;
-            $job->longitude = $validated['longitude'] ?? null;
-            $job->job_type_id = $validated['job_type_id'];
-            $job->category_id = $validated['category_id'];
-            $job->employer_id = $user->id;
-            $job->vacancy = $validated['vacancy'];
-            $job->experience_level = $validated['experience_level'];
-            $job->salary_min = $validated['salary_min'] ?? null;
-            $job->salary_max = $validated['salary_max'] ?? null;
-            $job->deadline = $validated['deadline'] ?? null;
-
-            // Handle boolean fields as integers for database compatibility
-            $job->featured = $request->boolean('is_featured') ? 1 : 0;
-
-            // ALL jobs require admin approval - no auto-approval
-            $job->status = Job::STATUS_PENDING; // All jobs start as pending (0)
-
-            \Log::info('Job status set', [
-                'job_status' => $job->status,
-                'user_kyc_status' => $user->kyc_status,
-                'needs_admin_approval' => true,
-                'status_name' => 'Pending Approval'
-            ]);
-
-            $job->city = $validated['city'] ?? 'Sta. Cruz';
-            $job->province = $validated['province'] ?? 'Davao del Sur';
-
-            // Extract barangay from location if possible
-            if (strpos($validated['location'], ',') !== false) {
-                $locationParts = explode(',', $validated['location']);
-                $job->barangay = trim($locationParts[0]);
-            } else {
-                $job->barangay = $validated['location'];
-            }
-
-            // Handle preliminary questions
-            if ($request->boolean('requires_screening')) {
-                $preliminaryQuestions = [];
-                if (!empty($validated['preliminary_questions'])) {
-                    $preliminaryQuestions = json_decode($validated['preliminary_questions'], true) ?: [];
-                }
-
-                $job->requires_screening = true;
-                $job->preliminary_questions = $preliminaryQuestions;
-            } else {
-                $job->requires_screening = false;
-                $job->preliminary_questions = null;
-            }
-
-            $job->meta_data = [
-                'skills' => $skills,
-                'created_via' => 'web_form',
-                'form_version' => '1.0'
-            ];
-
-            $job->save();
-
-            // Save job requirements (required documents)
+            // Save job requirements if any
             if ($request->has('job_requirements') && is_array($request->job_requirements)) {
                 $sortOrder = 1;
-                foreach ($request->job_requirements as $requirement) {
-                    if (!empty($requirement['name'])) {
-                        \App\Models\JobRequirement::create([
+                foreach ($request->job_requirements as $req) {
+                    if (!empty($req['name'])) {
+                        JobRequirement::create([
                             'job_id' => $job->id,
-                            'name' => $requirement['name'],
-                            'description' => $requirement['description'] ?? null,
-                            'is_required' => isset($requirement['is_required']) ? true : false,
+                            'name' => $req['name'],
+                            'description' => $req['description'] ?? null,
+                            'is_required' => isset($req['is_required']),
                             'sort_order' => $sortOrder++
                         ]);
                     }
                 }
             }
 
-            \Log::info('Job created successfully', [
-                'job_id' => $job->id,
-                'employer_id' => $user->id,
-                'title' => $job->title,
-                'status' => $job->status,
-                'category_id' => $job->category_id,
-                'job_type_id' => $job->job_type_id,
-                'location' => $job->location
-            ]);
+            // Job created - admin will see it in pending jobs dashboard
+            \Log::info('Job created successfully', ['job_id' => $job->id, 'employer_id' => $user->id]);
 
-            // Notify all admins about the new job posting that needs approval
-            $this->notifyAdminsAboutNewJob($job, $user);
-
-            // Verify the job was saved correctly
-            $savedJob = Job::find($job->id);
-            \Log::info('Job verification after save', [
-                'job_exists' => $savedJob ? 'YES' : 'NO',
-                'job_status' => $savedJob ? $savedJob->status : 'N/A',
-                'visible_to_jobseekers' => $savedJob && $savedJob->status == 1 ? 'YES' : 'NO'
-            ]);
-
-            DB::commit();
-
-            // Handle AJAX requests
             if ($request->ajax()) {
                 return response()->json([
                     'status' => true,
-                    'message' => 'Job posted successfully! It is now pending admin approval before being published.',
+                    'message' => 'Job posted successfully! Pending admin approval.',
                     'job_id' => $job->id,
-                    'job_status' => 'pending',
                     'redirect' => route('employer.jobs.index')
                 ]);
             }
 
             return redirect()->route('employer.jobs.index')
-                ->with('success', 'Job posted successfully! It is now pending admin approval before being published.')
-                ->with('job_id', $job->id)
-                ->with('job_status', 'pending');
+                ->with('success', 'Job posted successfully! It is pending admin approval.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Job creation validation failed', [
-                'errors' => $e->errors(),
-                'user_id' => Auth::id(),
-                'request_data' => $request->except(['_token'])
-            ]);
-
             if ($request->ajax()) {
-                return response()->json([
-                    'status' => false,
-                    'errors' => $e->errors()
-                ], 422);
+                return response()->json(['status' => false, 'errors' => $e->errors()], 422);
             }
-
-            return redirect()->back()
-                ->withErrors($e->errors())
-                ->withInput()
-                ->with('error', 'Please check the form for errors and try again.');
+            return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Job creation failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => Auth::id(),
-                'request_data' => $request->except(['_token'])
-            ]);
-
+            \Log::error('Job creation failed: ' . $e->getMessage());
             if ($request->ajax()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Failed to create job posting. Please try again.'
-                ], 500);
+                return response()->json(['status' => false, 'message' => 'Failed to create job.'], 500);
             }
-
-            return redirect()->back()
-                ->with('error', 'Failed to create job posting: ' . $e->getMessage())
-                ->withInput();
+            return redirect()->back()->with('error', 'Failed to create job: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -2963,57 +2803,47 @@ class EmployerController extends Controller
     private function notifyAdminsAboutNewJob(Job $job, $employer)
     {
         try {
-            // Get all admin users
-            $admins = User::where('role', 'admin')->get();
+            // Get admin user IDs only (faster query)
+            $adminIds = User::where('role', 'admin')->pluck('id')->toArray();
 
-            if ($admins->isEmpty()) {
-                \Log::warning('No admins found to notify about new job posting', [
-                    'job_id' => $job->id
-                ]);
+            if (empty($adminIds)) {
                 return;
             }
 
-            // Get employer profile for company name
-            $employerProfile = Employer::where('user_id', $employer->id)->first();
-            $companyName = $employerProfile->company_name ?? $employer->name;
+            // Get company name
+            $companyName = $employer->employer->company_name ?? $employer->name ?? 'Employer';
 
-            foreach ($admins as $admin) {
-                \DB::table('notifications')->insert([
-                    'user_id' => $admin->id,
-                    'title' => 'New Job Posting Awaiting Approval',
-                    'message' => 'A new job "' . $job->title . '" has been posted by ' . $companyName . ' and requires your approval.',
-                    'type' => 'new_job_pending',
-                    'data' => json_encode([
-                        'job_id' => $job->id,
-                        'job_title' => $job->title,
-                        'employer_id' => $employer->id,
-                        'employer_name' => $employer->name,
-                        'company_name' => $companyName,
-                        'location' => $job->location,
-                        'icon' => 'briefcase',
-                        'color' => 'warning'
-                    ]),
-                    'action_url' => route('admin.jobs.pending'),
-                    'read_at' => null,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-            }
-
-            // Clear dashboard cache so the pending count updates
-            \Cache::forget('admin_dashboard_stats');
-
-            \Log::info('Admins notified about new job posting', [
+            // Prepare notification data once
+            $now = now();
+            $notificationData = json_encode([
                 'job_id' => $job->id,
                 'job_title' => $job->title,
-                'admins_notified' => $admins->count()
+                'employer_id' => $employer->id,
+                'company_name' => $companyName
             ]);
+            $actionUrl = route('admin.jobs.pending');
+
+            // Batch insert all notifications at once
+            $notifications = [];
+            foreach ($adminIds as $adminId) {
+                $notifications[] = [
+                    'user_id' => $adminId,
+                    'title' => 'New Job Posting Awaiting Approval',
+                    'message' => 'A new job "' . $job->title . '" posted by ' . $companyName . ' needs approval.',
+                    'type' => 'new_job_pending',
+                    'data' => $notificationData,
+                    'action_url' => $actionUrl,
+                    'read_at' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
+            }
+
+            // Single batch insert
+            \DB::table('notifications')->insert($notifications);
 
         } catch (\Exception $e) {
-            \Log::error('Failed to notify admins about new job posting', [
-                'job_id' => $job->id,
-                'error' => $e->getMessage()
-            ]);
+            \Log::warning('Failed to notify admins: ' . $e->getMessage());
         }
     }
 }
