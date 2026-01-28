@@ -66,7 +66,7 @@
                                 <div class="location-input-wrapper">
                                     <input type="text" name="location" id="locationSearch"
                                         class="form-control location-input"
-                                        placeholder="Location (e.g., Poblacion, Sta. Cruz)"
+                                        placeholder="Barangay or Area"
                                         value="{{ request('location') }}" autocomplete="off">
                                     <div id="locationSuggestions" class="location-suggestions"></div>
                                     <input type="hidden" name="location_lat" id="locationLat"
