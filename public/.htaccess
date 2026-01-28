@@ -1,3 +1,8 @@
+<IfModule mod_headers.c>
+    # Allow geolocation for the map feature
+    Header set Permissions-Policy "geolocation=(self)"
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
