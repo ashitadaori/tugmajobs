@@ -2272,9 +2272,11 @@ class EmployerController extends Controller
                 }
             }
 
-            // Job created - admin will see it in pending jobs dashboard
+            // Job created - notify admins about the new pending job
             \Log::info('Job created successfully', ['job_id' => $job->id, 'employer_id' => $user->id]);
 
+            // Send notification to all admins
+            $this->notifyAdminsAboutNewJob($job, $user);
             if ($request->ajax()) {
                 return response()->json([
                     'status' => true,
