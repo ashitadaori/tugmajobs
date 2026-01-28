@@ -16,7 +16,7 @@ class DashboardController extends Controller
     public function index()
     {
         // Cache dashboard statistics for 5 minutes to improve performance
-        $stats = \Cache::remember('admin_dashboard_stats', 300, function() {
+        $stats = \Cache::remember('admin_dashboard_stats', 300, function () {
             // Get current month and previous month dates
             $now = Carbon::now();
             $currentMonthStart = $now->copy()->startOfMonth();
@@ -28,41 +28,41 @@ class DashboardController extends Controller
             $lastMonthUsers = User::where('created_at', '<=', $lastMonthEnd)->count();
             $userGrowth = $lastMonthUsers > 0 ? round(($totalUsers - $lastMonthUsers) / $lastMonthUsers * 100, 1) : 0;
 
-        // Calculate job statistics
-        $pendingJobs = Job::where('status', Job::STATUS_PENDING)->count();
-        $approvedJobs = Job::where('status', Job::STATUS_APPROVED)->count();
-        $rejectedJobs = Job::where('status', Job::STATUS_REJECTED)->count();
-        $totalJobs = Job::count();
-        $activeJobs = $approvedJobs; // For backward compatibility with view
-        
-        // Calculate growth for approved jobs
-        $lastMonthApprovedJobs = Job::where('status', Job::STATUS_APPROVED)
-            ->where('created_at', '<=', $lastMonthEnd)
-            ->count();
-        $jobGrowth = $lastMonthApprovedJobs > 0 ? round(($approvedJobs - $lastMonthApprovedJobs) / $lastMonthApprovedJobs * 100, 1) : 0;
+            // Calculate job statistics
+            $pendingJobs = Job::where('status', Job::STATUS_PENDING)->count();
+            $approvedJobs = Job::where('status', Job::STATUS_APPROVED)->count();
+            $rejectedJobs = Job::where('status', Job::STATUS_REJECTED)->count();
+            $totalJobs = Job::count();
+            $activeJobs = $approvedJobs; // For backward compatibility with view
 
-        // Get KYC status counts
-        $verifiedKyc = User::where('kyc_status', 'verified')->count();
-        $pendingKyc = User::where('kyc_status', 'in_progress')->count();
-        $rejectedKyc = User::where('kyc_status', 'rejected')->count();
-        $totalKycRequired = User::where('role', 'jobseeker')->count();
+            // Calculate growth for approved jobs
+            $lastMonthApprovedJobs = Job::where('status', Job::STATUS_APPROVED)
+                ->where('created_at', '<=', $lastMonthEnd)
+                ->count();
+            $jobGrowth = $lastMonthApprovedJobs > 0 ? round(($approvedJobs - $lastMonthApprovedJobs) / $lastMonthApprovedJobs * 100, 1) : 0;
 
-        // Calculate total applications and growth
-        $totalApplications = JobApplication::count();
-        $lastMonthApplications = JobApplication::where('created_at', '<=', $lastMonthEnd)->count();
-        $applicationGrowth = $lastMonthApplications > 0 
-            ? round(($totalApplications - $lastMonthApplications) / $lastMonthApplications * 100, 1) 
-            : 0;
+            // Get KYC status counts
+            $verifiedKyc = User::where('kyc_status', 'verified')->count();
+            $pendingKyc = User::where('kyc_status', 'in_progress')->count();
+            $rejectedKyc = User::where('kyc_status', 'rejected')->count();
+            $totalKycRequired = User::where('role', 'jobseeker')->count();
 
-        // Get registration data for the last 7 days
-        $registrationData = User::select(
-            DB::raw('DATE_FORMAT(created_at, "%a") as day'),
-            DB::raw('COUNT(*) as count')
-        )
-            ->where('created_at', '>=', now()->subDays(7))
-            ->groupBy('day')
-            ->orderBy('created_at')
-            ->get();
+            // Calculate total applications and growth
+            $totalApplications = JobApplication::count();
+            $lastMonthApplications = JobApplication::where('created_at', '<=', $lastMonthEnd)->count();
+            $applicationGrowth = $lastMonthApplications > 0
+                ? round(($totalApplications - $lastMonthApplications) / $lastMonthApplications * 100, 1)
+                : 0;
+
+            // Get registration data for the last 7 days
+            $registrationData = User::select(
+                DB::raw('DATE_FORMAT(created_at, "%a") as day'),
+                DB::raw('COUNT(*) as count')
+            )
+                ->where('created_at', '>=', now()->subDays(7))
+                ->groupBy('day')
+                ->orderBy(DB::raw('MIN(created_at)'))
+                ->get();
 
             // Get user distribution by role
             $userTypeData = [
@@ -114,7 +114,7 @@ class DashboardController extends Controller
         $rejectedJobs = Job::where('status', Job::STATUS_REJECTED)->count();
         $totalJobs = Job::count();
         $activeJobs = $approvedJobs; // For backward compatibility
-        
+
         // Calculate growth for approved jobs
         $lastMonthApprovedJobs = Job::where('status', Job::STATUS_APPROVED)
             ->where('created_at', '<=', $lastMonthEnd)
@@ -129,8 +129,8 @@ class DashboardController extends Controller
         // Calculate total applications and growth
         $totalApplications = JobApplication::count();
         $lastMonthApplications = JobApplication::where('created_at', '<=', $lastMonthEnd)->count();
-        $applicationGrowth = $lastMonthApplications > 0 
-            ? round(($totalApplications - $lastMonthApplications) / $lastMonthApplications * 100, 1) 
+        $applicationGrowth = $lastMonthApplications > 0
+            ? round(($totalApplications - $lastMonthApplications) / $lastMonthApplications * 100, 1)
             : 0;
 
         return response()->json([
@@ -160,7 +160,7 @@ class DashboardController extends Controller
         if ($request->has('type') && ($request->ajax() || $request->wantsJson())) {
             return $this->getAnalyticsData($request);
         }
-        
+
         // If it's an AJAX request for stats refresh
         if ($request->ajax() || $request->wantsJson()) {
             return $this->getCompanyStats();
@@ -197,12 +197,12 @@ class DashboardController extends Controller
 
         // Company Analytics
         $totalCompanies = User::where('role', 'employer')->count();
-        
+
         // Active companies (posted at least 1 job)
         $activeCompanies = User::where('role', 'employer')
             ->whereHas('jobs')
             ->count();
-        
+
         // Inactive companies (no jobs posted)
         $inactiveCompanies = $totalCompanies - $activeCompanies;
 
@@ -216,9 +216,11 @@ class DashboardController extends Controller
 
         // Top companies by applications received
         $topCompaniesByApplications = User::where('role', 'employer')
-            ->withCount(['jobs as applications_count' => function($query) {
-                $query->join('job_applications', 'jobs.id', '=', 'job_applications.job_id');
-            }])
+            ->withCount([
+                'jobs as applications_count' => function ($query) {
+                    $query->join('job_applications', 'jobs.id', '=', 'job_applications.job_id');
+                }
+            ])
             ->having('applications_count', '>', 0)
             ->orderByDesc('applications_count')
             ->limit(10)
@@ -267,7 +269,7 @@ class DashboardController extends Controller
             ->orderByDesc('jobs_count')
             ->limit(10)
             ->get()
-            ->map(function($company) {
+            ->map(function ($company) {
                 return [
                     'name' => $company->name,
                     'jobs_count' => $company->jobs_count
@@ -276,14 +278,16 @@ class DashboardController extends Controller
 
         // Top companies by applications
         $topCompaniesByApplications = User::where('role', 'employer')
-            ->withCount(['jobs as applications_count' => function($query) {
-                $query->join('job_applications', 'jobs.id', '=', 'job_applications.job_id');
-            }])
+            ->withCount([
+                'jobs as applications_count' => function ($query) {
+                    $query->join('job_applications', 'jobs.id', '=', 'job_applications.job_id');
+                }
+            ])
             ->having('applications_count', '>', 0)
             ->orderByDesc('applications_count')
             ->limit(10)
             ->get()
-            ->map(function($company) {
+            ->map(function ($company) {
                 return [
                     'name' => $company->name,
                     'applications_count' => $company->applications_count
@@ -449,7 +453,7 @@ class DashboardController extends Controller
             'Expires' => '0'
         ];
 
-        $callback = function() use ($data) {
+        $callback = function () use ($data) {
             $file = fopen('php://output', 'w');
 
             foreach ($data as $row) {
