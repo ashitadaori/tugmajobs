@@ -261,6 +261,34 @@
     display: block;
 }
 
+.location-suggestion {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+.location-suggestion:last-child {
+    border-bottom: none;
+}
+
+.location-suggestion:hover,
+.location-suggestion.active {
+    background-color: #f0f7ff;
+}
+
+.suggestion-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.suggestion-address {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
 .btn-search {
     padding: 1rem 2.5rem;
     background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
