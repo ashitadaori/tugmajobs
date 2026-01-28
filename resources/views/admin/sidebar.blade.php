@@ -156,7 +156,7 @@
             </a>
         </div>
 
-        @if(auth()->user()->role === 'superadmin')
+        @if(auth()->user()?->role === 'superadmin')
             <!-- System Settings Section (Superadmin Only) -->
             <div class="menu-section">
                 <div class="menu-title">System Settings</div>

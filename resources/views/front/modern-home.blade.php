@@ -929,11 +929,8 @@
         </div>
     </div>
 
-    <!-- Mapbox CSS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
-
-    <!-- Mapbox JS -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <!-- Mapbox CSS - Note: Already loaded in layout, this is for the modal map -->
+    <!-- Mapbox JS - Note: Already loaded in layout -->
 
     <script>
         // Job Location Map Functionality

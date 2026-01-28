@@ -1481,8 +1481,7 @@
 
 @push('styles')
     <link href="{{ asset('assets/css/job-detail-modern.css') }}?v={{ time() }}" rel="stylesheet">
-    <!-- Mapbox GL JS CSS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+    <!-- Mapbox GL JS CSS - Already loaded in layout -->
     <style>
         /* Sidebar Cards Wrapper - Fix overlap issue */
         .sidebar-cards-wrapper {
@@ -2643,11 +2642,11 @@
     });
     </script>
 
-    <!-- Mapbox GL JS -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    <!-- Mapbox GL JS - Already loaded in layout -->
     <script>
         // Job Location Map Initialization with Travel Time
-        document.addEventListener('DOMContentLoaded', function () {
+        // Wait for both DOM and Mapbox to be ready
+        function initJobLocationMap() {
             const mapContainer = document.getElementById('job-location-map');
 
             if (!mapContainer) {
@@ -3108,7 +3107,23 @@
                 </div>
             `;
             }
-        });
+        }
+
+        // Initialize map when DOM is ready and Mapbox is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Small delay to ensure Mapbox is fully initialized
+                setTimeout(initJobLocationMap, 100);
+            });
+        } else {
+            // DOM already ready, check if mapboxgl is available
+            if (typeof mapboxgl !== 'undefined') {
+                initJobLocationMap();
+            } else {
+                // Wait for mapboxgl to be available
+                setTimeout(initJobLocationMap, 100);
+            }
+        }
     </script>
 @endpush
 

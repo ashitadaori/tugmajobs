@@ -121,7 +121,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     // Analytics Dashboard (K-Means, Geolocation, Labor Trends)
     Route::prefix('analytics')->name('analytics.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'index'])->name('dashboard');
-        Route::get('/clusters', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'getClusterAnalysis'])->name('clusters');
+
         Route::get('/skills', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'getSkillTrends'])->name('skills');
         Route::get('/map', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'getJobMapData'])->name('map');
         Route::get('/density', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'getApplicantDensityData'])->name('density');

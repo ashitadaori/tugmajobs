@@ -37,22 +37,14 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            try {
-                Category::create([
-                    'name' => $category,
+            // Use firstOrCreate to prevent duplicates
+            Category::firstOrCreate(
+                ['name' => $category],
+                [
                     'slug' => Str::slug($category),
                     'status' => true
-                ]);
-            } catch (\Illuminate\Database\QueryException $e) {
-                // If duplicate slug, add a random suffix
-                if ($e->errorInfo[1] === 1062) {
-                    Category::create([
-                        'name' => $category,
-                        'slug' => Str::slug($category) . '-' . Str::random(5),
-                        'status' => true
-                    ]);
-                }
-            }
+                ]
+            );
         }
     }
 } 

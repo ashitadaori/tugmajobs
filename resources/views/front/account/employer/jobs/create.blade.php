@@ -1828,52 +1828,6 @@
                                 </div>
                             </div>
 
-                            <!-- Preliminary Questions Section -->
-                            <div class="form-row mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                                    <div class="form-row-header mb-0">
-                                        <i class="fas fa-question-circle me-2" style="color: #667eea;"></i> Preliminary
-                                        Interview Questions
-                                    </div>
-                                    <div class="option-card py-3 px-4" style="display: inline-flex; align-items: center; gap: 12px;"
-                                        onclick="toggleOptionCard(this, 'requires_screening')">
-                                        <div class="form-check form-switch m-0">
-                                            <input class="form-check-input" type="checkbox" id="requires_screening"
-                                                name="requires_screening" value="1" {{ old('requires_screening') ? 'checked' : '' }}
-                                                style="width: 3em; height: 1.5em;">
-                                        </div>
-                                        <label class="form-check-label mb-0" for="requires_screening"
-                                            style="font-weight: 500; cursor: pointer; white-space: nowrap;">
-                                            Enable screening
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div id="preliminary_questions_container" style="display: none;">
-                                    <div class="alert alert-info mb-3">
-                                        <i class="fas fa-info-circle"></i>
-                                        <div>
-                                            <strong>Screening Questions</strong><br>
-                                            <small>Add questions that job seekers must answer before submitting their
-                                                application. This helps filter candidates early.</small>
-                                        </div>
-                                    </div>
-
-                                    <div id="questions_list">
-                                        <!-- Questions will be added here dynamically -->
-                                    </div>
-
-                                    <div class="mt-3">
-                                        <button type="button" class="btn btn-outline-primary" id="add_question_btn">
-                                            <i class="fas fa-plus me-2"></i>Add Question
-                                        </button>
-                                    </div>
-
-                                    <input type="hidden" id="preliminary_questions" name="preliminary_questions"
-                                        value="{{ old('preliminary_questions') }}">
-                                </div>
-                            </div>
-
                             <!-- Required Documents Section -->
                             <div class="form-row mb-4">
                                 <div class="form-row-header">
@@ -2351,7 +2305,6 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/nouislider@14.6.0/distribute/nouislider.min.js"></script>
     <script src="{{ asset('assets/js/job-form-wizard-fixed.js') }}"></script>
-    <script src="{{ asset('assets/js/preliminary-questions.js') }}"></script>
 
     <script>
         /**
@@ -2456,7 +2409,7 @@
                 const stepFieldMap = {
                     1: ['title', 'job_type_id', 'category_id', 'vacancy', 'location', 'is_remote', 'is_featured'],
                     2: ['description', 'experience_level', 'education_level', 'salary_min', 'salary_max', 'deadline'],
-                    3: ['qualifications', 'requirements', 'benefits', 'skills', 'preliminary_questions', 'job_requirements'],
+                    3: ['qualifications', 'requirements', 'benefits', 'skills', 'job_requirements'],
                     4: []
                 };
 

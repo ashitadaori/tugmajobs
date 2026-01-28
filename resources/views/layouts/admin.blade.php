@@ -132,11 +132,12 @@
             border-color: var(--admin-border-color);
         }
 
-        .table td, .table th {
+        .table td,
+        .table th {
             border-color: var(--admin-border-color);
         }
 
-        [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+        [data-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>* {
             background-color: rgba(255, 255, 255, 0.05);
             color: var(--admin-text-main);
         }
@@ -245,7 +246,7 @@
             color: #9ca3af;
         }
 
-        [data-theme="dark"] .breadcrumb-item + .breadcrumb-item::before {
+        [data-theme="dark"] .breadcrumb-item+.breadcrumb-item::before {
             color: #6b7280;
         }
 
@@ -490,12 +491,13 @@
                     <div class="profile-menu dropdown">
                         <button class="btn btn-link dropdown-toggle text-dark" type="button" id="profileDropdown"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="{{ Auth::user()->profile_image ?? asset('images/default-profile.svg') }}"
+                            <img src="{{ Auth::user()?->profile_image ?? asset('images/default-profile.svg') }}"
                                 alt="Profile" class="admin-avatar">
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown" style="min-width: 200px;">
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown"
+                            style="min-width: 200px;">
                             <li>
-                                <h6 class="dropdown-header">{{ Auth::user()->name ?? 'Admin' }}</h6>
+                                <h6 class="dropdown-header">{{ Auth::user()?->name ?? 'Admin' }}</h6>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
