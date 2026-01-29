@@ -1,142 +1,304 @@
-/* Admin Sidebar Styles */
+/* ============================================
+   ADMIN SIDEBAR STYLES - Modern Design
+   ============================================ */
+
 .admin-sidebar {
     background: var(--admin-sidebar-bg, #ffffff);
-    border-right: 1px solid var(--admin-border-color, #dee2e6);
+    border-right: 1px solid var(--admin-border-color, #e5e7eb);
     height: 100vh;
     width: 280px;
     position: fixed;
     left: 0;
     top: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     z-index: 1000;
-    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
     transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.sidebar-header {
-    padding: 1rem;
-    border-bottom: 1px solid var(--admin-border-color, #dee2e6);
-    margin-bottom: 1rem;
+/* Custom Scrollbar */
+.admin-sidebar::-webkit-scrollbar {
+    width: 6px;
 }
 
-.sidebar-header .logo h4 {
+.admin-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   SIDEBAR HEADER / LOGO
+   ============================================ */
+.sidebar-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border-color, #e5e7eb);
+    flex-shrink: 0;
+}
+
+.sidebar-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.logo-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.125rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.logo-text h4 {
     margin: 0;
-    color: var(--admin-heading-color, #343a40);
-    font-weight: 600;
+    color: var(--admin-heading-color, #1f2937);
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: -0.025em;
+}
+
+.logo-subtitle {
+    font-size: 0.7rem;
+    color: var(--admin-text-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
+/* ============================================
+   MENU SECTIONS
+   ============================================ */
+.sidebar-menu {
+    flex: 1;
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .menu-section {
-    margin-bottom: 1.5rem;
-    padding: 0 1rem;
+    margin-bottom: 0.5rem;
+    padding: 0 0.75rem;
+}
+
+.menu-section-bottom {
+    margin-top: auto;
+    padding-top: 0.5rem;
 }
 
 .menu-title {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     font-weight: 600;
     text-transform: uppercase;
-    color: var(--admin-text-main, #6c757d);
-    opacity: 0.7;
-    padding: 0.5rem 1rem;
-    margin-bottom: 0.5rem;
+    color: var(--admin-text-muted, #9ca3af);
+    padding: 0.75rem 1rem 0.5rem;
+    letter-spacing: 0.08em;
 }
 
+.menu-divider {
+    height: 1px;
+    background: var(--admin-border-color, #e5e7eb);
+    margin: 0.5rem 1rem 1rem;
+}
+
+/* ============================================
+   MENU ITEMS
+   ============================================ */
 .menu-item {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
-    color: var(--admin-text-main, #495057);
+    padding: 0.625rem 1rem;
+    color: var(--admin-text-main, #4b5563);
     text-decoration: none;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    margin-bottom: 0.25rem;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    margin-bottom: 2px;
     position: relative;
     border: none;
     background: none;
     width: 100%;
     text-align: left;
     cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 .menu-item:hover {
-    background: var(--admin-menu-hover-bg, #f8f9fa);
-    color: var(--admin-heading-color, #212529);
+    background: var(--admin-menu-hover-bg, #f3f4f6);
+    color: var(--admin-heading-color, #1f2937);
     text-decoration: none;
 }
 
 .menu-item.active {
-    background: #4f46e5;
-    color: #fff;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
-/* ... keep other styles ... */
-
+.menu-item.active i {
+    color: #ffffff;
+}
 
 .menu-item i {
     width: 20px;
-    margin-right: 10px;
-    font-size: 1rem;
+    margin-right: 12px;
+    font-size: 0.9375rem;
+    color: var(--admin-text-muted, #6b7280);
+    transition: color 0.15s ease;
+}
+
+.menu-item:hover i {
+    color: var(--admin-heading-color, #1f2937);
 }
 
 .menu-item .badge {
-    position: absolute;
-    right: 1rem;
+    margin-left: auto;
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.5rem;
+    font-weight: 600;
 }
 
-.logout-btn {
-    color: #ef4444 !important;
+/* Highlight menu item (Post New Job) */
+.menu-item-highlight {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-.logout-btn:hover {
-    background: var(--admin-logout-hover-bg, #fef2f2) !important;
-    color: #dc2626 !important;
+.menu-item-highlight i {
+    color: #10b981;
 }
 
-/* Submenu styles */
+.menu-item-highlight:hover {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.menu-item-highlight.active {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+/* ============================================
+   SUBMENU STYLES
+   ============================================ */
 .kyc-menu-group .chevron-icon {
-    transition: transform 0.3s ease;
-    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+    font-size: 0.6875rem;
+    color: var(--admin-text-muted, #9ca3af);
 }
 
 .kyc-menu-group .menu-item[aria-expanded="true"] .chevron-icon {
     transform: rotate(180deg);
 }
 
+#kycSubmenu {
+    background: var(--admin-submenu-bg, rgba(0, 0, 0, 0.02));
+    border-radius: 8px;
+    margin: 4px 0 4px 0;
+    padding: 4px 0;
+}
+
 .submenu-item {
-    padding-left: 2.5rem !important;
-    font-size: 0.9rem;
+    padding-left: 2.75rem !important;
+    font-size: 0.8125rem;
+    color: var(--admin-text-main, #6b7280);
 }
 
 .submenu-item i {
-    font-size: 0.85rem;
+    font-size: 0.8125rem;
+    width: 18px;
 }
 
-#kycSubmenu {
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 0.5rem;
-    margin-top: 0.25rem;
+.submenu-item.active {
+    background: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    box-shadow: none;
 }
 
-/* Special styling for Post New Job button */
-.menu-item-success {
-    background: #10b981;
-    color: #fff !important;
+.submenu-item.active i {
+    color: #4f46e5;
 }
 
-.menu-item-success:hover {
-    background: #059669;
-    color: #fff !important;
+/* ============================================
+   USER PROFILE MINI
+   ============================================ */
+.user-profile-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    background: var(--admin-menu-hover-bg, #f9fafb);
+    border-radius: 8px;
 }
 
-.menu-item-success.active {
-    background: #047857;
-    color: #fff !important;
+.user-avatar-mini {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid var(--admin-border-color, #e5e7eb);
 }
 
-.menu-item-success i {
-    color: #fff;
+.user-info-mini {
+    display: flex;
+    flex-direction: column;
 }
 
-/* Main Content Layout Adjustments */
+.user-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--admin-heading-color, #1f2937);
+    line-height: 1.2;
+}
+
+.user-role {
+    font-size: 0.6875rem;
+    color: var(--admin-text-muted, #6b7280);
+    text-transform: capitalize;
+}
+
+/* ============================================
+   LOGOUT BUTTON
+   ============================================ */
+.logout-btn {
+    color: #ef4444 !important;
+}
+
+.logout-btn i {
+    color: #ef4444 !important;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #dc2626 !important;
+}
+
+.logout-btn:hover i {
+    color: #dc2626 !important;
+}
+
+/* ============================================
+   MAIN CONTENT LAYOUT
+   ============================================ */
 .admin-main-wrapper {
     display: flex;
     min-height: 100vh;
@@ -156,29 +318,49 @@
     position: sticky;
     top: 0;
     z-index: 999;
-    background: var(--admin-card-bg);
-    border-bottom: 1px solid var(--admin-border-color);
-    padding: 0.75rem 1.5rem;
+    background: var(--admin-card-bg, #ffffff);
+    border-bottom: 1px solid var(--admin-border-color, #e5e7eb);
+    padding: 0.875rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .admin-content-area {
     padding: 1.5rem;
     flex: 1;
+    background: var(--admin-body-bg, #f9fafb);
 }
 
-/* Mobile Toggle */
+.admin-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid var(--admin-border-color, #e5e7eb);
+}
+
+/* ============================================
+   MOBILE TOGGLE
+   ============================================ */
 .sidebar-toggle {
     display: none;
     background: none;
     border: none;
     font-size: 1.25rem;
-    color: var(--admin-text-main);
+    color: var(--admin-text-main, #374151);
     cursor: pointer;
-    margin-right: 1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.sidebar-toggle:hover {
+    background: var(--admin-menu-hover-bg, #f3f4f6);
 }
 
 /* ============================================
-   LIGHT MODE STYLES (Default & Explicit)
+   LIGHT MODE STYLES
    ============================================ */
 [data-theme="light"] .admin-sidebar,
 html:not([data-theme="dark"]) .admin-sidebar {
@@ -191,41 +373,25 @@ html:not([data-theme="dark"]) .sidebar-header {
     border-color: #e5e7eb;
 }
 
-[data-theme="light"] .sidebar-header .logo h4,
-html:not([data-theme="dark"]) .sidebar-header .logo h4 {
-    color: #1f2937;
-}
-
-[data-theme="light"] .menu-title,
-html:not([data-theme="dark"]) .menu-title {
-    color: #6b7280;
-}
-
 [data-theme="light"] .menu-item,
 html:not([data-theme="dark"]) .menu-item {
-    color: #374151;
+    color: #4b5563;
 }
 
 [data-theme="light"] .menu-item:hover,
 html:not([data-theme="dark"]) .menu-item:hover {
     background: #f3f4f6;
-    color: #111827;
-}
-
-[data-theme="light"] .menu-item.active,
-html:not([data-theme="dark"]) .menu-item.active {
-    background: #4f46e5;
-    color: #fff;
-}
-
-[data-theme="light"] .logout-btn:hover,
-html:not([data-theme="dark"]) .logout-btn:hover {
-    background: #fef2f2 !important;
+    color: #1f2937;
 }
 
 [data-theme="light"] #kycSubmenu,
 html:not([data-theme="dark"]) #kycSubmenu {
-    background: rgba(0, 0, 0, 0.03);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .user-profile-mini,
+html:not([data-theme="dark"]) .user-profile-mini {
+    background: #f9fafb;
 }
 
 /* ============================================
@@ -240,16 +406,28 @@ html:not([data-theme="dark"]) #kycSubmenu {
     border-color: #374151;
 }
 
-[data-theme="dark"] .sidebar-header .logo h4 {
+[data-theme="dark"] .logo-text h4 {
     color: #f9fafb;
 }
 
-[data-theme="dark"] .menu-title {
+[data-theme="dark"] .logo-subtitle {
     color: #9ca3af;
+}
+
+[data-theme="dark"] .menu-title {
+    color: #6b7280;
+}
+
+[data-theme="dark"] .menu-divider {
+    background: #374151;
 }
 
 [data-theme="dark"] .menu-item {
     color: #d1d5db;
+}
+
+[data-theme="dark"] .menu-item i {
+    color: #9ca3af;
 }
 
 [data-theme="dark"] .menu-item:hover {
@@ -257,21 +435,79 @@ html:not([data-theme="dark"]) #kycSubmenu {
     color: #ffffff;
 }
 
-[data-theme="dark"] .menu-item.active {
-    background: #4f46e5;
-    color: #fff;
+[data-theme="dark"] .menu-item:hover i {
+    color: #ffffff;
 }
 
-[data-theme="dark"] .logout-btn:hover {
-    background: #374151 !important;
-    color: #f87171 !important;
+[data-theme="dark"] .menu-item.active {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .menu-item-highlight {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+[data-theme="dark"] .menu-item-highlight i {
+    color: #34d399;
+}
+
+[data-theme="dark"] .menu-item-highlight:hover {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
 }
 
 [data-theme="dark"] #kycSubmenu {
     background: rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive */
+[data-theme="dark"] .submenu-item {
+    color: #9ca3af;
+}
+
+[data-theme="dark"] .submenu-item.active {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+}
+
+[data-theme="dark"] .submenu-item.active i {
+    color: #a5b4fc;
+}
+
+[data-theme="dark"] .user-profile-mini {
+    background: #374151;
+}
+
+[data-theme="dark"] .user-avatar-mini {
+    border-color: #4b5563;
+}
+
+[data-theme="dark"] .user-name {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .user-role {
+    color: #9ca3af;
+}
+
+[data-theme="dark"] .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .logout-btn:hover i {
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .admin-avatar {
+    border-color: #4b5563;
+}
+
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
 @media (max-width: 991.98px) {
     .admin-sidebar {
         transform: translateX(-100%);
@@ -287,7 +523,9 @@ html:not([data-theme="dark"]) #kycSubmenu {
     }
 
     .sidebar-toggle {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .sidebar-overlay {
@@ -299,9 +537,20 @@ html:not([data-theme="dark"]) #kycSubmenu {
         height: 100vh;
         background: rgba(0, 0, 0, 0.5);
         z-index: 999;
+        backdrop-filter: blur(2px);
     }
 
     .sidebar-overlay.show {
         display: block;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .admin-sidebar {
+        width: 100%;
+    }
+
+    .admin-content-area {
+        padding: 1rem;
     }
 }

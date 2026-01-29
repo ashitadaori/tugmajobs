@@ -1,80 +1,105 @@
 <!-- Admin Sidebar -->
 <div class="admin-sidebar">
     <div class="sidebar-header">
-        <div class="logo">
-            <h4>Admin Panel</h4>
+        <div class="logo d-flex align-items-center">
+            <div class="logo-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="logo-text">
+                <h4>PESO Admin</h4>
+                <span class="logo-subtitle">Management Portal</span>
+            </div>
         </div>
     </div>
 
     <div class="sidebar-menu">
-        <!-- Global Controls Section -->
+        <!-- Main Section -->
         <div class="menu-section">
-            <div class="menu-title">Global Controls</div>
+            <div class="menu-title">Main</div>
 
             <!-- Dashboard -->
             <a href="{{ route('admin.dashboard') }}"
                 class="menu-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <i class="fas fa-tachometer-alt"></i>
+                <i class="fas fa-th-large"></i>
                 <span>Dashboard</span>
             </a>
 
-            <!-- User Management -->
-            <a href="{{ route('admin.users.index') }}"
-                class="menu-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                <i class="fas fa-users"></i>
-                <span>User Management</span>
+            <!-- Analytics -->
+            <a href="{{ route('admin.analytics.dashboard') }}"
+                class="menu-item {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">
+                <i class="fas fa-chart-pie"></i>
+                <span>Analytics</span>
             </a>
+        </div>
+
+        <!-- Job Management Section -->
+        <div class="menu-section">
+            <div class="menu-title">Job Management</div>
 
             <!-- Post New Job -->
             <a href="{{ route('admin.jobs.create') }}"
-                class="menu-item {{ request()->routeIs('admin.jobs.create') ? 'active' : '' }}">
+                class="menu-item menu-item-highlight {{ request()->routeIs('admin.jobs.create') ? 'active' : '' }}">
                 <i class="fas fa-plus-circle"></i>
                 <span>Post New Job</span>
             </a>
 
-            <!-- Company Management -->
-            <a href="{{ route('admin.company-management.index') }}"
-                class="menu-item {{ request()->routeIs('admin.company-management.*') ? 'active' : '' }}">
-                <i class="fas fa-building"></i>
-                <span>Company Management</span>
-            </a>
-
-            <!-- Jobs Posted - Added to match layout -->
+            <!-- All Jobs -->
             <a href="{{ route('admin.jobs.index') }}"
                 class="menu-item {{ request()->routeIs('admin.jobs.index') ? 'active' : '' }}">
-                <i class="fas fa-list"></i>
-                <span>Jobs Posted</span>
-            </a>
-
-            <!-- Employer Companies -->
-            <a href="{{ route('admin.companies.index') }}"
-                class="menu-item {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}">
-                <i class="fas fa-users"></i>
-                <span>Employer Accounts</span>
-            </a>
-
-            <!-- Employer Documents - Added to match layout -->
-            <a href="{{ route('admin.employers.documents.index') }}"
-                class="menu-item {{ request()->routeIs('admin.employers.documents.*') ? 'active' : '' }}">
-                <i class="fas fa-file-contract"></i>
-                <span>Employer Documents</span>
-                @php
-                    $pendingDocsCount = \App\Models\EmployerDocument::where('status', 'pending')->count();
-                @endphp
-                @if($pendingDocsCount > 0)
-                    <span class="badge bg-warning">{{ $pendingDocsCount }}</span>
-                @endif
+                <i class="fas fa-briefcase"></i>
+                <span>All Jobs</span>
             </a>
 
             <!-- Pending Jobs -->
             <a href="{{ route('admin.jobs.pending') }}"
                 class="menu-item {{ request()->routeIs('admin.jobs.pending') ? 'active' : '' }}">
                 <i class="fas fa-clock"></i>
-                <span>Pending Jobs</span>
-                @if($pendingJobsCount ?? 0 > 0)
-                    <span class="badge bg-warning">{{ $pendingJobsCount }}</span>
+                <span>Pending Approval</span>
+                @php
+                    $pendingCount = \App\Models\Job::where('status', 'pending')->count();
+                @endphp
+                @if($pendingCount > 0)
+                    <span class="badge bg-warning text-dark">{{ $pendingCount }}</span>
                 @endif
             </a>
+
+            <!-- Categories -->
+            <a href="{{ route('admin.categories.index') }}"
+                class="menu-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                <i class="fas fa-folder-open"></i>
+                <span>Categories</span>
+            </a>
+        </div>
+
+        <!-- User Management Section -->
+        <div class="menu-section">
+            <div class="menu-title">User Management</div>
+
+            <!-- All Users -->
+            <a href="{{ route('admin.users.index') }}"
+                class="menu-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                <i class="fas fa-users"></i>
+                <span>All Users</span>
+            </a>
+
+            <!-- Employer Accounts -->
+            <a href="{{ route('admin.companies.index') }}"
+                class="menu-item {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}">
+                <i class="fas fa-building"></i>
+                <span>Employer Accounts</span>
+            </a>
+
+            <!-- Company Management -->
+            <a href="{{ route('admin.company-management.index') }}"
+                class="menu-item {{ request()->routeIs('admin.company-management.*') ? 'active' : '' }}">
+                <i class="fas fa-city"></i>
+                <span>Company Profiles</span>
+            </a>
+        </div>
+
+        <!-- Verification Section -->
+        <div class="menu-section">
+            <div class="menu-title">Verification</div>
 
             <!-- KYC Verifications Dropdown -->
             <div class="kyc-menu-group">
@@ -83,55 +108,61 @@
                     data-bs-toggle="collapse"
                     aria-expanded="{{ request()->routeIs('admin.kyc.*') ? 'true' : 'false' }}">
                     <span>
-                        <i class="fas fa-id-card"></i>
-                        <span>KYC Verifications</span>
+                        <i class="fas fa-user-check"></i>
+                        <span>KYC Verification</span>
                     </span>
-                    <i class="fas fa-chevron-down chevron-icon"></i>
+                    @php
+                        $totalKycPending = \App\Models\KycDocument::where('status', 'pending')->count();
+                    @endphp
+                    @if($totalKycPending > 0)
+                        <span class="badge bg-danger">{{ $totalKycPending }}</span>
+                    @else
+                        <i class="fas fa-chevron-down chevron-icon"></i>
+                    @endif
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.kyc.*') ? 'show' : '' }}" id="kycSubmenu">
                     <a href="{{ route('admin.kyc.didit-verifications') }}"
                         class="menu-item submenu-item {{ request()->routeIs('admin.kyc.didit-verifications') || request()->routeIs('admin.kyc.show-didit-verification') ? 'active' : '' }}">
                         <i class="fas fa-robot"></i>
-                        <span>DiDit Verifications</span>
+                        <span>DiDit Auto</span>
                     </a>
                     <a href="{{ route('admin.kyc.manual-documents') }}"
                         class="menu-item submenu-item {{ request()->routeIs('admin.kyc.manual-documents') || request()->routeIs('admin.kyc.show-manual-document') ? 'active' : '' }}">
                         <i class="fas fa-file-alt"></i>
-                        <span>Manual Documents</span>
+                        <span>Manual Review</span>
                         @php
                             $manualKycPendingCount = \App\Models\KycDocument::where('status', 'pending')->count();
                         @endphp
                         @if($manualKycPendingCount > 0)
-                            <span class="badge bg-warning">{{ $manualKycPendingCount }}</span>
+                            <span class="badge bg-warning text-dark">{{ $manualKycPendingCount }}</span>
                         @endif
                     </a>
                 </div>
             </div>
+
+            <!-- Employer Documents -->
+            <a href="{{ route('admin.employers.documents.index') }}"
+                class="menu-item {{ request()->routeIs('admin.employers.documents.*') ? 'active' : '' }}">
+                <i class="fas fa-file-contract"></i>
+                <span>Employer Docs</span>
+                @php
+                    $pendingDocsCount = \App\Models\EmployerDocument::where('status', 'pending')->count();
+                @endphp
+                @if($pendingDocsCount > 0)
+                    <span class="badge bg-warning text-dark">{{ $pendingDocsCount }}</span>
+                @endif
+            </a>
         </div>
 
-        <!-- Content Management Section -->
+        <!-- Content & Tools Section -->
         <div class="menu-section">
-            <div class="menu-title">Content Management</div>
+            <div class="menu-title">Content & Tools</div>
 
-            <!-- Categories -->
-            <a href="{{ route('admin.categories.index') }}"
-                class="menu-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                <i class="fas fa-tags"></i>
-                <span>Categories</span>
-            </a>
-
-            <!-- Graphic Poster Builder -->
+            <!-- Poster Builder -->
             <a href="{{ route('admin.posters.index') }}"
                 class="menu-item {{ request()->routeIs('admin.posters.*') ? 'active' : '' }}">
-                <i class="fas fa-image"></i>
+                <i class="fas fa-palette"></i>
                 <span>Poster Builder</span>
-            </a>
-
-            <!-- Analytics (includes K-Means Clustering) -->
-            <a href="{{ route('admin.analytics.dashboard') }}"
-                class="menu-item {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">
-                <i class="fas fa-chart-line"></i>
-                <span>Analytics</span>
             </a>
 
             <!-- Audit Reports -->
@@ -140,52 +171,54 @@
                 <i class="fas fa-clipboard-list"></i>
                 <span>Audit Reports</span>
             </a>
-
-            <!-- Maintenance Mode -->
-            <a href="{{ route('admin.maintenance.index') }}"
-                class="menu-item {{ request()->routeIs('admin.maintenance.*') ? 'active' : '' }}">
-                <i class="fas fa-tools"></i>
-                <span>Maintenance Mode</span>
-            </a>
         </div>
 
         @if(auth()->user()?->role === 'superadmin')
-            <!-- System Settings Section (Superadmin Only) -->
+            <!-- System Section (Superadmin Only) -->
             <div class="menu-section">
-                <div class="menu-title">System Settings</div>
+                <div class="menu-title">System</div>
 
                 <!-- Admin Management -->
                 <a href="{{ route('admin.admins.index') }}"
                     class="menu-item {{ request()->routeIs('admin.admins.*') ? 'active' : '' }}">
                     <i class="fas fa-user-shield"></i>
-                    <span>Admin Management</span>
+                    <span>Admin Accounts</span>
                 </a>
 
                 <!-- Site Settings -->
                 <a href="{{ route('admin.settings.index') }}"
                     class="menu-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                     <i class="fas fa-cog"></i>
-                    <span>Site Settings</span>
+                    <span>Settings</span>
+                </a>
+
+                <!-- Maintenance Mode -->
+                <a href="{{ route('admin.maintenance.index') }}"
+                    class="menu-item {{ request()->routeIs('admin.maintenance.*') ? 'active' : '' }}">
+                    <i class="fas fa-tools"></i>
+                    <span>Maintenance</span>
                 </a>
             </div>
         @endif
 
         <!-- Account Section -->
-        <div class="menu-section">
-            <div class="menu-title">Account</div>
+        <div class="menu-section menu-section-bottom">
+            <div class="menu-divider"></div>
+
+            <div class="user-profile-mini">
+                <img src="{{ Auth::user()?->profile_image ?? asset('images/default-profile.svg') }}"
+                     alt="Profile" class="user-avatar-mini">
+                <div class="user-info-mini">
+                    <span class="user-name">{{ Auth::user()?->name ?? 'Admin' }}</span>
+                    <span class="user-role">{{ ucfirst(Auth::user()?->role ?? 'admin') }}</span>
+                </div>
+            </div>
 
             <!-- Profile -->
             <a href="{{ route('admin.profile.edit') }}"
                 class="menu-item {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </a>
-
-            <!-- Change Password -->
-            <a href="{{ route('admin.profile.password') }}"
-                class="menu-item {{ request()->routeIs('admin.profile.password') ? 'active' : '' }}">
-                <i class="fas fa-lock"></i>
-                <span>Change Password</span>
+                <i class="fas fa-user-circle"></i>
+                <span>My Profile</span>
             </a>
 
             <!-- Logout -->

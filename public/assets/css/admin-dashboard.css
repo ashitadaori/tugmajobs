@@ -1,0 +1,663 @@
+/* ============================================
+   ADMIN DASHBOARD STYLES - Modern Design
+   ============================================ */
+
+/* ============================================
+   PAGE HEADER
+   ============================================ */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.dashboard-header-left h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--admin-heading-color, #1f2937);
+    margin: 0 0 0.25rem 0;
+}
+
+.dashboard-header-left p {
+    font-size: 0.875rem;
+    color: var(--admin-text-muted, #6b7280);
+    margin: 0;
+}
+
+.dashboard-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dashboard-header-right .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.system-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border-radius: 20px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.system-status-badge .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: status-pulse 2s infinite;
+}
+
+@keyframes status-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ============================================
+   STATISTICS GRID
+   ============================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 1400px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   STAT CARD COMPONENT
+   ============================================ */
+.stat-card {
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: block;
+    border: 1px solid var(--admin-border-color, #e5e7eb);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+.stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-card-icon.primary {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.stat-card-icon.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.stat-card-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.stat-card-icon.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.stat-card-icon.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.stat-card-badge {
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.stat-card-content h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--admin-heading-color, #1f2937);
+    margin: 0 0 0.25rem 0;
+    line-height: 1.2;
+}
+
+.stat-card-content p {
+    font-size: 0.8125rem;
+    color: var(--admin-text-muted, #6b7280);
+    margin: 0 0 0.75rem 0;
+    font-weight: 500;
+}
+
+.stat-card-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.stat-card-trend.up {
+    color: #10b981;
+}
+
+.stat-card-trend.down {
+    color: #ef4444;
+}
+
+.stat-card-trend.neutral {
+    color: var(--admin-text-muted, #6b7280);
+}
+
+.stat-card-link {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem 1.5rem;
+    background: rgba(0, 0, 0, 0.02);
+    font-size: 0.8125rem;
+    color: var(--admin-text-muted, #6b7280);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover .stat-card-link {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Pending Jobs Card - Special Styling */
+.stat-card.has-alert {
+    border-color: #f59e0b;
+    border-width: 2px;
+}
+
+.stat-card.has-alert .stat-card-content h3 {
+    color: #f59e0b;
+}
+
+/* Live Indicator */
+.stat-card-live {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: live-pulse 2s infinite;
+}
+
+@keyframes live-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* ============================================
+   DASHBOARD CARDS GRID
+   ============================================ */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   DASHBOARD CARD COMPONENT
+   ============================================ */
+.dashboard-card {
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    border: 1px solid var(--admin-border-color, #e5e7eb);
+    overflow: hidden;
+}
+
+.dashboard-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border-color, #e5e7eb);
+}
+
+.dashboard-card-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--admin-heading-color, #1f2937);
+    margin: 0;
+}
+
+.dashboard-card-header h2 small {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--admin-text-muted, #6b7280);
+    margin-top: 0.125rem;
+}
+
+.dashboard-card-header .btn-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: #6366f1;
+}
+
+.dashboard-card-header .btn-link:hover {
+    text-decoration: underline;
+}
+
+.dashboard-card-body {
+    padding: 1.5rem;
+}
+
+.dashboard-card-body.no-padding {
+    padding: 0;
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    height: 280px;
+}
+
+/* ============================================
+   USER DISTRIBUTION LIST
+   ============================================ */
+.user-distribution-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.user-distribution-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border-color, #e5e7eb);
+}
+
+.user-distribution-item:last-child {
+    border-bottom: none;
+}
+
+.user-distribution-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.user-distribution-info {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.user-distribution-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.user-distribution-icon.jobseekers {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.user-distribution-icon.employers {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.user-distribution-icon.admins {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.user-distribution-text h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--admin-heading-color, #1f2937);
+    margin: 0;
+}
+
+.user-distribution-text span {
+    font-size: 0.75rem;
+    color: var(--admin-text-muted, #6b7280);
+}
+
+.user-distribution-count {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--admin-heading-color, #1f2937);
+}
+
+.user-distribution-progress {
+    height: 6px;
+    background: var(--admin-border-color, #e5e7eb);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.user-distribution-progress-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.user-distribution-progress-bar.jobseekers {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.user-distribution-progress-bar.employers {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.user-distribution-progress-bar.admins {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+/* ============================================
+   ACTIVITY FEED
+   ============================================ */
+.activity-feed {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activity-feed-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border-color, #e5e7eb);
+    transition: background 0.15s ease;
+}
+
+.activity-feed-item:last-child {
+    border-bottom: none;
+}
+
+.activity-feed-item:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.activity-feed-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.activity-feed-icon.job {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.activity-feed-icon.user {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.activity-feed-icon.application {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.activity-feed-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-feed-content p {
+    font-size: 0.875rem;
+    color: var(--admin-heading-color, #1f2937);
+    margin: 0 0 0.25rem 0;
+    line-height: 1.4;
+}
+
+.activity-feed-content p strong {
+    font-weight: 600;
+}
+
+.activity-feed-content p a {
+    color: #6366f1;
+    text-decoration: none;
+}
+
+.activity-feed-content p a:hover {
+    text-decoration: underline;
+}
+
+.activity-feed-time {
+    font-size: 0.75rem;
+    color: var(--admin-text-muted, #6b7280);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.activity-feed-empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.activity-feed-empty i {
+    font-size: 2.5rem;
+    color: var(--admin-text-muted, #9ca3af);
+    margin-bottom: 0.75rem;
+}
+
+.activity-feed-empty p {
+    color: var(--admin-text-muted, #6b7280);
+    margin: 0;
+}
+
+/* ============================================
+   DARK MODE STYLES
+   ============================================ */
+[data-theme="dark"] .dashboard-header-left h1 {
+    color: #f9fafb;
+}
+
+[data-theme="dark"] .system-status-badge {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+[data-theme="dark"] .stat-card {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme="dark"] .stat-card:hover {
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .stat-card-icon.primary {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .stat-card-icon.success {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="dark"] .stat-card-icon.warning {
+    background: rgba(245, 158, 11, 0.2);
+}
+
+[data-theme="dark"] .stat-card-icon.info {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .stat-card-icon.danger {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="dark"] .stat-card-content h3 {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .stat-card-content p {
+    color: #9ca3af;
+}
+
+[data-theme="dark"] .stat-card-link {
+    background: rgba(255, 255, 255, 0.03);
+    color: #9ca3af;
+}
+
+[data-theme="dark"] .dashboard-card {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme="dark"] .dashboard-card-header {
+    border-color: #374151;
+}
+
+[data-theme="dark"] .dashboard-card-header h2 {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .dashboard-card-header .btn-link {
+    color: #818cf8;
+}
+
+[data-theme="dark"] .user-distribution-item {
+    border-color: #374151;
+}
+
+[data-theme="dark"] .user-distribution-text h4 {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .user-distribution-count {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .user-distribution-progress {
+    background: #374151;
+}
+
+[data-theme="dark"] .activity-feed-item {
+    border-color: #374151;
+}
+
+[data-theme="dark"] .activity-feed-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="dark"] .activity-feed-content p {
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .activity-feed-content p a {
+    color: #818cf8;
+}
+
+[data-theme="dark"] .activity-feed-icon.job {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .activity-feed-icon.user {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="dark"] .activity-feed-icon.application {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dashboard-header-right {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .stat-card-content h3 {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .activity-feed-item {
+        padding: 1rem;
+    }
+}
