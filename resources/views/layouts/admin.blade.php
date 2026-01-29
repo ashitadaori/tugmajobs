@@ -604,6 +604,28 @@
                     overlay.classList.remove('show');
                 });
             }
+
+            // Sidebar Scroll Position Persistence
+            if (sidebar) {
+                // Restore scroll position on page load
+                const savedScrollPos = sessionStorage.getItem('adminSidebarScrollPos');
+                if (savedScrollPos) {
+                    sidebar.scrollTop = parseInt(savedScrollPos, 10);
+                }
+
+                // Save scroll position before navigating
+                sidebar.addEventListener('scroll', function() {
+                    sessionStorage.setItem('adminSidebarScrollPos', sidebar.scrollTop);
+                });
+
+                // Also save when clicking any link in sidebar
+                const sidebarLinks = sidebar.querySelectorAll('a, button[type="submit"]');
+                sidebarLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        sessionStorage.setItem('adminSidebarScrollPos', sidebar.scrollTop);
+                    });
+                });
+            }
         });
 
         // Admin Toast Notification System

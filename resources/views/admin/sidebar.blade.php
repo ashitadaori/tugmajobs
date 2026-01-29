@@ -6,7 +6,7 @@
                 <i class="fas fa-briefcase"></i>
             </div>
             <div class="logo-text">
-                <h4>PESO Admin</h4>
+                <h4>Admin</h4>
                 <span class="logo-subtitle">Management Portal</span>
             </div>
         </div>
@@ -205,16 +205,9 @@
         <div class="menu-section menu-section-bottom">
             <div class="menu-divider"></div>
 
-            <div class="user-profile-mini">
-                <div class="user-avatar-wrapper">
-                    <img src="{{ Auth::user()?->profile_image ?? asset('images/default-profile.svg') }}"
-                         alt="Profile" class="user-avatar-mini"
-                         style="width: 36px; height: 36px; min-width: 36px; max-width: 36px; object-fit: cover; border-radius: 8px;">
-                </div>
-                <div class="user-info-mini">
-                    <span class="user-name">{{ Auth::user()?->name ?? 'Admin' }}</span>
-                    <span class="user-role">{{ ucfirst(Auth::user()?->role ?? 'admin') }}</span>
-                </div>
+            <div class="user-info-section">
+                <span class="user-name">{{ Auth::user()?->name ?? 'Admin' }}</span>
+                <span class="user-role">{{ ucfirst(Auth::user()?->role ?? 'admin') }}</span>
             </div>
 
             <!-- Profile -->
