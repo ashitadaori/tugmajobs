@@ -285,11 +285,11 @@
             color: white;
         }
 
-        .tab-content {
+        .analytics-tab-pane {
             display: none;
         }
 
-        .tab-content.active {
+        .analytics-tab-pane.active {
             display: block;
         }
 
@@ -656,7 +656,7 @@
 
         <!-- Tab Contents -->
         <!-- K-Means Clusters Tab -->
-        <div id="clusters-tab" class="tab-content active">
+        <div id="clusters-tab" class="analytics-tab-pane active">
             <!-- What is This? Explainer -->
             <div class="row mb-4">
                 <div class="col-12">
@@ -1412,7 +1412,7 @@
     </div>
 
     <!-- Skills & Trends Tab -->
-    <div id="skills-tab" class="tab-content">
+    <div id="skills-tab" class="analytics-tab-pane">
         <div class="row g-4">
             <div class="col-lg-6">
                 <div class="analytics-card">
@@ -1461,7 +1461,7 @@
     </div>
 
     <!-- Job Vacancies Map Tab -->
-    <div id="map-tab" class="tab-content">
+    <div id="map-tab" class="analytics-tab-pane">
         <div class="row g-4">
             <div class="col-lg-9">
                 <div class="analytics-card">
@@ -1501,7 +1501,7 @@
     </div>
 
     <!-- Applicant Density Heatmap Tab -->
-    <div id="heatmap-tab" class="tab-content">
+    <div id="heatmap-tab" class="analytics-tab-pane">
         <div class="row g-4">
             <div class="col-lg-9">
                 <div class="analytics-card">
@@ -1547,7 +1547,7 @@
     </div>
 
     <!-- Job Fair Planning Tab -->
-    <div id="jobfair-tab" class="tab-content">
+    <div id="jobfair-tab" class="analytics-tab-pane">
         <div class="row g-4">
             <div class="col-lg-8">
                 <div class="analytics-card mb-4">
@@ -1616,7 +1616,7 @@
     </div>
 
     <!-- Prescriptive Analytics Tab -->
-    <div id="prescriptive-tab" class="tab-content">
+    <div id="prescriptive-tab" class="analytics-tab-pane">
         <div class="row g-4">
             <!-- Header Row -->
             <div class="col-12">
@@ -2317,7 +2317,7 @@
             document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
 
             // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.analytics-tab-pane').forEach(content => content.classList.remove('active'));
             document.getElementById(`${tabName}-tab`).classList.add('active');
 
             // Load data for the tab if not loaded
