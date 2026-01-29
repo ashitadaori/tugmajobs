@@ -206,8 +206,11 @@
             <div class="menu-divider"></div>
 
             <div class="user-profile-mini">
-                <img src="{{ Auth::user()?->profile_image ?? asset('images/default-profile.svg') }}"
-                     alt="Profile" class="user-avatar-mini">
+                <div class="user-avatar-wrapper">
+                    <img src="{{ Auth::user()?->profile_image ?? asset('images/default-profile.svg') }}"
+                         alt="Profile" class="user-avatar-mini"
+                         style="width: 36px; height: 36px; min-width: 36px; max-width: 36px; object-fit: cover; border-radius: 8px;">
+                </div>
                 <div class="user-info-mini">
                     <span class="user-name">{{ Auth::user()?->name ?? 'Admin' }}</span>
                     <span class="user-role">{{ ucfirst(Auth::user()?->role ?? 'admin') }}</span>
