@@ -1,15 +1,7 @@
 <!-- Admin Sidebar -->
 <div class="admin-sidebar">
     <div class="sidebar-header">
-        <div class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-briefcase"></i>
-            </div>
-            <div class="logo-text">
-                <h4>Admin</h4>
-                <span class="logo-subtitle">Management Portal</span>
-            </div>
-        </div>
+        <h4 class="sidebar-title">Admin Panel</h4>
     </div>
 
     <div class="sidebar-menu">

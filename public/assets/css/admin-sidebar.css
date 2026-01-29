@@ -38,7 +38,7 @@
 
 
 /* ============================================
-   SIDEBAR HEADER / LOGO
+   SIDEBAR HEADER
    ============================================ */
 .sidebar-header {
     padding: 1.25rem 1.5rem;
@@ -46,56 +46,13 @@
     flex-shrink: 0;
 }
 
-.sidebar-header .logo {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 0.75rem !important;
-}
-
-.logo-icon {
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
-    max-width: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    border-radius: 10px;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    color: white;
-    font-size: 1rem;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    flex-shrink: 0 !important;
-}
-
-.logo-text {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    flex: 1;
-}
-
-.logo-text h4 {
-    margin: 0 !important;
-    padding: 0 !important;
+.sidebar-title {
+    margin: 0;
+    padding: 0;
     color: var(--admin-heading-color, #1f2937);
     font-weight: 700;
     font-size: 1.125rem;
     letter-spacing: -0.025em;
-    line-height: 1.2;
-}
-
-.logo-subtitle {
-    font-size: 0.6875rem;
-    color: var(--admin-text-muted, #6b7280);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 500;
-    margin-top: 2px;
-    line-height: 1;
 }
 
 /* ============================================
@@ -420,6 +377,10 @@ html:not([data-theme="dark"]) .user-profile-mini {
 
 [data-theme="dark"] .logo-subtitle {
     color: #9ca3af;
+}
+
+[data-theme="dark"] .sidebar-title {
+    color: #f3f4f6;
 }
 
 [data-theme="dark"] .menu-title {
