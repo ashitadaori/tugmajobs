@@ -127,18 +127,11 @@
                 <span>Poster Builder</span>
             </a>
 
-            <!-- Analytics -->
+            <!-- Analytics (includes K-Means Clustering) -->
             <a href="{{ route('admin.analytics.dashboard') }}"
-                class="menu-item {{ request()->routeIs('admin.analytics.dashboard') ? 'active' : '' }}">
+                class="menu-item {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">
                 <i class="fas fa-chart-line"></i>
                 <span>Analytics</span>
-            </a>
-
-            <!-- K-Means Clustering -->
-            <a href="{{ route('admin.analytics.kmeans') }}"
-                class="menu-item {{ request()->routeIs('admin.analytics.kmeans*') ? 'active' : '' }}">
-                <i class="fas fa-project-diagram"></i>
-                <span>K-Means Clustering</span>
             </a>
 
             <!-- Audit Reports -->

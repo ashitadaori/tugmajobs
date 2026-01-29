@@ -177,8 +177,7 @@
         }
 
         /* Map Container */
-        #jobsMap,
-        #heatMap {
+        #jobsMap {
             width: 100%;
             height: 500px;
             border-radius: 8px;
@@ -314,24 +313,6 @@
             font-size: 0.875rem;
         }
 
-        /* Heatmap Legend */
-        .heatmap-legend {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            background: white;
-            border-radius: 4px;
-            margin-top: 0.5rem;
-        }
-
-        .heatmap-gradient {
-            width: 150px;
-            height: 16px;
-            background: linear-gradient(90deg, #3b82f6 0%, #f59e0b 50%, #ef4444 100%);
-            border-radius: 4px;
-        }
-
         /* Silhouette Score */
         .silhouette-meter {
             height: 8px;
@@ -353,8 +334,7 @@
                 padding: 1rem;
             }
 
-            #jobsMap,
-            #heatMap {
+            #jobsMap {
                 height: 350px;
             }
         }
@@ -645,9 +625,6 @@
             </button>
             <button class="analytics-tab" onclick="switchTab('map')">
                 <i class="bi bi-geo-alt"></i> Job Vacancies Map
-            </button>
-            <button class="analytics-tab" onclick="switchTab('heatmap')">
-                <i class="bi bi-map"></i> Applicant Density
             </button>
             <button class="analytics-tab" onclick="switchTab('jobfair')">
                 <i class="bi bi-calendar-event"></i> Job Fair Planning
@@ -1500,52 +1477,6 @@
         </div>
     </div>
 
-    <!-- Applicant Density Heatmap Tab -->
-    <div id="heatmap-tab" class="analytics-tab-pane">
-        <div class="row g-4">
-            <div class="col-lg-9">
-                <div class="analytics-card">
-                    <div class="analytics-card-header">
-                        <h5 class="mb-0">Applicant Density Heat Map</h5>
-                    </div>
-                    <div class="analytics-card-body position-relative">
-                        <div id="heatmapLoading" class="loading-overlay" style="display: none;">
-                            <div class="spinner"></div>
-                        </div>
-                        <div id="heatMap"></div>
-                        <div class="heatmap-legend">
-                            <span class="small">Low</span>
-                            <div class="heatmap-gradient"></div>
-                            <span class="small">High</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3">
-                <div class="analytics-card mb-4">
-                    <div class="analytics-card-header">
-                        <h5 class="mb-0">Density Statistics</h5>
-                    </div>
-                    <div class="analytics-card-body">
-                        <div id="densityStats">
-                            <!-- Density stats will be rendered here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-card-header">
-                        <h5 class="mb-0">Top Areas</h5>
-                    </div>
-                    <div class="analytics-card-body">
-                        <div id="topAreas" style="max-height: 300px; overflow-y: auto;">
-                            <!-- Top areas will be rendered here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Job Fair Planning Tab -->
     <div id="jobfair-tab" class="analytics-tab-pane">
         <div class="row g-4">
@@ -1826,7 +1757,6 @@
 
         // Maps
         let jobsMap = null;
-        let heatMap = null;
 
         // Charts
         let categoryTrendsChart = null;
@@ -2336,12 +2266,6 @@
                     }
                     loadMapData();
                     break;
-                case 'heatmap':
-                    if (!heatMap) {
-                        setTimeout(() => initHeatMap(), 100);
-                    }
-                    loadHeatmapData();
-                    break;
                 case 'jobfair':
                     loadJobFairData();
                     break;
@@ -2570,165 +2494,6 @@
                                                     <span>${stat.barangay}</span>
                                                 </div>
                                                 <span class="fw-bold">${stat.job_count}</span>
-                                            </div>
-                                        `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        // Initialize Heat Map
-        function initHeatMap() {
-            if (!mapboxToken) {
-                document.getElementById('heatMap').innerHTML = '<div class="alert alert-warning m-3">Mapbox token not configured</div>';
-                return;
-            }
-
-            mapboxgl.accessToken = mapboxToken;
-
-            heatMap = new mapboxgl.Map({
-                container: 'heatMap',
-                style: 'mapbox://styles/mapbox/dark-v11',
-                center: [125.4130, 6.8370], // Santa Cruz, Davao del Sur center
-                zoom: 12
-            });
-
-            heatMap.addControl(new mapboxgl.NavigationControl());
-        }
-
-        // Load Heatmap Data
-        async function loadHeatmapData() {
-            document.getElementById('heatmapLoading').style.display = 'flex';
-
-            try {
-                const response = await fetch('{{ route('admin.analytics.density') }}');
-                const result = await response.json();
-
-                if (result.success) {
-                    renderHeatmap(result.data);
-                    renderDensityStats(result.data.statistics);
-                    renderTopAreas(result.data.barangay_distribution);
-                }
-            } catch (error) {
-                console.error('Error loading heatmap data:', error);
-            } finally {
-                document.getElementById('heatmapLoading').style.display = 'none';
-            }
-        }
-
-        // Render heatmap
-        function renderHeatmap(data) {
-            if (!heatMap) return;
-
-            // Wait for map to load
-            if (!heatMap.loaded()) {
-                heatMap.on('load', () => renderHeatmap(data));
-                return;
-            }
-
-            // Remove existing layers
-            if (heatMap.getLayer('heatmap-layer')) {
-                heatMap.removeLayer('heatmap-layer');
-            }
-            if (heatMap.getSource('heatmap-source')) {
-                heatMap.removeSource('heatmap-source');
-            }
-
-            // Add heatmap source
-            const geojson = {
-                type: 'FeatureCollection',
-                features: data.heatmap_points.map(point => ({
-                    type: 'Feature',
-                    properties: { intensity: point.intensity, count: point.count },
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [point.lng, point.lat]
-                    }
-                }))
-            };
-
-            heatMap.addSource('heatmap-source', {
-                type: 'geojson',
-                data: geojson
-            });
-
-            heatMap.addLayer({
-                id: 'heatmap-layer',
-                type: 'heatmap',
-                source: 'heatmap-source',
-                paint: {
-                    'heatmap-weight': ['get', 'intensity'],
-                    'heatmap-intensity': 1,
-                    'heatmap-color': [
-                        'interpolate', ['linear'], ['heatmap-density'],
-                        0, 'rgba(59, 130, 246, 0)',
-                        0.2, 'rgba(59, 130, 246, 0.5)',
-                        0.4, 'rgba(245, 158, 11, 0.6)',
-                        0.6, 'rgba(245, 158, 11, 0.8)',
-                        0.8, 'rgba(239, 68, 68, 0.9)',
-                        1, 'rgba(239, 68, 68, 1)'
-                    ],
-                    'heatmap-radius': 30,
-                    'heatmap-opacity': 0.8
-                }
-            });
-        }
-
-        // Render density statistics
-        function renderDensityStats(stats) {
-            const container = document.getElementById('densityStats');
-
-            container.innerHTML = `
-                                        <div class="mb-3">
-                                            <div class="d-flex justify-content-between">
-                                                <span class="text-muted">Total Applications</span>
-                                                <span class="fw-bold">${stats.total_applications}</span>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <div class="d-flex justify-content-between">
-                                                <span class="text-muted">Avg per Barangay</span>
-                                                <span class="fw-bold">${stats.avg_per_barangay}</span>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <div class="d-flex justify-content-between">
-                                                <span class="text-muted">Coverage</span>
-                                                <span class="fw-bold">${stats.coverage}</span>
-                                            </div>
-                                        </div>
-                                        ${stats.highest_density ? `
-                                        <div class="alert alert-info small mb-0">
-                                            <strong>Highest Density:</strong><br>
-                                            ${stats.highest_density.barangay} (${stats.highest_density.application_count} applications)
-                                        </div>
-                                        ` : ''}
-                                    `;
-        }
-
-        // Render top areas
-        function renderTopAreas(distribution) {
-            const container = document.getElementById('topAreas');
-
-            if (!distribution || distribution.length === 0) {
-                container.innerHTML = '<p class="text-muted">No data available</p>';
-                return;
-            }
-
-            let html = '';
-            distribution.slice(0, 10).forEach((item, i) => {
-                const maxCount = distribution[0].application_count;
-                const width = (item.application_count / maxCount) * 100;
-
-                html += `
-                                            <div class="mb-2">
-                                                <div class="d-flex justify-content-between small">
-                                                    <span>${item.barangay}</span>
-                                                    <span class="fw-bold">${item.application_count}</span>
-                                                </div>
-                                                <div class="progress" style="height: 4px;">
-                                                    <div class="progress-bar bg-danger" style="width: ${width}%"></div>
-                                                </div>
                                             </div>
                                         `;
             });
