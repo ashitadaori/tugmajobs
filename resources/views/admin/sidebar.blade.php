@@ -1,7 +1,7 @@
 <!-- Admin Sidebar -->
 <div class="admin-sidebar">
     <div class="sidebar-header">
-        <div class="logo d-flex align-items-center">
+        <div class="logo">
             <div class="logo-icon">
                 <i class="fas fa-briefcase"></i>
             </div>

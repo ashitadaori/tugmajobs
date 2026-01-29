@@ -47,46 +47,49 @@
 }
 
 .sidebar-header .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
 }
 
 .logo-icon {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     color: white;
     font-size: 1rem;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
 }
 
 .logo-text {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    line-height: 1.2;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    flex: 1;
 }
 
 .logo-text h4 {
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
     color: var(--admin-heading-color, #1f2937);
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.125rem;
     letter-spacing: -0.025em;
     line-height: 1.2;
 }
 
 .logo-subtitle {
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     color: var(--admin-text-muted, #6b7280);
     text-transform: uppercase;
     letter-spacing: 0.05em;
