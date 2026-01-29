@@ -1013,9 +1013,9 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- How K-Means Works - Beginner-Friendly Explanation -->
-        <div class="kmeans-explanation mb-4">
+
+            <!-- How K-Means Works - Beginner-Friendly Explanation -->
+            <div class="kmeans-explanation mb-4">
             <div class="explanation-header collapsible-trigger" data-bs-toggle="collapse"
                 data-bs-target="#kmeansExplainContent">
                 <div class="explanation-icon">
@@ -1100,15 +1100,14 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="analytics-card">
-                    <div class="analytics-card-header">
-                        <div>
-                            <h5 class="mb-1">
-                                K-Means Cluster Visualization
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div>
+                                <h5 class="mb-1">
+                                    K-Means Cluster Visualization
                                 <i class="bi bi-info-circle-fill text-primary ms-1" style="font-size: 0.9em; cursor: help;"
                                     data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="right"
                                     data-bs-html="true" title="Quick Guide"
