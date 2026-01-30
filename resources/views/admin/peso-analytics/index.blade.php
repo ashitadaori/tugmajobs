@@ -694,31 +694,7 @@
 
             <!-- Quick Stats -->
             <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body text-center py-4">
-                            <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10"
-                                style="width: 60px; height: 60px;">
-                                <i class="bi bi-briefcase text-primary fs-3"></i>
-                            </div>
-                            <h3 class="mb-1" id="jobsCount">-</h3>
-                            <p class="text-muted mb-0">Active Jobs</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body text-center py-4">
-                            <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10"
-                                style="width: 60px; height: 60px;">
-                                <i class="bi bi-people text-success fs-3"></i>
-                            </div>
-                            <h3 class="mb-1" id="usersCount">-</h3>
-                            <p class="text-muted mb-0">Job Seekers</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body text-center py-4">
                             <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center bg-warning bg-opacity-10"
@@ -730,7 +706,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body text-center py-4">
                             <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10"
@@ -2179,7 +2155,7 @@
         }
 
         function updateScatterChart(scatterData, names) {
-            const ctx = document.getElementById('scatterChart').getContext('2d');
+            const ctx = document.getElementById('clusterScatterChart').getContext('2d');
 
             if (scatterChart) {
                 scatterChart.destroy();

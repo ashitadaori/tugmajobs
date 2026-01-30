@@ -130,9 +130,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
         Route::post('/clear-cache', [\App\Http\Controllers\Admin\PesoAnalyticsController::class, 'clearCache'])->name('clear-cache');
 
         // Azure ML K-Means Clustering API routes
-        Route::get('/kmeans', function () {
-            return redirect()->route('admin.analytics.dashboard');
-        })->name('kmeans');
+        Route::get('/kmeans', [\App\Http\Controllers\Admin\KMeansVisualizationController::class, 'index'])->name('kmeans');
         Route::get('/kmeans/data', [\App\Http\Controllers\Admin\KMeansVisualizationController::class, 'getData'])->name('kmeans.data');
         Route::get('/kmeans/health', [\App\Http\Controllers\Admin\KMeansVisualizationController::class, 'healthCheck'])->name('kmeans.health');
         Route::post('/kmeans/refresh', [\App\Http\Controllers\Admin\KMeansVisualizationController::class, 'refreshClusters'])->name('kmeans.refresh');
