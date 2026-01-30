@@ -1809,8 +1809,17 @@
 
         // Load Cluster Data
         async function loadClusterData() {
-            const type = document.getElementById('clusterType').value;
-            const k = document.getElementById('kValue').value;
+            const type = document.getElementById('clusterType')?.value || 'job';
+            // Check both K dropdowns and use whichever has a value, prioritize clusterK (visualization card)
+            const clusterKEl = document.getElementById('clusterK');
+            const kValueEl = document.getElementById('kValue');
+            const k = clusterKEl?.value || kValueEl?.value || 5;
+
+            // Sync both dropdowns
+            if (clusterKEl && kValueEl) {
+                clusterKEl.value = k;
+                kValueEl.value = k;
+            }
 
             showLoading();
 
@@ -2169,28 +2178,60 @@
                 scatterChart.destroy();
             }
 
-            // Group data by cluster
             const datasets = [];
-            const clusterMap = {};
+            const totalItems = scatterData.reduce((sum, p) => sum + (p.size || 1), 0);
 
-            scatterData.forEach(point => {
-                const clusterKey = point.cluster;
-                if (!clusterMap[clusterKey]) {
-                    clusterMap[clusterKey] = [];
-                }
-                clusterMap[clusterKey].push({ x: point.x, y: point.y, size: point.size || 10 });
-            });
-
-            Object.keys(clusterMap).forEach((cluster, idx) => {
+            // Generate visual cluster points around each centroid
+            scatterData.forEach((centroid, idx) => {
                 const colorIndex = idx % colors.length;
+                const clusterName = names[idx] || `Group ${idx + 1}`;
+                const clusterSize = centroid.size || 1;
+
+                // Calculate number of visual points based on cluster size (min 5, max 30 per cluster)
+                const numPoints = Math.min(30, Math.max(5, Math.round((clusterSize / totalItems) * 100)));
+
+                // Generate points in a gaussian-like distribution around centroid
+                const clusterPoints = [];
+                const spread = 0.15 + (clusterSize / totalItems) * 0.2; // Larger clusters = slightly more spread
+
+                for (let i = 0; i < numPoints; i++) {
+                    // Use Box-Muller transform for gaussian distribution
+                    const u1 = Math.random();
+                    const u2 = Math.random();
+                    const z1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+                    const z2 = Math.sqrt(-2 * Math.log(u1)) * Math.sin(2 * Math.PI * u2);
+
+                    clusterPoints.push({
+                        x: centroid.x + z1 * spread,
+                        y: centroid.y + z2 * spread,
+                        isCenter: false
+                    });
+                }
+
+                // Add cluster points dataset
                 datasets.push({
-                    label: names[idx] || `Group ${parseInt(cluster) + 1}`,
-                    data: clusterMap[cluster],
-                    backgroundColor: colors[colorIndex],
-                    borderColor: 'rgba(255,255,255,0.8)',
+                    label: clusterName,
+                    data: clusterPoints,
+                    backgroundColor: colors[colorIndex] + 'AA', // Semi-transparent
+                    borderColor: colors[colorIndex],
                     borderWidth: 1,
-                    pointRadius: 6,
-                    pointHoverRadius: 10
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointStyle: 'circle',
+                    order: 2 // Draw points first (lower order = drawn later/on top)
+                });
+
+                // Add centroid marker (star) as a separate dataset
+                datasets.push({
+                    label: `${clusterName} (Center)`,
+                    data: [{ x: centroid.x, y: centroid.y, size: clusterSize, name: clusterName }],
+                    backgroundColor: colors[colorIndex],
+                    borderColor: '#fff',
+                    borderWidth: 2,
+                    pointRadius: 12,
+                    pointHoverRadius: 16,
+                    pointStyle: 'star',
+                    order: 1 // Draw centroids on top
                 });
             });
 
@@ -2202,24 +2243,69 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 10 },
+                                filter: function(legendItem, data) {
+                                    // Only show main cluster names, not "Center" labels
+                                    return !legendItem.text.includes('(Center)');
+                                }
+                            }
                         },
                         tooltip: {
                             callbacks: {
+                                title: function(context) {
+                                    const datasetLabel = context[0].dataset.label;
+                                    return datasetLabel.replace(' (Center)', '');
+                                },
                                 label: function (context) {
                                     const point = context.raw;
-                                    return `${context.dataset.label}`;
+                                    if (point.size) {
+                                        return `Cluster center: ${point.size} items`;
+                                    }
+                                    return 'Data point in cluster';
                                 }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            display: false
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Salary Level →',
+                                font: { size: 11, weight: 'bold' },
+                                color: '#666'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            ticks: {
+                                display: false
+                            }
                         },
                         y: {
-                            display: false
+                            display: true,
+                            title: {
+                                display: true,
+                                text: '↑ Demand / Applications',
+                                font: { size: 11, weight: 'bold' },
+                                color: '#666'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            ticks: {
+                                display: false
+                            }
                         }
+                    },
+                    animation: {
+                        duration: 800,
+                        easing: 'easeOutQuart'
                     }
                 }
             });
