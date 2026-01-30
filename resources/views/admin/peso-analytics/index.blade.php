@@ -1831,6 +1831,9 @@
         }
 
         function updateDashboard(data, source, type) {
+            // Store data for bubble view
+            clusterData = data;
+
             // Update basic counts
             if (document.getElementById('clustersCount')) document.getElementById('clustersCount').textContent = data.metrics.n_clusters;
             if (document.getElementById('clustersCountAlt')) document.getElementById('clustersCountAlt').textContent = data.metrics.n_clusters;
@@ -1869,6 +1872,11 @@
 
             // Update group details
             updateGroupDetails(data.cluster_sizes, data.cluster_names, type);
+
+            // Update bubble view if currently active
+            if (currentClusterView === 'bubble') {
+                renderBubbleView(data);
+            }
         }
 
         function updateQualityScore(silhouetteScore) {
@@ -2252,6 +2260,81 @@
 
         // Render clusters visualization (main entry point)
 
+        // Current cluster view state
+        let currentClusterView = 'scatter';
+        let clusterData = null;
+
+        // Set cluster view (Scatter or Bubble)
+        function setClusterView(view) {
+            currentClusterView = view;
+
+            // Update button states
+            const scatterBtn = document.getElementById('scatterViewBtn');
+            const bubbleBtn = document.getElementById('bubbleViewBtn');
+
+            if (scatterBtn && bubbleBtn) {
+                scatterBtn.classList.toggle('active', view === 'scatter');
+                bubbleBtn.classList.toggle('active', view === 'bubble');
+            }
+
+            // Toggle view visibility
+            const scatterView = document.getElementById('scatterPlotView');
+            const bubbleView = document.getElementById('bubbleView');
+
+            if (scatterView && bubbleView) {
+                if (view === 'scatter') {
+                    scatterView.style.display = 'block';
+                    bubbleView.style.display = 'none';
+                } else {
+                    scatterView.style.display = 'none';
+                    bubbleView.style.display = 'block';
+                    // Render bubble view if we have data
+                    if (clusterData) {
+                        renderBubbleView(clusterData);
+                    }
+                }
+            }
+        }
+
+        // Render bubble view visualization
+        function renderBubbleView(data) {
+            const container = document.getElementById('clusterContainer');
+            if (!container) return;
+
+            const sizes = data.cluster_sizes || [];
+            const names = data.cluster_names || [];
+            const total = sizes.reduce((a, b) => a + b, 0);
+
+            let html = '<div class="d-flex flex-wrap justify-content-center align-items-center gap-3 p-4">';
+
+            names.forEach((name, index) => {
+                const size = sizes[index] || 0;
+                const percentage = total > 0 ? ((size / total) * 100).toFixed(1) : 0;
+                const color = colors[index % colors.length];
+                // Scale bubble size based on percentage (min 60px, max 180px)
+                const bubbleSize = Math.max(60, Math.min(180, 60 + (percentage * 2)));
+
+                html += `
+                    <div class="cluster-bubble text-center"
+                         style="width: ${bubbleSize}px; height: ${bubbleSize}px; background: ${color}; border-radius: 50%;
+                                display: flex; flex-direction: column; justify-content: center; align-items: center;
+                                color: white; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
+                         data-bs-toggle="tooltip" title="${name}: ${size} items (${percentage}%)">
+                        <div style="font-weight: bold; font-size: ${bubbleSize > 100 ? '1rem' : '0.75rem'};">${percentage}%</div>
+                        <div style="font-size: ${bubbleSize > 100 ? '0.75rem' : '0.6rem'}; opacity: 0.9; text-align: center; padding: 0 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90%;">${name}</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            // Reinitialize tooltips for the new bubble elements
+            const tooltipTriggerList = [].slice.call(container.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
 
         // Load Skills & Trends
         async function loadSkillTrends() {
